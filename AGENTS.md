@@ -1,0 +1,11 @@
+# 개발 규칙
+
+- 한국어와 존댓말을 기본으로 하되 전문용어는 English로 씁니다.
+- 함수별 docstring을 작성합니다. PowerShell 함수에는 comment-based help를 작성합니다.
+- 변수, 함수, 파일 이름은 축약보다 역할을 알아볼 수 있는 이름을 우선합니다.
+- 주석은 핵심 로직에 한정하여 한국어로 작성합니다.
+- 반복문 등을 과도하게 inline으로 압축하지 않습니다. 반년 뒤에도 이해할 수 있는 가독성을 우선합니다.
+- 실행 스크립트, 설정, dependency와 실행 산출물은 바깥 repo에서 관리합니다.
+- `external_repo/`의 공식 source에는 자체 수정이나 설치 산출물을 추가하지 않습니다.
+- 시스템별 설정, runtime, 스크립트, dependency, 문서는 각 상위 폴더의 `<시스템 이름>/` 아래로 분리합니다.
+- Strata의 Python 및 CUDA runtime은 `.venv/Strata`에 설치합니다. 시스템 CUDA Toolkit, 전역 PATH와 driver를 변경하지 않습니다.

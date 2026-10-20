@@ -1,0 +1,12 @@
+/external_repo/
+/.venv/
+/runtime/
+/config/**/*.local.json
+/config/**/*.shared-settings.json
+/config/**/profiles/
+__pycache__/
+*.pyc
+*.log
+.env
+.env.*
+!.env.example

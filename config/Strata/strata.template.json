@@ -1,0 +1,28 @@
+{
+  "exe": "component:strata-engine",
+  "backend": "cuda",
+  "arch": "qwen4exp",
+  "args": [
+    "--pack", "${DATA_ROOT}/packs/sc117_iq3_xxs",
+    "--native", "${DATA_ROOT}/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00001-of-00002.gguf",
+    "--ple-gguf", "${DATA_ROOT}/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00002-of-00002.gguf",
+    "--expert-profile", "${SOURCE_ROOT}/data/expert-profile.bin",
+    "--expert-cache", "auto",
+    "--prefill", "auto",
+    "--spec", "4",
+    "--spec-min-p", "0.5",
+    "--mtp", "${DATA_ROOT}/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/strata/rt",
+    "--max-context", "163840",
+    "--kv", "int8",
+    "--kv-resident", "32768",
+    "--vram-reserve-mib", "8192"
+  ],
+  "cwd": "${RUNNER_ROOT}/runtime/Strata/working",
+  "tokenizer": "${DATA_ROOT}/packs/sc117_iq3_xxs/tokenizer",
+  "model_name": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+  "log": "${RUNNER_ROOT}/runtime/Strata/logs/strata-engine.log",
+  "lib_dirs": ["${RUNNER_ROOT}/.venv/Strata/Lib/site-packages/nvidia/cu13/bin/x86_64"],
+  "host": "127.0.0.1",
+  "port": 8488,
+  "parallel": 1
+}

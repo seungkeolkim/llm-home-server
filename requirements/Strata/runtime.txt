@@ -1,0 +1,3 @@
+-r ../../external_repo/Strata/requirements.txt
+nvidia-cublas==13.0.2.14
+nvidia-cuda-runtime==13.0.96
