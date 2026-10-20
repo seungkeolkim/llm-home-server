@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib
 import json
 import os
 from pathlib import Path
+import secrets
 import subprocess
 import sys
+import time
 
 
 RUNNER_ROOT = Path(__file__).resolve().parents[2]
@@ -57,6 +60,83 @@ def invoke_strata(arguments: list[str], environment: dict[str, str]) -> int:
     return completed.returncode
 
 
+def resolve_engine_package(environment: dict[str, str]) -> dict:
+    """공식 CLI로 Engine 전체 hash와 signature를 검증하고 선택된 package 정보를 읽습니다."""
+    completed = subprocess.run(
+        [sys.executable, "-B", str(SOURCE_ROOT / "strata.py"),
+         "components", "engine", "--backend", "cuda", "--full", "--output", "json"],
+        cwd=RUNNER_ROOT, env=environment, capture_output=True, text=True, encoding="utf-8", check=False,
+    )
+    if completed.returncode:
+        raise ValueError(completed.stderr.strip() or completed.stdout.strip() or "Engine verification failed")
+    inventory = json.loads(completed.stdout)
+    if not inventory.get("usable") or not inventory.get("engine"):
+        raise ValueError("No verified Engine component is available")
+    print(f"Verified Engine package: {inventory['engine']['root']}", flush=True)
+    return inventory["engine"]
+
+
+def file_sha256(path: Path) -> str:
+    """대용량 파일을 메모리에 모두 올리지 않고 SHA-256을 계산합니다."""
+    digest = hashlib.sha256()
+    with path.open("rb") as source_stream:
+        while True:
+            block = source_stream.read(8 * 1024 * 1024)
+            if not block:
+                break
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def ensure_vision_projector(data_directory: Path, configured_path: Path) -> None:
+    """공식 pinned mmproj만 이어받기하고 크기와 SHA-256을 검증합니다."""
+    import requests
+
+    source = read_json(CONFIGURATION_ROOT / "vision-projector.source.json")
+    expected_path = data_directory / "models" / source["repository"] / source["filename"]
+    if configured_path.resolve() != expected_path.resolve():
+        if not configured_path.is_file():
+            raise FileNotFoundError(f"Custom vision projector is missing: {configured_path}")
+        return
+    if configured_path.exists():
+        if configured_path.stat().st_size != source["bytes"] or file_sha256(configured_path) != source["sha256"]:
+            raise ValueError(f"Existing vision projector failed verification: {configured_path}")
+        print(f"Vision projector SHA-256 verified: {configured_path}", flush=True)
+        return
+    configured_path.parent.mkdir(parents=True, exist_ok=True)
+    partial_path = configured_path.with_suffix(configured_path.suffix + ".part")
+    received_bytes = partial_path.stat().st_size if partial_path.exists() else 0
+    if received_bytes > source["bytes"]:
+        raise ValueError(f"Partial vision projector exceeds expected size: {partial_path}")
+    if received_bytes < source["bytes"]:
+        download_url = f"https://huggingface.co/{source['repository']}/resolve/{source['revision']}/{source['filename']}"
+        headers = {"Range": f"bytes={received_bytes}-"} if received_bytes else {}
+        print(f"Downloading vision projector: {source['filename']} ({source['bytes']} bytes)", flush=True)
+        with requests.get(download_url, headers=headers, stream=True, timeout=(15, 60)) as response:
+            response.raise_for_status()
+            if response.status_code == 206:
+                if not response.headers.get("Content-Range", "").startswith(f"bytes {received_bytes}-"):
+                    raise ValueError("Vision projector download returned an unexpected Content-Range")
+                file_mode = "ab"
+            else:
+                received_bytes = 0
+                file_mode = "wb"
+            last_progress_time = time.monotonic()
+            with partial_path.open(file_mode) as destination_stream:
+                for block in response.iter_content(chunk_size=4 * 1024 * 1024):
+                    if not block:
+                        continue
+                    destination_stream.write(block)
+                    received_bytes += len(block)
+                    if time.monotonic() - last_progress_time >= 10:
+                        print(f"Vision projector: {received_bytes / source['bytes']:.1%}", flush=True)
+                        last_progress_time = time.monotonic()
+    if partial_path.stat().st_size != source["bytes"] or file_sha256(partial_path) != source["sha256"]:
+        raise ValueError(f"Downloaded vision projector failed size/SHA-256 verification: {partial_path}")
+    partial_path.replace(configured_path)
+    print(f"Vision projector downloaded and SHA-256 verified: {configured_path}", flush=True)
+
+
 def expand_template(value: object, substitutions: dict[str, str]) -> object:
     """JSON 구조를 유지하며 명시된 경로 placeholder만 확장합니다."""
     if isinstance(value, dict):
@@ -70,7 +150,7 @@ def expand_template(value: object, substitutions: dict[str, str]) -> object:
 
 
 def validate_assets(data_directory: Path, configuration: dict) -> None:
-    """기존 모델의 크기와 Pack, tokenizer, CUDA DLL의 존재를 확인합니다."""
+    """기존 모델의 크기와 Pack, tokenizer, CUDA DLL 및 vision 파일의 존재를 확인합니다."""
     model_directory = data_directory / "models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF"
     manifest = read_json(model_directory / "download_manifest.json")
     for entry in manifest["files"]:
@@ -88,6 +168,11 @@ def validate_assets(data_directory: Path, configuration: dict) -> None:
         library_path = Path(configuration["lib_dirs"][0]) / filename
         if not library_path.is_file():
             raise FileNotFoundError(library_path)
+    if isinstance(configuration.get("vision"), dict):
+        for setting_name in ("exe", "mmproj", "model"):
+            vision_path = Path(configuration["vision"][setting_name])
+            if not vision_path.is_file():
+                raise FileNotFoundError(vision_path)
     print(f"Model manifest sizes, Pack, tokenizer and venv CUDA DLLs checked: {data_directory}", flush=True)
 
 
@@ -102,6 +187,8 @@ def prepare_environment(data_directory: Path) -> int:
         raise FileNotFoundError(SOURCE_ROOT / "strata.py")
     for module_name in ("jinja2", "yaml", "regex", "psutil", "requests", "numpy", "PIL"):
         importlib.import_module(module_name)
+    environment = runtime_environment(data_directory)
+    engine_package = resolve_engine_package(environment)
     for directory in ("working", "logs"):
         (RUNTIME_ROOT / directory).mkdir(parents=True, exist_ok=True)
     if not LOCAL_CONFIGURATION.exists():
@@ -109,19 +196,23 @@ def prepare_environment(data_directory: Path) -> int:
             "${RUNNER_ROOT}": RUNNER_ROOT.as_posix(),
             "${SOURCE_ROOT}": SOURCE_ROOT.as_posix(),
             "${DATA_ROOT}": data_directory.as_posix(),
+            "${ENGINE_ROOT}": Path(engine_package["root"]).as_posix(),
+            "${API_KEY}": secrets.token_urlsafe(32),
         }
         configuration = expand_template(read_json(CONFIGURATION_ROOT / "strata.template.json"), substitutions)
         write_json(LOCAL_CONFIGURATION, configuration)
     configuration = read_json(LOCAL_CONFIGURATION)
+    if configuration.get("host", "127.0.0.1") not in ("127.0.0.1", "localhost", "::1"):
+        if not configuration.get("api_key") and not os.environ.get("STRATA_API_KEY"):
+            configuration["api_key"] = secrets.token_urlsafe(32)
+            write_json(LOCAL_CONFIGURATION, configuration)
+            print(f"Generated network API key in local configuration: {LOCAL_CONFIGURATION}", flush=True)
+    if isinstance(configuration.get("vision"), dict):
+        ensure_vision_projector(data_directory, Path(configuration["vision"]["mmproj"]))
     shared_settings_path = CONFIGURATION_ROOT / "strata.local.shared-settings.json"
     if not shared_settings_path.exists():
         write_json(shared_settings_path, read_json(CONFIGURATION_ROOT / "shared-settings.template.json"))
     validate_assets(data_directory, configuration)
-    environment = runtime_environment(data_directory)
-    # Full verification과 signature 검증은 공식 CLI의 component resolver에 맡깁니다.
-    engine_exit_code = invoke_strata(["components", "engine", "--backend", "cuda", "--full", "--output", "json"], environment)
-    if engine_exit_code:
-        return engine_exit_code
     plan_exit_code = invoke_strata(["serve", "--profile", str(LOCAL_CONFIGURATION), "--plan", "--output", "json"], environment)
     if plan_exit_code:
         return plan_exit_code

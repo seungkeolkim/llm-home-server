@@ -15,14 +15,24 @@
     "--max-context", "163840",
     "--kv", "int8",
     "--kv-resident", "32768",
-    "--vram-reserve-mib", "8192"
+    "--vram-reserve-mib", "8192",
+    "--vision"
   ],
   "cwd": "${RUNNER_ROOT}/runtime/Strata/working",
   "tokenizer": "${DATA_ROOT}/packs/sc117_iq3_xxs/tokenizer",
   "model_name": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
   "log": "${RUNNER_ROOT}/runtime/Strata/logs/strata-engine.log",
   "lib_dirs": ["${RUNNER_ROOT}/.venv/Strata/Lib/site-packages/nvidia/cu13/bin/x86_64"],
-  "host": "127.0.0.1",
+  "host": "0.0.0.0",
+  "api_key": "${API_KEY}",
   "port": 8488,
-  "parallel": 1
+  "parallel": 1,
+  "vision": {
+    "exe": "${ENGINE_ROOT}/strata-vision.exe",
+    "mmproj": "${DATA_ROOT}/models/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF/mmproj-Qwen3.8-Flash-Next-BF16.gguf",
+    "model": "${DATA_ROOT}/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00001-of-00002.gguf",
+    "gpu": false,
+    "threads": 8,
+    "max_tokens": 300
+  }
 }

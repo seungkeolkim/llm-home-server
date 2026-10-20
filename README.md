@@ -3,12 +3,13 @@
 Strata와 향후 추가할 채팅 서버, 하네스, 검색 서버의 실행 환경을 관리하는 repo입니다.
 현재는 공식 Strata clone을 수정하지 않고 Windows / PowerShell에서 기동합니다.
 현재 모델은 SC117 Qwen3.8-Flash-Next GSQ-RCO abliteration / IQ3_XXS이며,
-API와 Web UI 주소는 **http://127.0.0.1:8488**입니다.
+모든 IPv4 interface의 **0.0.0.0:8488**에서 API와 Web UI를 제공합니다.
+이 PC에서는 **http://127.0.0.1:8488**, 다른 기기에서는 **http://<서버의 LAN IP>:8488**로 접속합니다.
 
 ## 준비 및 실행
 
 `external_repo/Strata`에 공식 source와 기존 `C:\Strata-data`의 Engine, 모델, Pack이 필요합니다.
-기존 모델을 다운로드하거나 Pack을 재생성하는 스크립트는 포함하지 않습니다.
+기존 대용량 text model과 Pack은 재사용합니다. 이미지 입력용 mmproj만 준비 작업에서 별도로 다운로드합니다.
 
 ```powershell
 .\prepare-strata-environment.ps1
@@ -56,6 +57,7 @@ Strata-home-server/
     Strata/
       strata.template.json                # 추적하는 초기 설정
       shared-settings.template.json       # 최초 shared settings
+      vision-projector.source.json        # mmproj revision, 크기, SHA-256
       strata.local.json                   # 생성된 실행 설정, Git 제외
       strata.local.shared-settings.json   # Web UI에서 저장하는 설정, Git 제외
       environment.local.json              # 기존 데이터 경로, Git 제외
@@ -90,11 +92,53 @@ VRAM reserve 8192 MiB (8 GiB), parallel 1, MTP spec 4입니다.
 초기 shared reasoning effort는 기존 파일의 `medium`을 보존했습니다. 별도 출력 token limit은 추가하지 않았습니다.
 VRAM reserve는 다른 프로그램의 사용 가능 VRAM을 항상 보장하지 않습니다.
 
+## 네트워크 및 OpenAI-compatible API
+
+OpenAI-compatible API는 서버 기동 시 같은 8488 포트의 `/v1`에서 기본 제공되며 별도 활성화 옵션은 없습니다.
+채팅 서버나 하네스의 Base URL은 `http://<서버 주소>:8488/v1`,
+모델 이름은 `sc117-qwen3.8-flash-next-abliterated-iq3_xxs`를 사용합니다.
+모델 목록은 `GET /v1/models`, 채팅은 `POST /v1/chat/completions`입니다.
+
+외부 interface에 bind할 때 Strata는 API key를 요구합니다.
+준비 작업에서 key를 최초 생성해 Git에서 제외된 `config/Strata/strata.local.json`에 보존합니다.
+사용자가 지정한 기존 key는 준비 작업이나 재기동 시 그대로 유지합니다.
+실제 key를 template이나 문서에 넣지 않습니다. 로컬 PowerShell에서 다음과 같이 확인할 수 있습니다.
+
+```powershell
+(Get-Content .\config\Strata\strata.local.json -Raw | ConvertFrom-Json).api_key
+```
+
+OpenAI-compatible client에는 이 값을 API key로 입력합니다. HTTP 요청은
+`Authorization: Bearer <API key>`를 사용합니다. Strata Web UI에서는 About > Settings에 key를 입력합니다.
+인증하지 않은 `/v1` 요청은 401로 거부됩니다.
+key를 바꾸려면 서버를 종료하고 local config의 `api_key`를 편집한 뒤 다시 기동합니다.
+다른 기기에서 접근하려면 Windows Firewall에서도 TCP 8488의 inbound 연결이 허용되어 있어야 합니다.
+`0.0.0.0`은 listen 주소이며 client의 접속 URL에는 서버의 실제 IP나 hostname을 사용합니다.
+
+## 이미지 입력
+
+현재 SC117 모델과 Pack을 유지하고, 호환되는 upstream BF16 mmproj를 추가하여 이미지 입력을 사용합니다.
+OpenAI-compatible `/v1/chat/completions`의 `image_url` content part와 Strata Web UI의 이미지 첨부를 지원합니다.
+
+16 GB GPU와 VRAM reserve 8 GiB 설정을 고려하여 image encoder는 CPU에서 실행합니다.
+현재 CPU threads는 8, 이미지당 최대 token 수는 300입니다. 이미지 token 한도는 답변 출력 token 한도와 별개입니다.
+세밀한 OCR이나 작은 글씨에 필요한 해상도를 높이려면 `vision.max_tokens`를 늘릴 수 있지만 CPU 처리 시간도 늘어납니다.
+
+`prepare-strata-environment.ps1`은 vision을 사용하는 config에서 mmproj가 없으면
+`config/Strata/vision-projector.source.json`의 pinned revision으로 다운로드하고 크기와 SHA-256을 검증합니다.
+파일은 `C:\Strata-data\models\ISTA-DASLab\Qwen3.8-Flash-Next-GSQ-RCO-GGUF\`에 두며,
+다운로드가 끊기면 다음 준비 작업에서 `.part` 파일을 이어받습니다. 기동 명령은 다운로드하지 않습니다.
+이미 생성한 config에 vision을 처음 추가할 때는 template의 `vision` section과 `--vision` argument를
+로컬 경로에 맞춰 적용해야 합니다. 기존 local config를 준비 스크립트가 덮어쓰지는 않습니다.
+
+호환 근거는 [SC117 모델 설명](https://huggingface.co/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF)과
+[Strata vision 문서](https://github.com/Niko1221/Strata/blob/main/docs/DETAILS.md#images-vision)입니다.
+
 ## 검증 및 업데이트
 
 준비 작업은 `pip check`, 필수 module import, venv CUDA DLL 존재,
 기존 download manifest의 모델 파일 크기, Pack/tokenizer 존재,
-Engine 전체 hash 및 signature와 실행 plan을 확인합니다.
+Engine 전체 hash 및 signature, mmproj hash 및 실행 plan을 확인합니다.
 서버 기동 시에는 공식 runtime이 Engine을 다시 검증합니다.
 `verify`와 `/health`, `/v1/models`로 기동 후 상태를 확인할 수 있습니다.
 

@@ -133,3 +133,63 @@ local config의 cwd, log, CUDA DLL 경로 및 saved profile의 source_config를 
 
 초기 commit 대상은 실행 스크립트, requirements, 설정 template과 문서입니다.
 공식 clone, venv, local config, saved profile 및 runtime 데이터는 Git에서 제외합니다.
+
+## 후속 변경: 이미지 입력 활성화
+
+2026-10-21 기존 SC117 IQ3_XXS 모델, Pack 및 Engine을 유지하고 mmproj만 추가했습니다.
+SC117 모델 작성자가 upstream projector 재사용을 명시하고 있습니다.
+
+- 출처: `ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF`.
+- revision: `ed59f92082b1e93c0e96d60a8b11aab089b52f09`.
+- 파일: `mmproj-Qwen3.8-Flash-Next-BF16.gguf`, `907543008` bytes.
+- SHA-256: `b1a82259702816a5330d7bd7607cd9676b11780e79ff7348c21103ff3ce49bd0`.
+- 저장 위치: `C:\Strata-data\models\ISTA-DASLab\Qwen3.8-Flash-Next-GSQ-RCO-GGUF\`.
+- Encoder: 기존 signed Engine package의 `strata-vision.exe`, CPU 8 threads, 최대 300 image tokens.
+- 기존 context `163840`, KV resident `32768`, reserve `8192 MiB`, reasoning effort `medium` 유지.
+
+공식 source를 수정하거나 시스템 CUDA를 설치하지 않았습니다.
+local config와 template에 `--vision` 및 vision section을 추가했습니다.
+준비 스크립트는 projector의 크기와 hash를 검증하고 없으면 pinned 파일만 다운로드합니다.
+Engine package 경로는 공식 component inventory로 resolve한 뒤 template에 반영합니다.
+기동 과정에서는 다운로드하지 않습니다.
+
+재기동 후 확인한 결과:
+
+- `/health`: `images: true`, `loaded: true`.
+- `/v1/models`: input modalities가 `text`, `image`.
+- managed runtime `ready`, `verify` 및 generation 검증 통과.
+- 흰 배경의 왼쪽 파란 직사각형과 오른쪽 빨간 원을 그린 PNG를 base64 image_url로 전송.
+- 실제 답변: `Left: blue rectangle. Right: red circle.`, finish reason `stop`.
+- 텍스트만 전송하는 요청에서도 `READY` 응답 확인.
+- 기존 mmproj 재검증 및 준비 작업 반복 실행 후 local config/shared settings hash 유지.
+- Python, PowerShell, JSON 문법 및 diff 검사 통과. 공식 clone 변경 및 산출물 없음.
+- 마지막 GPU 측정: used `8750 MiB`, free `7228 MiB` (PC 전체 순간 사용량).
+
+검증용 PNG와 응답 JSON은 Git에서 제외한 `runtime/Strata/vision-smoke*`에 있습니다.
+작은 글씨의 OCR, 많은 이미지, 고해상도 문서 인식 품질은 별도로 측정하지 않았습니다.
+종료·기동 소요 시간 측정 요청은 사용자 취소로 수행하지 않았습니다.
+
+## 후속 변경: 외부 interface 및 OpenAI-compatible API
+
+2026-10-21 bind 주소를 `127.0.0.1`에서 `0.0.0.0`으로 바꿨습니다.
+현재 LAN 주소는 `192.168.0.8`이며 OpenAI-compatible Base URL은
+`http://192.168.0.8:8488/v1`입니다. API는 별도 옵션 없이 기동 시 기본 제공됩니다.
+
+현재 공식 CLI와 server는 non-loopback bind에 API key를 필수로 요구합니다.
+사용자가 지정한 key를 Git에서 제외된 local config에 저장했으며 실제 값은 문서와 template에 넣지 않았습니다.
+template의 key placeholder는 최초 준비 시 확장하고, 기존 local key는 유지합니다.
+context, vision, VRAM reserve 등의 추론 설정은 변경하지 않았습니다.
+
+재기동 후 확인한 결과:
+
+- 실제 TCP listener가 `0.0.0.0:8488`.
+- localhost와 이 PC의 LAN 주소 양쪽에서 health 및 Web UI HTTP 200.
+- `/health`: loaded, images 및 API key 활성화 상태 확인.
+- key를 포함한 `GET /v1/models`는 HTTP 200, key 없는 요청은 HTTP 401.
+- LAN 주소의 `POST /v1/chat/completions`에서 실제 `READY` 응답 확인.
+- managed runtime `ready`, identity/attestation/generation 및 `verify` 통과.
+- 실제 key가 들어 있는 local config는 Git ignore 대상이고 공식 clone도 변경 없음.
+
+LAN 주소 검증은 이 PC에서 수행했습니다. 다른 기기에서의 inbound 접속까지는 검증하지 않았습니다.
+Windows Firewall 규칙 조회는 현재 process에 관리자 권한이 없어 Access denied였으며,
+방화벽 규칙은 변경하지 않았습니다.
