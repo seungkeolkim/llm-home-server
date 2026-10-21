@@ -1,4 +1,4 @@
-name: strata-home-server-librechat
+name: llm-home-server-librechat
 
 services:
   librechat:
@@ -37,6 +37,7 @@ services:
     restart: unless-stopped
     volumes:
       - mongodb-data:/data/db
+      - mongodb-configdb:/data/configdb
     healthcheck:
       test: [CMD, mongosh, --quiet, --eval, "quit(db.adminCommand('ping').ok ? 0 : 1)"]
       interval: 10s
@@ -51,4 +52,5 @@ services:
 
 volumes:
   mongodb-data:
+  mongodb-configdb:
   librechat-images:

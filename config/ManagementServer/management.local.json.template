@@ -1,0 +1,23 @@
+{
+  "host": "0.0.0.0",
+  "port": 8788,
+  "access_string": "CHANGE_ME_이 부분을 바꾸세요_관리 화면 접속 문자열",
+  "session_secret": "CHANGE_ME_이 부분을 바꾸세요_32자 이상 무작위 session secret",
+  "session_hours": 168,
+  "comfy_url": "http://127.0.0.1:8188",
+  "llm": {
+    "adapter": "strata",
+    "name": "Strata",
+    "configuration_path": "config/Strata/strata.local.json"
+  },
+  "links": {
+    "librechat": 8588,
+    "llm": 8488,
+    "comfy_home": 8388
+  },
+  "external_links": {
+    "librechat": 8588,
+    "llm": 8488,
+    "comfy_home": 38388
+  }
+}

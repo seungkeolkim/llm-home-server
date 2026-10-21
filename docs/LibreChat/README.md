@@ -8,6 +8,16 @@ Meilisearch, RAG API, PostgreSQL, Redis 및 별도 Admin Panel은 설치하지 �
 
 Docker Desktop의 Linux container engine과 실행 중인 Strata가 필요합니다.
 명령은 이 repository root에서 실행합니다.
+먼저 아래 template을 파일명 끝의 `.template`만 제거한 이름으로 복사합니다.
+
+- `config/LibreChat/.env.local.template` → `.env.local`
+- `config/LibreChat/librechat.local.yaml.template` → `librechat.local.yaml`
+- `config/LibreChat/admin-credentials.local.json.template` → `admin-credentials.local.json`
+
+`.env.local`의 `DOMAIN_CLIENT`·`DOMAIN_SERVER`, `STRATA_API_KEY`, `CREDS_KEY`·`CREDS_IV`, `JWT_SECRET`·`JWT_REFRESH_SECRET`을 반드시 입력합니다.
+Strata API key는 `config/Strata/strata.local.json`의 값과 같아야 합니다.
+관리자 JSON의 `email`과 `password`도 반드시 바꿉니다.
+값의 형식과 생성 명령, 기존 파일을 보존하는 복사 명령은 [프로젝트 README](../../README.md)에 있습니다.
 
 ```powershell
 .\scripts\LibreChat\prepare-environment.ps1 -PublicUrl 'http://<공인 IP 또는 DDNS>:8588'
@@ -17,14 +27,14 @@ Docker Desktop의 Linux container engine과 실행 중인 Strata가 필요합니
 .\scripts\LibreChat\run-librechat.ps1 status
 ```
 
-준비 스크립트는 `config/Strata/strata.local.json`에서 port, model name, API key 및 context window를 읽습니다.
+준비 스크립트는 `config/Strata/strata.local.json`에서 port, model name, API key 및 context window를 읽어 입력값을 확인하고 YAML placeholder를 확장합니다.
 Strata endpoint는 container에서 `http://host.docker.internal:<Strata port>/v1`로 연결합니다.
 API key는 Git에서 제외된 `config/LibreChat/.env.local`에만 저장합니다.
-재준비 시 encryption/JWT secret과 최초 관리자 자격 증명을 보존하고, Strata 연결 값은 현재 설정으로 갱신합니다.
+재준비 시 encryption/JWT secret과 최초 관리자 자격 증명을 보존하며 이미 확장한 YAML도 덮어쓰지 않습니다.
+Strata 모델·port를 바꾼 경우 `.env.local`의 연결 주소·key와 YAML의 모델·context를 직접 맞춥니다.
 `-Port`를 생략하면 기존 local port를 유지하며 최초 기본값은 8588입니다.
 
-최초 관리자 login email은 `admin@strata.home`입니다.
-Password는 `config/LibreChat/admin-credentials.local.json`에서 확인할 수 있습니다.
+최초 관리자 login email과 password는 `config/LibreChat/admin-credentials.local.json`에 직접 입력합니다.
 `create-admin`은 공식 `registerUser`를 이용하며 기존 administrator와 password를 유지합니다.
 공개 회원가입, social login 및 email password reset은 비활성화되어 있습니다.
 
@@ -90,8 +100,10 @@ LibreChat은 여기에서 여유 공간을 빼므로 UI의 실제 context budget
 |---|---|
 | `external_repo/LibreChat/` | 공식 source clone, 수정 및 설치 산출물 없음 |
 | `config/LibreChat/compose.yaml` | 최소 두 service 및 persistent volume 정의 |
-| `config/LibreChat/librechat.template.yaml` | Strata, Web Search, 자동 요약 template |
-| `config/LibreChat/librechat.local.yaml` | 현재 Strata 값으로 생성한 운영 설정, Git 제외 |
+| `config/LibreChat/librechat.local.yaml.template` | Strata, Web Search, 자동 요약 복사용 template |
+| `config/LibreChat/.env.local.template` | 접속 origin, API key·암호화 key·JWT secret 입력용 template |
+| `config/LibreChat/admin-credentials.local.json.template` | 최초 관리자 email·password 입력용 template |
+| `config/LibreChat/librechat.local.yaml` | 복사 후 Strata placeholder를 확장한 운영 설정, Git 제외 |
 | `config/LibreChat/.env.local` | API key, encryption/JWT secret, 접속 origin, Git 제외 |
 | `config/LibreChat/admin-credentials.local.json` | 최초 관리자 초기화 정보, Git 제외. 실제 계정의 기준은 MongoDB |
 | `data/LibreChat/uploads/` | 사용자 업로드, `/app/uploads`에 mount, Git 제외 |
@@ -101,8 +113,9 @@ LibreChat은 여기에서 여유 공간을 빼므로 UI의 실제 context budget
 | `runtime/LibreChat/diagnostics/` | 검증 응답, 이전 manifest와 검증 결과, Git 제외 |
 | `scripts/LibreChat/verify-integration.py` | Python 표준 라이브러리 기반 로그인·채팅·검색 검증 코드 |
 | `tests/LibreChat/` | 데이터 경계 검증과 실제 방화벽을 변경하지 않는 regression fixture |
-| `strata-home-server-librechat_mongodb-data` | MongoDB Docker named volume |
-| `strata-home-server-librechat_librechat-images` | LibreChat image asset Docker named volume |
+| `llm-home-server-librechat_mongodb-data` | MongoDB Docker named volume |
+| `llm-home-server-librechat_mongodb-configdb` | MongoDB configdb Docker named volume |
+| `llm-home-server-librechat_librechat-images` | LibreChat image asset Docker named volume |
 
 ```powershell
 .\scripts\LibreChat\run-librechat.ps1 status
@@ -141,6 +154,24 @@ DB는 기존 volume을 계속 사용하며, volume 삭제나 관리자 재생성
 빈 디렉터리가 자동으로 mount되어 기존 업로드가 사라진 것처럼 보이는 기동을 방지하기 위한 확인입니다.
 이전 실패 시 앱을 중지하고 백업과 원래 경로·mount 정의를 함께 복구한 뒤 기동합니다.
 백업에는 실제 데이터와 secret이 포함되므로 공개하거나 Git에 추가하지 않습니다.
+
+### Compose project 이름 이전
+
+2026-10-21에 Compose project를 `llm-home-server-librechat`으로 변경했습니다.
+Container는 `llm-home-server-librechat-librechat-1`, `llm-home-server-librechat-mongodb-1`,
+network는 `llm-home-server-librechat_default`입니다.
+Image는 기존 공식 LibreChat digest와 `mongo:8.0.20`을 그대로 사용합니다. Image 이름에는 이전 프로젝트명이 없습니다.
+
+LibreChat과 MongoDB를 중지한 상태에서 기존 volume을 tar로 백업하고 새 이름의 volume으로 복사했습니다.
+MongoDB의 `/data/configdb`도 기존 anonymous volume에서 `llm-home-server-librechat_mongodb-configdb`로 이전했습니다.
+파일 내용·권한·소유자·수정 시각과 DB 전체 collection의 document hash를 확인한 뒤 기존 container·network·volume을 제거했습니다.
+업로드, local 설정, 관리자 계정과 Strata engine 설정은 보존했습니다.
+
+백업은 `data/LibreChat/backups/compose-project-rename-20261021-205049/`에 있습니다.
+각 volume의 tar, 파일 manifest, local 설정 사본과 `migration-state.json`을 함께 보관합니다.
+`migration-state.json`에는 이전·이후 volume 이름, DB 비교 결과와 backup SHA-256이 있습니다.
+다른 checkout에 기존 데이터가 있다면 Compose 이름만 바꾸어 기동하지 말고 먼저 중지·백업·volume 복사와 검증을 진행합니다.
+복구할 때도 앱과 MongoDB를 중지하고 해당 백업의 volume mapping과 설정을 함께 확인합니다.
 
 ### 검증 명령
 

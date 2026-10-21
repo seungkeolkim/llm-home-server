@@ -1,12 +1,13 @@
-<#
+﻿<#
 .SYNOPSIS
-Strata local config를 읽어 LibreChat 설정과 최초 관리자 자격 증명을 준비합니다.
+Template에서 복사한 LibreChat 설정과 관리자 자격 증명을 검증하고 경로를 준비합니다.
 #>
 [CmdletBinding()]
 param(
     [string]$PublicUrl = '',
     [ValidateRange(1, 65535)]
-    [int]$Port = 8588
+    [int]$Port = 8588,
+    [switch]$ValidateOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -26,21 +27,15 @@ foreach ($legacyPath in @(
     }
 }
 
-function New-RandomSecret {
+function Assert-ConfiguredValue {
     <#
     .SYNOPSIS
-    Cryptographic random bytes를 hexadecimal secret으로 만듭니다.
+    필수 설정이 비어 있거나 template의 안내 문자열인 경우 항목명만 표시하고 중단합니다.
     #>
-    param([int]$ByteCount = 32)
-    $randomBytes = New-Object byte[] $ByteCount
-    $randomGenerator = [Security.Cryptography.RandomNumberGenerator]::Create()
-    try {
-        $randomGenerator.GetBytes($randomBytes)
+    param([string]$FieldName, [string]$FieldValue)
+    if ([string]::IsNullOrWhiteSpace($FieldValue) -or $FieldValue.StartsWith('CHANGE_ME_') -or $FieldValue -eq '${API_KEY}') {
+        throw "$FieldName 항목을 실제 값으로 바꿔 주세요."
     }
-    finally {
-        $randomGenerator.Dispose()
-    }
-    return ([BitConverter]::ToString($randomBytes)).Replace('-', '').ToLowerInvariant()
 }
 
 function Read-EnvironmentSettings {
@@ -51,7 +46,7 @@ function Read-EnvironmentSettings {
     param([string]$Path)
     $environmentSettings = [ordered]@{}
     if (Test-Path -LiteralPath $Path) {
-        foreach ($environmentLine in Get-Content -LiteralPath $Path) {
+        foreach ($environmentLine in Get-Content -LiteralPath $Path -Encoding UTF8) {
             if ([string]::IsNullOrWhiteSpace($environmentLine) -or $environmentLine.StartsWith('#')) {
                 continue
             }
@@ -64,17 +59,46 @@ function Read-EnvironmentSettings {
     return $environmentSettings
 }
 
-$strataConfigurationPath = Join-Path $workspaceRoot 'config\Strata\strata.local.json'
-$strataConfiguration = Get-Content -LiteralPath $strataConfigurationPath -Raw | ConvertFrom-Json
-if ([string]::IsNullOrWhiteSpace($strataConfiguration.api_key)) {
-    throw 'Strata local config에 api_key가 없습니다.'
+$localConfigurationPath = Join-Path $configurationDirectory 'librechat.local.yaml'
+$administratorCredentialsPath = Join-Path $configurationDirectory 'admin-credentials.local.json'
+foreach ($requiredPath in @($environmentPath, $localConfigurationPath, $administratorCredentialsPath)) {
+    if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+        throw "$requiredPath.template을 $requiredPath 파일로 복사하고 필수 값을 바꿔 주세요."
+    }
 }
+$strataConfigurationPath = Join-Path $workspaceRoot 'config\Strata\strata.local.json'
+$strataConfiguration = Get-Content -LiteralPath $strataConfigurationPath -Raw -Encoding UTF8 | ConvertFrom-Json
+Assert-ConfiguredValue -FieldName 'Strata api_key' -FieldValue $strataConfiguration.api_key
 $contextArgumentIndex = [Array]::IndexOf($strataConfiguration.args, '--max-context')
 if ($contextArgumentIndex -lt 0) {
     throw 'Strata local config에 --max-context가 없습니다.'
 }
 $contextTokenLimit = [int]$strataConfiguration.args[$contextArgumentIndex + 1]
 $environmentSettings = Read-EnvironmentSettings -Path $environmentPath
+foreach ($requiredSettingName in @(
+    'DOMAIN_CLIENT', 'DOMAIN_SERVER', 'LIBRECHAT_PORT', 'MONGO_URI', 'STRATA_BASE_URL',
+    'STRATA_API_KEY', 'CREDS_KEY', 'CREDS_IV', 'JWT_SECRET', 'JWT_REFRESH_SECRET'
+)) {
+    Assert-ConfiguredValue -FieldName $requiredSettingName -FieldValue $environmentSettings[$requiredSettingName]
+}
+if ($environmentSettings['STRATA_API_KEY'] -cne [string]$strataConfiguration.api_key) {
+    throw 'STRATA_API_KEY는 Strata local config의 api_key와 같아야 합니다.'
+}
+if ($environmentSettings['CREDS_KEY'] -notmatch '^[0-9a-fA-F]{64}$' -or $environmentSettings['CREDS_IV'] -notmatch '^[0-9a-fA-F]{32}$') {
+    throw 'CREDS_KEY는 64자리 hex, CREDS_IV는 32자리 hex여야 합니다.'
+}
+foreach ($secretSettingName in @('JWT_SECRET', 'JWT_REFRESH_SECRET')) {
+    if ($environmentSettings[$secretSettingName].Length -lt 32) {
+        throw "$secretSettingName 항목은 32자 이상이어야 합니다."
+    }
+}
+$administratorCredentials = Get-Content -LiteralPath $administratorCredentialsPath -Raw -Encoding UTF8 | ConvertFrom-Json
+foreach ($credentialFieldName in @('email', 'name', 'username', 'password')) {
+    Assert-ConfiguredValue -FieldName "admin-credentials.local.json $credentialFieldName" -FieldValue $administratorCredentials.$credentialFieldName
+}
+if ($administratorCredentials.password.Length -lt 8) {
+    throw '관리자 password는 8자 이상이어야 합니다.'
+}
 if (-not $PSBoundParameters.ContainsKey('Port') -and $environmentSettings['LIBRECHAT_PORT']) {
     $Port = [int]$environmentSettings['LIBRECHAT_PORT']
 }
@@ -92,6 +116,22 @@ if (-not $publicAddress.IsAbsoluteUri -or $publicAddress.Scheme -notin @('http',
     throw 'PublicUrl은 http 또는 https의 absolute URL이어야 합니다.'
 }
 $PublicUrl = $PublicUrl.TrimEnd('/')
+foreach ($originSettingName in @('DOMAIN_CLIENT', 'DOMAIN_SERVER')) {
+    $configuredOrigin = [Uri]$environmentSettings[$originSettingName]
+    if (-not $configuredOrigin.IsAbsoluteUri -or $configuredOrigin.Scheme -notin @('http', 'https')) {
+        throw "$originSettingName 항목은 http 또는 https의 absolute URL이어야 합니다."
+    }
+}
+if ($Port -lt 1 -or $Port -gt 65535) {
+    throw 'LIBRECHAT_PORT는 1부터 65535 사이여야 합니다.'
+}
+if ($ValidateOnly) {
+    if ([IO.File]::ReadAllText($localConfigurationPath) -match '__STRATA_(PORT|MODEL_NAME|CONTEXT_TOKENS)__') {
+        throw 'LibreChat 설정의 경로 확장을 위해 prepare-environment.ps1을 먼저 실행해 주세요.'
+    }
+    Write-Output 'LibreChat local configuration verified.'
+    return
+}
 
 foreach ($directoryPath in @(
     $configurationDirectory,
@@ -103,70 +143,35 @@ foreach ($directoryPath in @(
     New-Item -ItemType Directory -Path $directoryPath -Force | Out-Null
 }
 
-$managedSettings = [ordered]@{
-    HOST = '0.0.0.0'
-    PORT = '3080'
-    NODE_ENV = 'production'
-    CONFIG_PATH = '/app/librechat.yaml'
-    MONGO_URI = 'mongodb://mongodb:27017/LibreChat'
-    DOMAIN_CLIENT = $PublicUrl
-    DOMAIN_SERVER = $PublicUrl
-    LIBRECHAT_PORT = [string]$Port
-    STRATA_BASE_URL = "http://host.docker.internal:$($strataConfiguration.port)/v1"
-    STRATA_API_KEY = $strataConfiguration.api_key
-    ENDPOINTS = 'Strata,agents'
-    SEARCH = 'false'
-    ALLOW_EMAIL_LOGIN = 'true'
-    ALLOW_REGISTRATION = 'false'
-    ALLOW_SOCIAL_LOGIN = 'false'
-    ALLOW_SOCIAL_REGISTRATION = 'false'
-    ALLOW_PASSWORD_RESET = 'false'
-    ALLOW_UNVERIFIED_EMAIL_LOGIN = 'false'
-    SESSION_COOKIE_SECURE = ([string]($publicAddress.Scheme -eq 'https')).ToLowerInvariant()
-    NO_INDEX = 'true'
-    DEBUG_LOGGING = 'false'
-    DEBUG_CONSOLE = 'false'
-    SCHEDULES_SINGLE_PROCESS = 'true'
-    NO_PROXY = 'localhost,127.0.0.1,::1,mongodb,host.docker.internal'
-    LIBRECHAT_TEMP_CREDENTIALS_PATH = '/app/data/.env.temp'
+# 명시적인 port·origin 변경만 반영하고 사용자가 작성한 주석과 secret은 유지합니다.
+$updatedSettings = @{}
+if ($PSBoundParameters.ContainsKey('PublicUrl')) {
+    $updatedSettings['DOMAIN_CLIENT'] = $PublicUrl
+    $updatedSettings['DOMAIN_SERVER'] = $PublicUrl
+    $updatedSettings['SESSION_COOKIE_SECURE'] = ([string]($publicAddress.Scheme -eq 'https')).ToLowerInvariant()
 }
-foreach ($settingName in $managedSettings.Keys) {
-    $environmentSettings[$settingName] = $managedSettings[$settingName]
+if ($PSBoundParameters.ContainsKey('Port')) {
+    $updatedSettings['LIBRECHAT_PORT'] = [string]$Port
 }
-foreach ($secretName in @('CREDS_KEY', 'JWT_SECRET', 'JWT_REFRESH_SECRET')) {
-    if (-not $environmentSettings[$secretName]) {
-        $environmentSettings[$secretName] = New-RandomSecret
+if ($updatedSettings.Count) {
+    $environmentLines = foreach ($environmentLine in [IO.File]::ReadAllLines($environmentPath)) {
+        $environmentParts = $environmentLine.Split('=', 2)
+        if ($environmentParts.Count -eq 2 -and $updatedSettings.ContainsKey($environmentParts[0])) {
+            '{0}={1}' -f $environmentParts[0], $updatedSettings[$environmentParts[0]]
+        } else {
+            $environmentLine
+        }
     }
+    [IO.File]::WriteAllLines($environmentPath, [string[]]$environmentLines, [Text.UTF8Encoding]::new($false))
 }
-if (-not $environmentSettings['CREDS_IV']) {
-    $environmentSettings['CREDS_IV'] = New-RandomSecret -ByteCount 16
-}
-$environmentLines = foreach ($settingName in $environmentSettings.Keys) {
-    '{0}={1}' -f $settingName, $environmentSettings[$settingName]
-}
-[IO.File]::WriteAllLines($environmentPath, [string[]]$environmentLines, [Text.UTF8Encoding]::new($false))
 
-$configurationTemplatePath = Join-Path $configurationDirectory 'librechat.template.yaml'
-$configurationText = [IO.File]::ReadAllText($configurationTemplatePath)
+$originalConfigurationText = [IO.File]::ReadAllText($localConfigurationPath)
+$configurationText = $originalConfigurationText
 $configurationText = $configurationText.Replace('__STRATA_MODEL_NAME__', $strataConfiguration.model_name)
 $configurationText = $configurationText.Replace('__STRATA_PORT__', [string]$strataConfiguration.port)
 $configurationText = $configurationText.Replace('__STRATA_CONTEXT_TOKENS__', [string]$contextTokenLimit)
-$localConfigurationPath = Join-Path $configurationDirectory 'librechat.local.yaml'
-[IO.File]::WriteAllText($localConfigurationPath, $configurationText, [Text.UTF8Encoding]::new($false))
-
-$administratorCredentialsPath = Join-Path $configurationDirectory 'admin-credentials.local.json'
-if (-not (Test-Path -LiteralPath $administratorCredentialsPath)) {
-    $administratorCredentials = [ordered]@{
-        email = 'admin@strata.home'
-        name = 'Strata Administrator'
-        username = 'strata-admin'
-        password = New-RandomSecret -ByteCount 18
-    }
-    [IO.File]::WriteAllText(
-        $administratorCredentialsPath,
-        ($administratorCredentials | ConvertTo-Json),
-        [Text.UTF8Encoding]::new($false)
-    )
+if ($configurationText -cne $originalConfigurationText) {
+    [IO.File]::WriteAllText($localConfigurationPath, $configurationText, [Text.UTF8Encoding]::new($false))
 }
 Write-Output "LibreChat 설정 준비 완료: $localConfigurationPath"
 Write-Output "접속 주소: $PublicUrl / host port: $Port"

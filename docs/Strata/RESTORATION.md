@@ -177,7 +177,8 @@ Engine package 경로는 공식 component inventory로 resolve한 뒤 template�
 
 현재 공식 CLI와 server는 non-loopback bind에 API key를 필수로 요구합니다.
 사용자가 지정한 key를 Git에서 제외된 local config에 저장했으며 실제 값은 문서와 template에 넣지 않았습니다.
-template의 key placeholder는 최초 준비 시 확장하고, 기존 local key는 유지합니다.
+현재 준비 방식에서는 `strata.local.json.template`을 실제 local 파일로 복사한 뒤 `api_key`를 직접 입력합니다.
+경로 placeholder만 준비 시 확장하며 기존 local key는 유지합니다.
 context, vision, VRAM reserve 등의 추론 설정은 변경하지 않았습니다.
 
 재기동 후 확인한 결과:

@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#111725" />
+    <title>LLM Home Server</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2378d4bc'/%3E%3Ctext x='32' y='42' font-size='27' text-anchor='middle' font-family='sans-serif' font-weight='bold' fill='%23101722'%3ELH%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/application.css" />
+    <script src="/application.js" defer></script>
+  </head>
+  <body>
+    <section id="access-screen" class="access-screen">
+      <form id="access-form" class="access-card">
+        <span class="brand-mark">LH</span>
+        <p class="eyebrow">YOUR HOME CONTROL</p>
+        <h1>LLM Home Server</h1>
+        <p class="muted">채팅과 생성 환경을 한 곳에서 관리하세요.</p>
+        <label for="access-string">접속 문자열</label>
+        <input
+          id="access-string"
+          type="password"
+          autocomplete="current-password"
+          required
+          autofocus
+          maxlength="256"
+        />
+        <button class="button primary wide" type="submit">들어가기</button>
+        <p id="access-error" class="error" role="alert"></p>
+      </form>
+    </section>
+
+    <div id="application" class="application hidden">
+      <aside class="sidebar">
+        <a class="brand" href="#overview"
+          ><span class="brand-mark">LH</span
+          ><span><strong>LLM Home</strong><small>SERVER</small></span></a
+        >
+        <nav aria-label="관리 메뉴">
+          <a href="#overview" class="nav-button active"
+            ><span>◈</span> 대시보드</a
+          >
+          <a href="#services" class="nav-button"><span>◫</span> 서비스</a>
+          <a href="#comfy" class="nav-button"><span>☷</span> ComfyUI 작업</a>
+          <a href="#history" class="nav-button"><span>◷</span> 제어 이력</a>
+        </nav>
+        <div class="sidebar-bottom">
+          <span class="status-dot"></span> 수동 운영<span class="sidebar-note"
+            >Windows host · reload</span
+          >
+        </div>
+      </aside>
+
+      <main class="main-content" id="overview">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">
+              <span class="desktop-eyebrow">YOUR HOME CONTROL</span
+              ><span class="mobile-eyebrow">LLM Home Server</span>
+            </p>
+            <h1>대시보드</h1>
+            <p class="muted header-description">
+              필요한 서비스를 켜고, 메모리 여유를 확인하세요.
+            </p>
+          </div>
+          <div class="header-actions">
+            <span id="connection-status" class="badge">연결 확인 중</span
+            ><button id="refresh-button" class="button small">새로고침</button
+            ><button id="lock-button" class="text-button">잠그기</button>
+          </div>
+        </header>
+        <div id="connection-error" class="notice hidden" role="status"></div>
+
+        <section class="resource-grid" aria-label="시스템 리소스">
+          <article class="resource-card">
+            <div class="resource-heading">
+              RAM <span id="ram-percent">—</span>
+            </div>
+            <div class="resource-value" id="ram-free">
+              —<small> GiB 여유</small>
+            </div>
+            <progress id="ram-progress" max="100" value="0"></progress>
+            <p id="ram-detail">Windows 물리 메모리</p>
+          </article>
+          <article class="resource-card">
+            <div class="resource-heading">
+              VRAM <span id="vram-percent">—</span>
+            </div>
+            <div class="resource-value" id="vram-free">
+              —<small> GiB 여유</small>
+            </div>
+            <progress id="vram-progress" max="100" value="0"></progress>
+            <p id="gpu-name">NVIDIA GPU</p>
+          </article>
+          <article class="resource-card compact">
+            <div class="resource-heading">CPU</div>
+            <div class="resource-value" id="cpu-percent">—</div>
+            <progress id="cpu-progress" max="100" value="0"></progress>
+            <p>Host 사용률</p>
+          </article>
+          <article class="resource-card compact">
+            <div class="resource-heading">
+              GPU <span id="gpu-temperature">—</span>
+            </div>
+            <div class="resource-value" id="gpu-percent">—</div>
+            <progress id="gpu-progress" max="100" value="0"></progress>
+            <p id="gpu-power">연산 사용률</p>
+          </article>
+        </section>
+
+        <section id="services" class="section-block">
+          <div class="section-heading">
+            <div>
+              <h2>서비스</h2>
+              <p class="muted">
+                실행 상태와 실제 사용 준비 상태를 함께 확인합니다.
+              </p>
+            </div>
+            <a
+              id="chat-shortcut"
+              class="button primary"
+              target="_blank"
+              rel="noopener"
+              >채팅 열기 ↗</a
+            >
+          </div>
+          <div class="service-grid">
+            <article class="panel service-card">
+              <div class="panel-heading">
+                <span class="number-label">01</span>
+                <h3>LLM 서버</h3>
+                <span id="llm-state" class="badge">확인 중</span>
+              </div>
+              <div class="service-identity">
+                <span id="llm-engine">Strata</span
+                ><span class="pill">Windows native</span>
+              </div>
+              <p id="llm-model" class="model-name">모델 확인 중</p>
+              <p id="llm-description" class="muted service-description">
+                현재 설정된 모델을 실행합니다.
+              </p>
+              <div class="button-row">
+                <button
+                  class="button primary"
+                  data-target="llm"
+                  data-action="start"
+                >
+                  LLM 켜기</button
+                ><button
+                  class="button danger-outline"
+                  data-target="llm"
+                  data-action="stop"
+                >
+                  끄기</button
+                ><a
+                  id="llm-shortcut"
+                  class="text-button"
+                  target="_blank"
+                  rel="noopener"
+                  >엔진 화면 ↗</a
+                >
+              </div>
+            </article>
+            <article class="panel service-card">
+              <div class="panel-heading">
+                <span class="number-label">02</span>
+                <h3>LibreChat</h3>
+                <span id="librechat-state" class="badge">확인 중</span>
+              </div>
+              <div class="service-identity">
+                <span>채팅 인터페이스</span><span class="pill">Docker</span>
+              </div>
+              <div class="container-status">
+                <span>LibreChat <strong id="librechat-health">—</strong></span
+                ><span>MongoDB <strong id="mongodb-health">—</strong></span>
+              </div>
+              <p class="muted service-description">
+                LibreChat과 MongoDB를 함께 켜고 끕니다.
+              </p>
+              <div class="button-row">
+                <button
+                  class="button primary"
+                  data-target="librechat"
+                  data-action="start"
+                >
+                  채팅 서버 켜기</button
+                ><button
+                  class="button danger-outline"
+                  data-target="librechat"
+                  data-action="stop"
+                >
+                  끄기
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="comfy" class="section-block panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">COMFYUI · 8188</p>
+              <h2>생성 작업과 메모리</h2>
+            </div>
+            <span id="comfy-state" class="badge">확인 중</span>
+          </div>
+          <div class="comfy-layout">
+            <div class="queue-area">
+              <div class="queue-summary">
+                <span>실행 중 <strong id="running-count">—</strong></span
+                ><span>대기 중 <strong id="pending-count">—</strong></span
+                ><span class="muted">조회 전용</span>
+              </div>
+              <div id="queue-list" class="queue-list">
+                <p class="muted">작업 목록을 확인하고 있습니다.</p>
+              </div>
+            </div>
+            <div class="memory-actions">
+              <h3>모델 · cache unload</h3>
+              <p class="muted">
+                작업을 취소하지 않습니다. 실행 중인 작업이 있으면 처리 후 메모리
+                해제 요청이 반영됩니다.
+              </p>
+              <button
+                class="button danger wide"
+                data-target="comfy"
+                data-action="unload"
+              >
+                모델 · cache 비우기</button
+              ><a
+                id="comfy-shortcut"
+                class="button wide"
+                target="_blank"
+                rel="noopener"
+                >Comfy Home Server 열기 ↗</a
+              >
+              <p class="muted fine-print">
+                접수 후 위의 RAM·VRAM 변화를 확인하세요. Queue가 남으면 다음
+                작업에서 모델이 다시 로드될 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="history" class="section-block panel">
+          <div class="section-heading">
+            <div>
+              <h2>최근 제어 이력</h2>
+              <p class="muted">
+                화면을 닫거나 reload되어도 진행 중인 제어는 유지됩니다.
+              </p>
+            </div>
+            <div class="button-row">
+              <button class="button small" data-log="llm">LLM 로그</button
+              ><button class="button small" data-log="control">
+                제어 로그
+              </button>
+            </div>
+          </div>
+          <div id="operation-list" class="operation-list">
+            <p class="muted">아직 제어 이력이 없습니다.</p>
+          </div>
+        </section>
+        <footer>
+          <span>LLM Home Server</span><span id="updated-at">—</span>
+        </footer>
+      </main>
+      <nav class="mobile-nav" aria-label="모바일 관리 메뉴">
+        <a href="#overview">◈<span>요약</span></a
+        ><a href="#services">◫<span>서비스</span></a
+        ><a href="#comfy">☷<span>ComfyUI</span></a
+        ><a href="#history">◷<span>이력</span></a>
+      </nav>
+    </div>
+    <dialog id="confirm-dialog" class="modal">
+      <form method="dialog">
+        <h2 id="confirm-title">동작 확인</h2>
+        <p id="confirm-message" class="muted"></p>
+        <div class="button-row modal-actions">
+          <button class="button" value="cancel">취소</button
+          ><button class="button danger" value="confirm">실행</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="log-dialog" class="modal log-modal">
+      <div class="section-heading">
+        <h2>최근 로그</h2>
+        <button id="close-log" class="button small">닫기</button>
+      </div>
+      <pre id="log-text"></pre>
+    </dialog>
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  </body>
+</html>

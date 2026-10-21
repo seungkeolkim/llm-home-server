@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 LibreChat과 MongoDB를 실행하거나 조회하고 최초 관리자 계정을 생성합니다.
 #>
@@ -28,6 +28,9 @@ if ($Action -eq 'start') {
         }
     }
 }
+if ($Action -in @('start', 'create-admin')) {
+    & (Join-Path $PSScriptRoot 'prepare-environment.ps1') -ValidateOnly
+}
 $composeArguments = @(
     'compose', '--env-file', $environmentPath,
     '-f', (Join-Path $configurationDirectory 'compose.yaml')
@@ -41,8 +44,14 @@ switch ($Action) {
     'validate' { & docker @composeArguments config --quiet }
     'create-admin' {
         $credentialsPath = Join-Path $configurationDirectory 'admin-credentials.local.json'
-        Get-Content -LiteralPath $credentialsPath -Raw |
-            & docker @composeArguments exec -T librechat node config/provision-admin.cjs
+        $previousOutputEncoding = $OutputEncoding
+        try {
+            $OutputEncoding = [Text.UTF8Encoding]::new($false)
+            Get-Content -LiteralPath $credentialsPath -Raw -Encoding UTF8 |
+                & docker @composeArguments exec -T librechat node config/provision-admin.cjs
+        } finally {
+            $OutputEncoding = $previousOutputEncoding
+        }
     }
 }
 exit $LASTEXITCODE

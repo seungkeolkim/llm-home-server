@@ -1,11 +1,12 @@
-# Strata Home Server
+# LLM Home Server
 
-LibreChat 채팅과 Strata 모델을 같은 PC의 ComfyUI 이미지·영상 생성 환경과 함께 운영하기 위한 프로젝트입니다.
-집 밖에서도 서비스 ON/OFF, 모델 Load/Unload, RAM·VRAM과 서비스 상태 확인을 할 수 있도록
-최상위 repo에 상시 실행하는 관리 서버를 구성할 예정입니다.
+LLM 채팅과 같은 PC의 ComfyUI 이미지·영상 생성을 함께 운영하기 위한 프로젝트입니다.
+모바일과 데스크톱의 관리 화면에서 서비스 ON/OFF, ComfyUI queue 조회와 모델·cache unload,
+RAM·VRAM과 서비스 상태 확인을 제공합니다. 현재 LLM engine은 Strata이며 adapter로 분리합니다.
 작업에 따라 메모리를 확보하고, 각 시스템의 실행 환경·설정·데이터를 분리하여 관리하는 것을 목표로 합니다.
 
-현재는 Strata와 LibreChat + MongoDB의 실행 환경이 구성되어 있으며, 관리 서버는 아직 구현되지 않았습니다.
+관리 서버는 Windows host에서 현재 사용자 계정으로 수동 실행합니다. 자동 기동·자동 복구는 사용하지 않습니다.
+LibreChat + MongoDB는 Docker, 현재 LLM engine인 Strata는 Windows native로 실행합니다.
 상세한 운영 의도와 구조 개선 제안은 [운영 의도와 관리 서버 구성 계획](docs/ManagementServer/OPERATING_PLAN.md)에 정리합니다.
 
 공식 Strata clone을 수정하지 않고 Windows / PowerShell에서 기동합니다.
@@ -16,7 +17,91 @@ LibreChat 채팅과 Strata 모델을 같은 PC의 ComfyUI 이미지·영상 생�
 LibreChat + MongoDB의 Docker 실행 환경은 [LibreChat 운영 안내](docs/LibreChat/README.md)에 있습니다.
 LibreChat 기본 host port는 **8588**이며, Keenable Web Search와 Strata 기반 자동 컨텍스트 압축을 지원합니다.
 
+## 최초 설정: template 복사와 필수 변경
+
+Git에는 `config/`의 `*.json.template`, `*.yaml.template`, `.env.local.template`을 올립니다.
+실제 설정은 파일명 끝의 `.template`만 제거한 이름으로 복사해서 사용하며 Git에서 제외합니다.
+이미 운영 중인 local 파일은 그대로 사용합니다. 아래 명령은 기존 파일을 덮어쓰지 않습니다.
+
+Repository root의 PowerShell에서 실행합니다.
+
+```powershell
+$templatePaths = @(
+    'config/Strata/strata.local.json.template'
+    'config/Strata/strata.local.shared-settings.json.template'
+    'config/ManagementServer/management.local.json.template'
+    'config/LibreChat/.env.local.template'
+    'config/LibreChat/librechat.local.yaml.template'
+    'config/LibreChat/admin-credentials.local.json.template'
+)
+foreach ($templatePath in $templatePaths) {
+    $configurationPath = $templatePath.Substring(0, $templatePath.Length - '.template'.Length)
+    if (-not (Test-Path -LiteralPath $configurationPath)) {
+        Copy-Item -LiteralPath $templatePath -Destination $configurationPath -ErrorAction Stop
+    }
+}
+```
+
+**복사한 실제 설정에서 다음 항목을 반드시 바꾸세요.** `CHANGE_ME_`로 시작하는 값은 입력 안내이며 실제 값으로 사용할 수 없습니다.
+
+| 실제 설정 파일 | 반드시 바꿀 항목 |
+|---|---|
+| `config/Strata/strata.local.json` | `api_key`: 직접 정한 무작위 API key |
+| `config/ManagementServer/management.local.json` | `access_string`: 관리 화면 접속 문자열, `session_secret`: 32자 이상 무작위 값 |
+| `config/LibreChat/.env.local` | `DOMAIN_CLIENT`, `DOMAIN_SERVER`: 실제 브라우저 접속 origin. `STRATA_API_KEY`: 위 Strata `api_key`와 같은 값 |
+| 같은 `.env.local` | `CREDS_KEY`: 64자리 hex, `CREDS_IV`: 32자리 hex. `JWT_SECRET`, `JWT_REFRESH_SECRET`: 서로 다른 32자 이상 무작위 값 |
+| `config/LibreChat/admin-credentials.local.json` | `email`: 최초 관리자 이메일, `password`: 8자 이상 비밀번호. 필요하면 `name`, `username`도 변경 |
+
+Local 접속만 사용할 때 origin은 `http://localhost:8588`로 지정할 수 있습니다.
+외부에서 접속하면 실제 DDNS·외부 port를 사용합니다. 예를 들어 외부 port가 38588이면 `http://<DDNS>:38588`입니다.
+HTTPS origin이면 `.env.local`의 `SESSION_COOKIE_SECURE`를 `true`로 바꿉니다.
+Port를 바꾼 경우 `LIBRECHAT_PORT`, `STRATA_BASE_URL`, 관리 서버 `links`·`external_links`도 운영 주소에 맞춥니다.
+
+Python이 설치된 PowerShell에서 아래 명령을 **필요한 항목마다 별도로 실행**해 서로 다른 무작위 값을 만들 수 있습니다.
+
+```powershell
+python -c "import secrets; print(secrets.token_hex(32))"  # CREDS_KEY: 64자리 hex
+python -c "import secrets; print(secrets.token_hex(16))"  # CREDS_IV: 32자리 hex
+python -c "import secrets; print(secrets.token_urlsafe(48))"  # API key, session secret, JWT secret
+```
+
+Strata의 `${RUNNER_ROOT}`, `${SOURCE_ROOT}`, `${DATA_ROOT}`, `${ENGINE_ROOT}`와 LibreChat YAML의 `__STRATA_*__`는 경로·모델용 placeholder입니다.
+이 항목은 아래 준비 명령이 현재 경로와 Strata 설정으로 확장하므로 직접 바꾸지 않아도 됩니다.
+`strata.local.shared-settings.json`은 기본값을 그대로 쓸 수 있습니다.
+`librechat.local.yaml`은 실제 key를 담지 않고 `.env.local`의 값을 참조합니다.
+
+기존 설치의 암호화 key·JWT secret은 보존합니다. 관리자 JSON을 편집해도 이미 MongoDB에 저장된 계정 비밀번호는 바뀌지 않습니다.
+
 ## 준비 및 실행
+
+최초 설정을 채운 뒤 Strata → LibreChat → 관리 서버 순서로 준비하고 실행합니다.
+
+```powershell
+.\prepare-strata-environment.ps1
+.\run-strata.ps1 start
+.\scripts\LibreChat\prepare-environment.ps1
+.\scripts\LibreChat\run-librechat.ps1 start
+.\scripts\LibreChat\run-librechat.ps1 create-admin
+.\scripts\ManagementServer\prepare-environment.ps1
+.\run-management-server.ps1
+```
+
+준비 스크립트는 필수 local 파일이 없거나 안내 문자열이 남아 있으면 항목명만 안내하고 중단합니다.
+입력한 비밀번호와 secret을 자동 생성하거나 교체하지 않습니다.
+
+관리 화면은 **http://127.0.0.1:8788**이며 `0.0.0.0:8788`에 bind합니다.
+외부에서는 `http://<서버 주소>:8788`로 접속합니다. 접속 문자열은 Git에서 제외한 local 설정으로 관리합니다.
+
+```powershell
+.\scripts\ManagementServer\prepare-environment.ps1
+.\run-management-server.ps1
+```
+
+기본으로 backend·HTML·CSS·JS 변경을 reload합니다. `-NoReload`로 끌 수 있습니다.
+ComfyUI **8188**에 직접 연결하며, **8388 Comfy Home Server는 변경하거나 재시작하지 않습니다.**
+방화벽·포트포워딩과 자세한 제어 범위는 [관리 서버 운영 안내](docs/ManagementServer/README.md)를 확인합니다.
+
+아래는 현재 Strata adapter의 독립 실행 명령입니다.
 
 `external_repo/Strata`에 공식 source와 기존 `C:\Strata-data`의 Engine, 모델, Pack이 필요합니다.
 기존 대용량 text model과 Pack은 재사용합니다. 이미지 입력용 mmproj만 준비 작업에서 별도로 다운로드합니다.
@@ -57,7 +142,7 @@ Windows venv의 기본 `python.exe`는 별도 process로 실제 Python을 실행
 ## 폴더 및 설정
 
 ```text
-Strata-home-server/
+llm-home-server/
   prepare-strata-environment.ps1
   run-strata.ps1
   requirements/Strata/runtime.txt
@@ -66,10 +151,10 @@ Strata-home-server/
   docs/ManagementServer/OPERATING_PLAN.md
   config/
     Strata/
-      strata.template.json                # 추적하는 초기 설정
-      shared-settings.template.json       # 최초 shared settings
+      strata.local.json.template          # 복사용 실행 설정
+      strata.local.shared-settings.json.template  # 복사용 shared settings
       vision-projector.source.json        # mmproj revision, 크기, SHA-256
-      strata.local.json                   # 생성된 실행 설정, Git 제외
+      strata.local.json                   # 사용자가 복사·편집한 실행 설정, Git 제외
       strata.local.shared-settings.json   # Web UI에서 저장하는 설정, Git 제외
       environment.local.json              # 기존 데이터 경로, Git 제외
       profiles/                           # 공식 saved profile, Git 제외
@@ -97,8 +182,8 @@ Python을 사용한다면 `.venv/<시스템 이름>/`으로 분리합니다.
 공식 Strata가 관리하는 소량의 process identity 기록은 `%LOCALAPPDATA%\Strata\procs`에도 저장됩니다.
 `external_repo/Strata` 안에는 venv, 설정, 로그, bytecode를 만들지 않습니다.
 
-준비 스크립트는 `.local.json`이 없을 때만 template에서 생성합니다.
-이후의 로컬 수정 및 Web UI shared settings는 재실행해도 보존합니다.
+사용자가 template을 실제 local 파일로 복사하고 필수 값을 입력합니다.
+준비 스크립트는 경로 placeholder만 확장하며, 이후의 로컬 수정 및 Web UI shared settings는 재실행해도 보존합니다.
 실행 설정을 바꾸려면 `stop` 후 `config/Strata/strata.local.json`을 편집하고 `plan`, `start`로 확인합니다.
 template 변경은 이미 생성한 로컬 설정에 자동 적용되지 않습니다.
 repo를 옮기면 절대경로가 포함된 `.venv/Strata`, 로컬 설정, saved profile은 새 경로에서 다시 준비해야 합니다.
@@ -116,8 +201,8 @@ OpenAI-compatible API는 서버 기동 시 같은 8488 포트의 `/v1`에서 기
 모델 목록은 `GET /v1/models`, 채팅은 `POST /v1/chat/completions`입니다.
 
 외부 interface에 bind할 때 Strata는 API key를 요구합니다.
-준비 작업에서 key를 최초 생성해 Git에서 제외된 `config/Strata/strata.local.json`에 보존합니다.
-사용자가 지정한 기존 key는 준비 작업이나 재기동 시 그대로 유지합니다.
+`config/Strata/strata.local.json.template`을 복사한 뒤 실제 local 파일의 `api_key`를 직접 입력합니다.
+이 파일은 Git에서 제외하며 준비 작업이나 재기동 시 입력한 key를 유지합니다.
 실제 key를 template이나 문서에 넣지 않습니다. 로컬 PowerShell에서 다음과 같이 확인할 수 있습니다.
 
 ```powershell

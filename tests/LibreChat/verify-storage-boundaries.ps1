@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 임시 workspace에서 데이터 보존과 이전 경로의 기동 거부를 검증합니다.
 #>
@@ -21,8 +21,15 @@ function Invoke-ExpectedScriptResult {
         [int]$ExpectedExitCode = 0,
         [string]$ExpectedMessage = ''
     )
-    $scriptOutput = & $powershellExecutable -NoProfile -File $ScriptPath @ScriptArguments 2>&1
-    if ($LASTEXITCODE -ne $ExpectedExitCode) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $scriptOutput = & $powershellExecutable -NoProfile -File $ScriptPath @ScriptArguments 2>&1
+        $actualExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($actualExitCode -ne $ExpectedExitCode) {
         throw "예상하지 못한 종료 코드: $scriptOutput"
     }
     if ($ExpectedMessage -and ($scriptOutput -join "`n") -notlike "*$ExpectedMessage*") {
@@ -36,7 +43,6 @@ foreach ($relativeDirectory in @('scripts\LibreChat', 'config\LibreChat', 'confi
 foreach ($scriptName in @('prepare-environment.ps1', 'run-librechat.ps1')) {
     Copy-Item -LiteralPath (Join-Path $workspaceDirectory "scripts\LibreChat\$scriptName") -Destination (Join-Path $fixtureDirectory 'scripts\LibreChat')
 }
-Copy-Item -LiteralPath (Join-Path $workspaceDirectory 'config\LibreChat\librechat.template.yaml') -Destination (Join-Path $fixtureDirectory 'config\LibreChat')
 @{
     api_key = 'fixture-api-key'
     port = 8488
@@ -46,7 +52,33 @@ Copy-Item -LiteralPath (Join-Path $workspaceDirectory 'config\LibreChat\librecha
 
 $prepareScriptPath = Join-Path $fixtureDirectory 'scripts\LibreChat\prepare-environment.ps1'
 $runnerScriptPath = Join-Path $fixtureDirectory 'scripts\LibreChat\run-librechat.ps1'
-Invoke-ExpectedScriptResult -ScriptPath $prepareScriptPath -ScriptArguments @('-PublicUrl', 'http://localhost:8588')
+Invoke-ExpectedScriptResult -ScriptPath $prepareScriptPath -ExpectedExitCode 1 -ExpectedMessage '.template'
+foreach ($localFileName in @('.env.local', 'librechat.local.yaml', 'admin-credentials.local.json')) {
+    Copy-Item -LiteralPath (Join-Path $workspaceDirectory "config\LibreChat\$localFileName.template") -Destination (Join-Path $fixtureDirectory "config\LibreChat\$localFileName")
+}
+Invoke-ExpectedScriptResult -ScriptPath $prepareScriptPath -ExpectedExitCode 1 -ExpectedMessage 'DOMAIN_CLIENT'
+$fixtureEnvironmentPath = Join-Path $fixtureDirectory 'config\LibreChat\.env.local'
+$fixtureEnvironmentText = [IO.File]::ReadAllText($fixtureEnvironmentPath)
+$fixtureSubstitutions = @{
+    CHANGE_ME_PUBLIC_ORIGIN = 'http://localhost:8588'
+    CHANGE_ME_STRATA_API_KEY = 'fixture-api-key'
+    CHANGE_ME_64_HEX_CHARACTERS = ('a' * 64)
+    CHANGE_ME_32_HEX_CHARACTERS = ('b' * 32)
+    CHANGE_ME_RANDOM_JWT_SECRET = ('c' * 64)
+    CHANGE_ME_DIFFERENT_RANDOM_JWT_REFRESH_SECRET = ('d' * 64)
+}
+foreach ($placeholder in $fixtureSubstitutions.Keys) {
+    $fixtureEnvironmentText = $fixtureEnvironmentText.Replace($placeholder, $fixtureSubstitutions[$placeholder])
+}
+[IO.File]::WriteAllText($fixtureEnvironmentPath, $fixtureEnvironmentText, [Text.UTF8Encoding]::new($false))
+$fixtureCredentialsPath = Join-Path $fixtureDirectory 'config\LibreChat\admin-credentials.local.json'
+$fixtureCredentials = [IO.File]::ReadAllText($fixtureCredentialsPath) | ConvertFrom-Json
+$fixtureCredentials.email = 'fixture@example.invalid'
+$fixtureCredentials.password = 'fixture-password-only'
+[IO.File]::WriteAllText($fixtureCredentialsPath, ($fixtureCredentials | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
+Invoke-ExpectedScriptResult -ScriptPath $prepareScriptPath
+Invoke-ExpectedScriptResult -ScriptPath $prepareScriptPath -ScriptArguments @('-ValidateOnly')
+Write-Output 'Missing configuration and template placeholders rejected: OK'
 
 foreach ($relativeDirectory in @('data\LibreChat\uploads', 'data\LibreChat\application', 'runtime\LibreChat\logs', 'runtime\LibreChat\diagnostics')) {
     if (-not (Test-Path -LiteralPath (Join-Path $fixtureDirectory $relativeDirectory) -PathType Container)) {
@@ -56,10 +88,11 @@ foreach ($relativeDirectory in @('data\LibreChat\uploads', 'data\LibreChat\appli
 $protectedRelativePaths = @(
     'config\LibreChat\.env.local',
     'config\LibreChat\admin-credentials.local.json',
+    'config\LibreChat\librechat.local.yaml',
     'data\LibreChat\uploads\preservation-check.txt',
     'data\LibreChat\application\preservation-check.txt'
 )
-foreach ($relativePath in $protectedRelativePaths | Select-Object -Skip 2) {
+foreach ($relativePath in $protectedRelativePaths | Select-Object -Skip 3) {
     Set-Content -LiteralPath (Join-Path $fixtureDirectory $relativePath) -Value 'preserve-existing-data'
 }
 $protectedHashes = @{}

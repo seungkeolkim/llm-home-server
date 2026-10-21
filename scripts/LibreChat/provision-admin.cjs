@@ -15,6 +15,15 @@ async function provisionAdministrator() {
     credentialInput += inputChunk.toString();
   }
   const administratorCredentials = JSON.parse(credentialInput);
+  for (const fieldName of ['email', 'name', 'username', 'password']) {
+    const fieldValue = administratorCredentials[fieldName];
+    if (typeof fieldValue !== 'string' || !fieldValue.trim() || fieldValue.startsWith('CHANGE_ME_')) {
+      throw new Error(`관리자 설정의 ${fieldName} 항목을 실제 값으로 바꿔 주세요.`);
+    }
+  }
+  if (administratorCredentials.password.length < 8) {
+    throw new Error('관리자 password는 8자 이상이어야 합니다.');
+  }
   await connectDatabase();
   const existingAdministrator = await User.findOne({ email: administratorCredentials.email });
   if (existingAdministrator) {

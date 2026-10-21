@@ -3,6 +3,8 @@
 /runtime/
 /data/
 /config/**/*.local.json
+/config/**/*.local.yaml
+/config/**/.env.local
 /config/**/*.shared-settings.json
 /config/**/profiles/
 __pycache__/
@@ -11,4 +13,5 @@ __pycache__/
 .env
 .env.*
 !.env.example
-/config/LibreChat/*.local.yaml
+# 실제 설정은 제외하고 복사용 template만 추적합니다.
+!/config/**/*.template

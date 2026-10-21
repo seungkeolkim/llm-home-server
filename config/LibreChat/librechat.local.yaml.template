@@ -1,3 +1,6 @@
+# 이 파일을 librechat.local.yaml로 복사합니다.
+# __STRATA_*__ 항목은 prepare-environment.ps1이 Strata 설정을 읽어 확장합니다.
+# API key는 .env.local의 STRATA_API_KEY에서 가져옵니다.
 version: 1.3.17
 cache: true
 

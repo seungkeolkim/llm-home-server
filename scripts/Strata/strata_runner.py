@@ -8,7 +8,6 @@ import importlib
 import json
 import os
 from pathlib import Path
-import secrets
 import subprocess
 import sys
 import time
@@ -176,8 +175,22 @@ def validate_assets(data_directory: Path, configuration: dict) -> None:
     print(f"Model manifest sizes, Pack, tokenizer and venv CUDA DLLs checked: {data_directory}", flush=True)
 
 
+def read_local_configuration() -> dict:
+    """사용자가 복사한 설정의 존재와 API key 필수 입력을 확인합니다."""
+    if not LOCAL_CONFIGURATION.is_file():
+        raise FileNotFoundError(
+            "strata.local.json.template을 strata.local.json으로 복사하고 api_key를 바꿔 주세요."
+        )
+    configuration = read_json(LOCAL_CONFIGURATION)
+    api_key = configuration.get("api_key")
+    if not isinstance(api_key, str) or not api_key.strip() or api_key.startswith(("CHANGE_ME_", "${API_KEY}")):
+        raise ValueError("Strata 설정의 api_key 항목을 실제 값으로 바꿔 주세요.")
+    return configuration
+
+
 def prepare_environment(data_directory: Path) -> int:
-    """설정을 최초 생성하고 dependency와 Engine을 검증한 뒤 saved profile을 준비합니다."""
+    """사용자 설정의 경로를 확장하고 dependency·Engine 및 saved profile을 준비합니다."""
+    configuration = read_local_configuration()
     data_directory = data_directory.resolve()
     if ENVIRONMENT_CONFIGURATION.exists():
         previous_directory = Path(read_json(ENVIRONMENT_CONFIGURATION)["data_directory"])
@@ -191,27 +204,21 @@ def prepare_environment(data_directory: Path) -> int:
     engine_package = resolve_engine_package(environment)
     for directory in ("working", "logs"):
         (RUNTIME_ROOT / directory).mkdir(parents=True, exist_ok=True)
-    if not LOCAL_CONFIGURATION.exists():
-        substitutions = {
-            "${RUNNER_ROOT}": RUNNER_ROOT.as_posix(),
-            "${SOURCE_ROOT}": SOURCE_ROOT.as_posix(),
-            "${DATA_ROOT}": data_directory.as_posix(),
-            "${ENGINE_ROOT}": Path(engine_package["root"]).as_posix(),
-            "${API_KEY}": secrets.token_urlsafe(32),
-        }
-        configuration = expand_template(read_json(CONFIGURATION_ROOT / "strata.template.json"), substitutions)
+    substitutions = {
+        "${RUNNER_ROOT}": RUNNER_ROOT.as_posix(),
+        "${SOURCE_ROOT}": SOURCE_ROOT.as_posix(),
+        "${DATA_ROOT}": data_directory.as_posix(),
+        "${ENGINE_ROOT}": Path(engine_package["root"]).as_posix(),
+    }
+    expanded_configuration = expand_template(configuration, substitutions)
+    if expanded_configuration != configuration:
+        configuration = expanded_configuration
         write_json(LOCAL_CONFIGURATION, configuration)
-    configuration = read_json(LOCAL_CONFIGURATION)
-    if configuration.get("host", "127.0.0.1") not in ("127.0.0.1", "localhost", "::1"):
-        if not configuration.get("api_key") and not os.environ.get("STRATA_API_KEY"):
-            configuration["api_key"] = secrets.token_urlsafe(32)
-            write_json(LOCAL_CONFIGURATION, configuration)
-            print(f"Generated network API key in local configuration: {LOCAL_CONFIGURATION}", flush=True)
     if isinstance(configuration.get("vision"), dict):
         ensure_vision_projector(data_directory, Path(configuration["vision"]["mmproj"]))
     shared_settings_path = CONFIGURATION_ROOT / "strata.local.shared-settings.json"
     if not shared_settings_path.exists():
-        write_json(shared_settings_path, read_json(CONFIGURATION_ROOT / "shared-settings.template.json"))
+        write_json(shared_settings_path, read_json(CONFIGURATION_ROOT / "strata.local.shared-settings.json.template"))
     validate_assets(data_directory, configuration)
     plan_exit_code = invoke_strata(["serve", "--profile", str(LOCAL_CONFIGURATION), "--plan", "--output", "json"], environment)
     if plan_exit_code:
@@ -236,6 +243,8 @@ def main() -> int:
     arguments = parser.parse_args()
     if arguments.action == "prepare":
         return prepare_environment(arguments.data_directory)
+    if arguments.action in ("start", "plan", "verify", "foreground"):
+        read_local_configuration()
     data_directory = Path(read_json(ENVIRONMENT_CONFIGURATION)["data_directory"])
     environment = runtime_environment(data_directory)
     if arguments.action == "foreground":
