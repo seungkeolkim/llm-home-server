@@ -165,7 +165,7 @@ Engine package 경로는 공식 component inventory로 resolve한 뒤 template�
 - Python, PowerShell, JSON 문법 및 diff 검사 통과. 공식 clone 변경 및 산출물 없음.
 - 마지막 GPU 측정: used `8750 MiB`, free `7228 MiB` (PC 전체 순간 사용량).
 
-검증용 PNG와 응답 JSON은 Git에서 제외한 `runtime/Strata/vision-smoke*`에 있습니다.
+검증용 PNG와 응답 JSON은 Git에서 제외한 `runtime/Strata/diagnostics/vision-smoke*`에 있습니다.
 작은 글씨의 OCR, 많은 이미지, 고해상도 문서 인식 품질은 별도로 측정하지 않았습니다.
 종료·기동 소요 시간 측정 요청은 사용자 취소로 수행하지 않았습니다.
 

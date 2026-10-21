@@ -1,0 +1,72 @@
+version: 1.3.17
+cache: true
+
+interface:
+  customWelcome: Strata에 연결된 LibreChat입니다.
+  modelSelect: true
+  parameters: true
+  presets: true
+  webSearch: true
+  fileSearch: false
+  runCode: false
+  agents:
+    use: true
+    create: true
+    share: false
+    public: false
+
+endpoints:
+  allowedAddresses:
+    - host.docker.internal:__STRATA_PORT__
+  custom:
+    - name: Strata
+      apiKey: '${STRATA_API_KEY}'
+      baseURL: '${STRATA_BASE_URL}'
+      models:
+        default:
+          - __STRATA_MODEL_NAME__
+        fetch: false
+      titleConvo: true
+      titleModel: __STRATA_MODEL_NAME__
+      modelDisplayLabel: Strata
+      tokenConfig:
+        __STRATA_MODEL_NAME__:
+          prompt: 0
+          completion: 0
+          context: __STRATA_CONTEXT_TOKENS__
+
+modelSpecs:
+  list:
+    - name: strata-local
+      label: Strata SC117
+      description: Keenable Web Search와 자동 컨텍스트 압축을 사용할 수 있습니다.
+      softDefault: true
+      preset:
+        endpoint: Strata
+        model: __STRATA_MODEL_NAME__
+        maxContextTokens: __STRATA_CONTEXT_TOKENS__
+
+summarization:
+  enabled: true
+  provider: Strata
+  model: __STRATA_MODEL_NAME__
+  maxSummaryTokens: 4096
+  reserveRatio: 0.05
+  trigger:
+    type: token_ratio
+    value: 0.8
+  retainRecent:
+    turns: 2
+    tokens: 4000
+
+webSearch:
+  searchProvider: keenable
+  scraperProvider: keenable
+  rerankerType: none
+  keenableSearchOptions:
+    maxResults: 5
+    attributionTitle: LibreChat
+    timeout: 20000
+  keenableScraperOptions:
+    attributionTitle: LibreChat
+    timeout: 20000

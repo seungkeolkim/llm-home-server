@@ -9,3 +9,9 @@
 - `external_repo/`의 공식 source에는 자체 수정이나 설치 산출물을 추가하지 않습니다.
 - 시스템별 설정, runtime, 스크립트, dependency, 문서는 각 상위 폴더의 `<시스템 이름>/` 아래로 분리합니다.
 - Strata의 Python 및 CUDA runtime은 `.venv/Strata`에 설치합니다. 시스템 CUDA Toolkit, 전역 PATH와 driver를 변경하지 않습니다.
+
+## 운영 의도와 후속 구현
+
+- 폴더 구조, 관리 서버, 서비스 제어 또는 리소스 관리 작업 전에는 [운영 의도와 관리 서버 구성 계획](docs/ManagementServer/OPERATING_PLAN.md)을 읽습니다.
+- 문서의 사용자 운영 의도, 현재 구현 상태, 개선 제안을 구분하고 작업 결과에 맞춰 문서를 갱신합니다.
+- 관련 구현과 구조 정리가 완료된 후 사용자와 이 참조의 유지 여부를 검토합니다. 검토 전에는 임의로 제거하지 않습니다.

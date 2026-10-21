@@ -1,6 +1,7 @@
 /external_repo/
 /.venv/
 /runtime/
+/data/
 /config/**/*.local.json
 /config/**/*.shared-settings.json
 /config/**/profiles/
@@ -10,3 +11,4 @@ __pycache__/
 .env
 .env.*
 !.env.example
+/config/LibreChat/*.local.yaml

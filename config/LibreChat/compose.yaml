@@ -1,0 +1,54 @@
+name: strata-home-server-librechat
+
+services:
+  librechat:
+    image: ${LIBRECHAT_IMAGE:-registry.librechat.ai/librechat-ai/librechat-dev@sha256:ff73f3e16986f70dc95680b96b60fccca38dcef2843cff3b9748e3688d0ef4c8}
+    restart: unless-stopped
+    ports:
+      - "${LIBRECHAT_BIND_ADDRESS:-0.0.0.0}:${LIBRECHAT_PORT:-8588}:3080"
+    env_file:
+      - .env.local
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./librechat.local.yaml:/app/librechat.yaml:ro
+      - ../../scripts/LibreChat/provision-admin.cjs:/app/config/provision-admin.cjs:ro
+      - ../../data/LibreChat/uploads:/app/uploads
+      - ../../runtime/LibreChat/logs:/app/logs
+      - ../../data/LibreChat/application:/app/data
+      - librechat-images:/app/client/public/images
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3080/health').then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 90s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  mongodb:
+    image: mongo:8.0.20
+    restart: unless-stopped
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: [CMD, mongosh, --quiet, --eval, "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+volumes:
+  mongodb-data:
+  librechat-images:

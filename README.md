@@ -1,10 +1,20 @@
 # Strata Home Server
 
-Strata와 향후 추가할 채팅 서버, 하네스, 검색 서버의 실행 환경을 관리하는 repo입니다.
-현재는 공식 Strata clone을 수정하지 않고 Windows / PowerShell에서 기동합니다.
+LibreChat 채팅과 Strata 모델을 같은 PC의 ComfyUI 이미지·영상 생성 환경과 함께 운영하기 위한 프로젝트입니다.
+집 밖에서도 서비스 ON/OFF, 모델 Load/Unload, RAM·VRAM과 서비스 상태 확인을 할 수 있도록
+최상위 repo에 상시 실행하는 관리 서버를 구성할 예정입니다.
+작업에 따라 메모리를 확보하고, 각 시스템의 실행 환경·설정·데이터를 분리하여 관리하는 것을 목표로 합니다.
+
+현재는 Strata와 LibreChat + MongoDB의 실행 환경이 구성되어 있으며, 관리 서버는 아직 구현되지 않았습니다.
+상세한 운영 의도와 구조 개선 제안은 [운영 의도와 관리 서버 구성 계획](docs/ManagementServer/OPERATING_PLAN.md)에 정리합니다.
+
+공식 Strata clone을 수정하지 않고 Windows / PowerShell에서 기동합니다.
 현재 모델은 SC117 Qwen3.8-Flash-Next GSQ-RCO abliteration / IQ3_XXS이며,
 모든 IPv4 interface의 **0.0.0.0:8488**에서 API와 Web UI를 제공합니다.
 이 PC에서는 **http://127.0.0.1:8488**, 다른 기기에서는 **http://<서버의 LAN IP>:8488**로 접속합니다.
+
+LibreChat + MongoDB의 Docker 실행 환경은 [LibreChat 운영 안내](docs/LibreChat/README.md)에 있습니다.
+LibreChat 기본 host port는 **8588**이며, Keenable Web Search와 Strata 기반 자동 컨텍스트 압축을 지원합니다.
 
 ## 준비 및 실행
 
@@ -53,6 +63,7 @@ Strata-home-server/
   requirements/Strata/runtime.txt
   scripts/Strata/strata_runner.py
   docs/Strata/RESTORATION.md
+  docs/ManagementServer/OPERATING_PLAN.md
   config/
     Strata/
       strata.template.json                # 추적하는 초기 설정
@@ -63,18 +74,23 @@ Strata-home-server/
       environment.local.json              # 기존 데이터 경로, Git 제외
       profiles/                           # 공식 saved profile, Git 제외
   .venv/Strata/                           # Strata Python과 CUDA runtime, Git 제외
+  data/LibreChat/                         # uploads, application, backups, Git 제외
   runtime/
     Strata/                               # Strata 실행 산출물, Git 제외
       working/                            # Engine 작업 폴더
       logs/strata-engine.log               # Engine 로그
       managed/sc117-iq3-xxs.server.log      # API server 로그
       managed/sc117-iq3-xxs.host.log        # managed runtime 로그
+      diagnostics/                        # 검증용 이미지와 응답
+    LibreChat/                            # logs, diagnostics, Git 제외
   external_repo/Strata/                    # 독립된 공식 clone, 전체 Git 제외
 ```
 
 새 시스템은 같은 상위 폴더 아래에 해당 시스템 이름의 폴더를 추가합니다.
-예를 들어 채팅 서버의 설정은 `config/<시스템 이름>/`, 실행 데이터는
-`runtime/<시스템 이름>/`에 둡니다. Python을 사용한다면 `.venv/<시스템 이름>/`으로 분리합니다.
+예를 들어 채팅 서버의 설정은 `config/<시스템 이름>/`, 보존 데이터는 `data/<시스템 이름>/`,
+로그와 실행 상태·진단 결과는 `runtime/<시스템 이름>/`에 둡니다.
+Python을 사용한다면 `.venv/<시스템 이름>/`으로 분리합니다.
+`runtime/`의 실행 상태 기록은 기동 중인 서비스가 사용하므로 일괄 삭제하지 않습니다.
 루트에는 repo 공통 문서와 시스템별 준비·실행 명령을 둡니다.
 
 모델, Pack, MTP, Engine은 기존 데이터 폴더를 직접 사용합니다.
