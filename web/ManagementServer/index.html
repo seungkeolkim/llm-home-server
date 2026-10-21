@@ -79,38 +79,38 @@
 
         <section class="resource-grid" aria-label="시스템 리소스">
           <article class="resource-card">
+            <div class="resource-heading">CPU</div>
+            <div class="resource-value" id="cpu-percent">—</div>
+            <progress id="cpu-progress" max="100" value="0" aria-label="CPU 사용률"></progress>
+            <p>Host 사용률</p>
+          </article>
+          <article class="resource-card">
             <div class="resource-heading">
               RAM <span id="ram-percent">—</span>
             </div>
-            <div class="resource-value" id="ram-free">
-              —<small> GiB 여유</small>
+            <div class="resource-value resource-memory-value" aria-label="RAM 사용량 / 전체 용량">
+              <span id="ram-used">—</span><small>/ <span id="ram-total">—</span> GiB</small>
             </div>
-            <progress id="ram-progress" max="100" value="0"></progress>
-            <p id="ram-detail">Windows 물리 메모리</p>
+            <progress id="ram-progress" max="100" value="0" aria-label="RAM 사용률"></progress>
+            <p>사용 중 / 전체 · Windows RAM</p>
+          </article>
+          <article class="resource-card">
+            <div class="resource-heading">
+              GPU <span id="gpu-temperature">—</span>
+            </div>
+            <div class="resource-value" id="gpu-percent">—</div>
+            <progress id="gpu-progress" max="100" value="0" aria-label="GPU 사용률"></progress>
+            <p id="gpu-power">연산 사용률</p>
           </article>
           <article class="resource-card">
             <div class="resource-heading">
               VRAM <span id="vram-percent">—</span>
             </div>
-            <div class="resource-value" id="vram-free">
-              —<small> GiB 여유</small>
+            <div class="resource-value resource-memory-value" aria-label="VRAM 사용량 / 전체 용량">
+              <span id="vram-used">—</span><small>/ <span id="vram-total">—</span> GiB</small>
             </div>
-            <progress id="vram-progress" max="100" value="0"></progress>
+            <progress id="vram-progress" max="100" value="0" aria-label="VRAM 사용률"></progress>
             <p id="gpu-name">NVIDIA GPU</p>
-          </article>
-          <article class="resource-card compact">
-            <div class="resource-heading">CPU</div>
-            <div class="resource-value" id="cpu-percent">—</div>
-            <progress id="cpu-progress" max="100" value="0"></progress>
-            <p>Host 사용률</p>
-          </article>
-          <article class="resource-card compact">
-            <div class="resource-heading">
-              GPU <span id="gpu-temperature">—</span>
-            </div>
-            <div class="resource-value" id="gpu-percent">—</div>
-            <progress id="gpu-progress" max="100" value="0"></progress>
-            <p id="gpu-power">연산 사용률</p>
           </article>
         </section>
 

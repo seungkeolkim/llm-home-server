@@ -78,24 +78,20 @@ function gibibytes(byteCount) {
   return (byteCount / 1024 ** 3).toFixed(1);
 }
 
-/** 리소스 수치와 progress만 갱신합니다. */
+/** 사용률과 메모리 사용량·전체 용량을 기존 DOM에 반영합니다. */
 function renderResources(resources) {
   const memory = resources.ram;
-  elements["ram-free"].innerHTML =
-    `${gibibytes(memory.available_bytes)}<small> GiB 여유</small>`;
+  setText("ram-used", gibibytes(memory.used_bytes));
+  setText("ram-total", gibibytes(memory.total_bytes));
   setText("ram-percent", `${memory.percent.toFixed(0)}% 사용`);
-  setText(
-    "ram-detail",
-    `${gibibytes(memory.used_bytes)} / ${gibibytes(memory.total_bytes)} GiB 사용`,
-  );
   elements["ram-progress"].value = memory.percent;
   setText("cpu-percent", `${resources.cpu_percent.toFixed(0)}%`);
   elements["cpu-progress"].value = resources.cpu_percent;
   const gpu = resources.gpus[0];
   if (gpu) {
     const usedPercent = (gpu.used_mib / gpu.total_mib) * 100;
-    elements["vram-free"].innerHTML =
-      `${((gpu.total_mib - gpu.used_mib) / 1024).toFixed(1)}<small> GiB 여유</small>`;
+    setText("vram-used", (gpu.used_mib / 1024).toFixed(1));
+    setText("vram-total", (gpu.total_mib / 1024).toFixed(1));
     setText("vram-percent", `${usedPercent.toFixed(0)}% 사용`);
     setText("gpu-name", gpu.name);
     setText("gpu-percent", `${gpu.utilization_percent.toFixed(0)}%`);
@@ -104,10 +100,13 @@ function renderResources(resources) {
     elements["vram-progress"].value = usedPercent;
     elements["gpu-progress"].value = gpu.utilization_percent;
   } else {
-    setText("vram-free", "확인 불가");
+    setText("vram-used", "—");
+    setText("vram-total", "—");
+    setText("vram-percent", "확인 불가");
     setText("gpu-percent", "—");
     setText("gpu-temperature", "—");
     setText("gpu-name", resources.gpu_error || "GPU 정보 없음");
+    setText("gpu-power", "연산 사용률");
     elements["vram-progress"].value = 0;
     elements["gpu-progress"].value = 0;
   }

@@ -52,6 +52,9 @@
 
 현재 LLM ON/OFF는 Strata 전체 서비스의 start/stop입니다. 별도 LLM 모델 Load/Unload, 모델 선택과 영상·채팅 모드 전환은 후속 범위입니다.
 다른 serving engine을 지원할 때 adapter를 추가하며 현재는 Strata adapter만 구현했습니다.
+리소스 카드는 CPU → RAM → GPU → VRAM 순서의 동일한 크기로 표시합니다.
+RAM·VRAM의 주요 수치는 `사용량 / 전체 용량 GiB`이며 사용률과 함께 보여줍니다.
+넓은 화면은 네 열, 좁은 화면은 두 열로 배치합니다.
 
 ## 현재 구조와 유지할 원칙
 
