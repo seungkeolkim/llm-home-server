@@ -2,20 +2,30 @@
 
 LLM 채팅과 같은 PC의 ComfyUI 이미지·영상 생성을 함께 운영하기 위한 프로젝트입니다.
 모바일과 데스크톱의 관리 화면에서 서비스 ON/OFF, ComfyUI queue 조회와 모델·cache unload,
-RAM·VRAM과 서비스 상태 확인을 제공합니다. 현재 LLM engine은 Strata이며 adapter로 분리합니다.
+RAM·VRAM과 서비스 상태 확인을 제공합니다. Strata와 PolyStrata를 profile별 adapter로 제어합니다.
 작업에 따라 메모리를 확보하고, 각 시스템의 실행 환경·설정·데이터를 분리하여 관리하는 것을 목표로 합니다.
 
 관리 서버는 Windows host에서 현재 사용자 계정으로 수동 실행합니다. 자동 기동·자동 복구는 사용하지 않습니다.
-LibreChat + MongoDB는 Docker, 현재 LLM engine인 Strata는 Windows native로 실행합니다.
+LibreChat + MongoDB는 Docker, Strata·PolyStrata는 Windows native로 실행합니다.
 상세한 운영 의도와 구조 개선 제안은 [운영 의도와 관리 서버 구성 계획](docs/ManagementServer/OPERATING_PLAN.md)에 정리합니다.
 
-공식 Strata clone을 수정하지 않고 Windows / PowerShell에서 기동합니다.
-현재 모델은 SC117 Qwen3.8-Flash-Next GSQ-RCO abliteration / IQ3_XXS이며,
-모든 IPv4 interface의 **0.0.0.0:8488**에서 API와 Web UI를 제공합니다.
+공식 clone을 수정하지 않고 Windows / PowerShell에서 기동합니다.
+현재 지원 profile은 다음과 같으며 context는 모두 **153,600 tokens (150 Ki tokens)**입니다.
+
+| Engine | Model | 관리 profile |
+|---|---|---|
+| Strata | SC117 Qwen3.8-Flash-Next IQ3_XXS | `strata-qwen-flash-next` |
+| PolyStrata | Unsloth Qwen3.6 UD-Q4_K_M | `polystrata-qwen36-q4km` |
+| PolyStrata | HauhauCS Aggressive Qwen3.6 TTQ Q4_K_M + MTP | `polystrata-qwen36-hauhau-q4km` |
+
+관리 화면에서 **LLM 켜기 → profile 선택 → 기동**하며, 다른 profile로 바꾸려면 현재 LLM을 먼저 끕니다.
+한 번에 하나만 실행하고 **0.0.0.0:8488**의 API와 Web UI를 공유합니다.
 이 PC에서는 **http://127.0.0.1:8488**, 다른 기기에서는 **http://<서버의 LAN IP>:8488**로 접속합니다.
 
 LibreChat + MongoDB의 Docker 실행 환경은 [LibreChat 운영 안내](docs/LibreChat/README.md)에 있습니다.
-LibreChat 기본 host port는 **8588**이며, Keenable Web Search와 Strata 기반 자동 컨텍스트 압축을 지원합니다.
+LibreChat 기본 host port는 **8588**이며, Keenable Web Search와 선택한 LLM 기반 자동 컨텍스트 압축을 지원합니다.
+Model 목록은 고정 설정입니다. LibreChat에서 이름만 바꾸어도 Engine이 전환되지는 않으며, 미실행 model ID는 HTTP 400으로 거부합니다.
+PolyStrata 설치·Hauhau 준비·실측은 [PolyStrata 운영 안내](docs/PolyStrata/README.md)를 참고하세요. PolyStrata + QFN은 후속 범위입니다.
 
 ## 최초 설정: template 복사와 필수 변경
 
@@ -101,7 +111,7 @@ Strata의 `${RUNNER_ROOT}`, `${SOURCE_ROOT}`, `${DATA_ROOT}`, `${ENGINE_ROOT}`�
 ComfyUI **8188**에 직접 연결하며, **8388 Comfy Home Server는 변경하거나 재시작하지 않습니다.**
 방화벽·포트포워딩과 자세한 제어 범위는 [관리 서버 운영 안내](docs/ManagementServer/README.md)를 확인합니다.
 
-아래는 현재 Strata adapter의 독립 실행 명령입니다.
+아래는 Strata adapter의 독립 실행 명령입니다. 관리 화면에서 profile을 선택하려면 독립 실행 대신 관리 화면을 사용합니다.
 
 `external_repo/Strata`에 공식 source와 기존 `C:\Strata-data`의 Engine, 모델, Pack이 필요합니다.
 기존 대용량 text model과 Pack은 재사용합니다. 이미지 입력용 mmproj만 준비 작업에서 별도로 다운로드합니다.
@@ -147,6 +157,7 @@ llm-home-server/
   run-strata.ps1
   requirements/Strata/runtime.txt
   scripts/Strata/strata_runner.py
+  scripts/Strata/strata_entrypoint.py      # managed runtime 및 model ID 검증 연결
   docs/Strata/RESTORATION.md
   docs/ManagementServer/OPERATING_PLAN.md
   config/
@@ -169,6 +180,11 @@ llm-home-server/
       diagnostics/                        # 검증용 이미지와 응답
     LibreChat/                            # logs, diagnostics, Git 제외
   external_repo/Strata/                    # 독립된 공식 clone, 전체 Git 제외
+  external_repo/PolyStrata/                # 독립된 공식 clone, 전체 Git 제외
+  .venv/PolyStrata/                        # PolyStrata 전용 dependency, Git 제외
+  config/PolyStrata/                       # Unsloth·Hauhau local 설정 및 template
+  scripts/PolyStrata/                      # 다운로드·준비·serving wrapper
+  runtime/PolyStrata/                      # 로그·다운로드 상태·검증 결과, Git 제외
 ```
 
 새 시스템은 같은 상위 폴더 아래에 해당 시스템 이름의 폴더를 추가합니다.
@@ -188,17 +204,22 @@ Python을 사용한다면 `.venv/<시스템 이름>/`으로 분리합니다.
 template 변경은 이미 생성한 로컬 설정에 자동 적용되지 않습니다.
 repo를 옮기면 절대경로가 포함된 `.venv/Strata`, 로컬 설정, saved profile은 새 경로에서 다시 준비해야 합니다.
 
-현재 기본값은 최대 context 163840, GPU resident KV 32768, KV int8,
+Strata QFN의 현재 기본값은 최대 context 153600, GPU resident KV 32768, KV int8,
 VRAM reserve 8192 MiB (8 GiB), parallel 1, MTP spec 4입니다.
 초기 shared reasoning effort는 기존 파일의 `medium`을 보존했습니다. 별도 출력 token limit은 추가하지 않았습니다.
 VRAM reserve는 다른 프로그램의 사용 가능 VRAM을 항상 보장하지 않습니다.
+PolyStrata Qwen3.6은 KV Q8_0 whole, CPU Vision과 같은 reserve를 사용합니다.
+대용량 assets는 공통 `C:\Strata-data` 아래에 있으며, profile별 상세 경로는 [PolyStrata 모델 저장 위치](docs/PolyStrata/README.md#모델-저장-위치)에 있습니다.
 
 ## 네트워크 및 OpenAI-compatible API
 
 OpenAI-compatible API는 서버 기동 시 같은 8488 포트의 `/v1`에서 기본 제공되며 별도 활성화 옵션은 없습니다.
 채팅 서버나 하네스의 Base URL은 `http://<서버 주소>:8488/v1`,
-모델 이름은 `sc117-qwen3.8-flash-next-abliterated-iq3_xxs`를 사용합니다.
+Model ID는 실행한 profile과 일치해야 합니다. QFN은 `sc117-qwen3.8-flash-next-abliterated-iq3_xxs`이며,
+Qwen3.6의 두 ID는 [LibreChat 모델 선택 안내](docs/LibreChat/README.md#모델-선택과-실행-profile)를 따릅니다.
 모델 목록은 `GET /v1/models`, 채팅은 `POST /v1/chat/completions`입니다.
+Strata·PolyStrata 모두 다른 model ID에 대체 답변하지 않고 HTTP 400을 반환합니다.
+Thinking의 반복 구절을 감지하면 중단하며 API의 종료 사유는 `length`입니다. LibreChat 전용 loop 알림은 없습니다.
 
 외부 interface에 bind할 때 Strata는 API key를 요구합니다.
 `config/Strata/strata.local.json.template`을 복사한 뒤 실제 local 파일의 `api_key`를 직접 입력합니다.
@@ -218,7 +239,7 @@ key를 바꾸려면 서버를 종료하고 local config의 `api_key`를 편집�
 
 ## 이미지 입력
 
-현재 SC117 모델과 Pack을 유지하고, 호환되는 upstream BF16 mmproj를 추가하여 이미지 입력을 사용합니다.
+Strata QFN은 SC117 모델과 Pack을 유지하고, 호환되는 upstream BF16 mmproj를 추가하여 이미지 입력을 사용합니다.
 OpenAI-compatible `/v1/chat/completions`의 `image_url` content part와 Strata Web UI의 이미지 첨부를 지원합니다.
 
 16 GB GPU와 VRAM reserve 8 GiB 설정을 고려하여 image encoder는 CPU에서 실행합니다.
@@ -247,3 +268,8 @@ Engine 전체 hash 및 signature, mmproj hash 및 실행 plan을 확인합니다
 준비 스크립트와 기동 검증을 다시 실행합니다. source 업데이트가 Engine 업데이트를 뜻하지는 않습니다.
 실행이나 준비 작업에서 Engine updater를 자동 호출하지 않습니다.
 현재 조합과 실측 검증 결과는 [Strata 검증 기록](docs/Strata/RESTORATION.md)에 기록합니다.
+Model을 Load하지 않는 Strata 정책 테스트는 다음과 같습니다. 실제 서비스의 기동·종료는 수행하지 않습니다.
+
+```powershell
+./.venv/Strata/Scripts/python.exe -B -m unittest discover -s tests/Strata -v
+```

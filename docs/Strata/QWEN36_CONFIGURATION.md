@@ -2,6 +2,10 @@
 
 작성 기준: 2026-10-22. **Strata 기동·모델 Load·생성 요청·benchmark를 실행하지 않았습니다.**
 
+> 이 문서는 PolyStrata 도입 전 Strata Qwen3.6용 **초기 검토 이력**입니다. 아래의 기동 금지·미준비 상태·32K 가정은 작성 당시의 조건입니다.
+> 현재 Qwen3.6은 [PolyStrata 운영 안내](../PolyStrata/README.md)의 Unsloth·Hauhau profile로 지원하며 context 153,600, KV Q8_0, CPU Vision을 사용합니다.
+> 아래 template과 정적 계산은 현재 실행 설정·실측으로 사용하지 않습니다. 사용자 요청에 따라 검토 이력으로 보존합니다.
+
 ## 사용자 운영 의도와 현재 상태
 
 - Vision encoder는 CPU에서 실행하고 host RAM을 사용합니다.

@@ -3,7 +3,7 @@
 2026-10-22 `migration/polystrata`에서 기존 Strata + Qwen Flash-Next를 유지하고 PolyStrata + Qwen3.6을 추가했습니다.
 공식 source는 `external_repo/PolyStrata`의 clean clone이며 실행·설치 산출물을 넣지 않습니다.
 
-## 실행 설정
+## Unsloth 실행 설정
 
 | 항목 | 설정 |
 |---|---|
@@ -26,6 +26,25 @@ KV는 GPU에 있고 active KV의 CPU streaming은 없습니다. Q8_0 KV의 150K 
 `--kv-whole`은 긴 대화에서 KV 증가로 expert cache가 뒤늦게 줄어드는 것을 피하고 최대 context의 메모리 비용을 Load 시 드러냅니다.
 정확도와 속도 비교 검증은 하지 않았습니다. Tail skip을 끄려면 local 설정의 `--tail-skip`을 `0`으로 바꾸고 명시적으로 재기동합니다.
 Vision 300-token 제한은 간단한 이미지용이며 세밀한 grounding·고해상도 이미지 정확도는 별도 검증이 필요합니다.
+Unsloth 본체에는 MTP가 포함되어 있으며 아래 메모리 실측도 MTP 활성화 상태입니다. MTP 메모리를 다시 더하지 않습니다.
+
+## 모델 저장 위치
+
+실제 데이터 root는 `config/Strata/environment.local.json`의 `data_directory`이며 현재 `C:/Strata-data`입니다.
+공식 source인 `external_repo/`와 모델 저장 위치는 구분합니다.
+
+| Profile / assets | 데이터 root 아래 경로 |
+|---|---|
+| Strata QFN weights (두 GGUF shard) | `models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS` |
+| Strata QFN MTP | `models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/strata/rt` |
+| Strata QFN Vision | `models/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF` |
+| Strata QFN Pack·tokenizer | `packs/sc117_iq3_xxs` |
+| Unsloth Qwen3.6 본체·Vision | `models/qwen36-UD-Q4_K_M` |
+| Unsloth Qwen3.6 tokenizer | `packs/qwen36-ud-q4_k_m/tokenizer` |
+| Hauhau Qwen3.6 본체·MTP·Vision | `models/qwen36-HauhauCS-TTQ-Q4_K_M` |
+| Hauhau Qwen3.6 tokenizer | `packs/qwen36-hauhau-ttq-q4_k_m/tokenizer` |
+
+## Sampling과 반복 중단
 
 2026-10-22 thinking 반복 발생 후 [Qwen3.6 공식 일반 thinking sampling](https://huggingface.co/Qwen/Qwen3.6-35B-A3B#best-practices)을 local 설정과 template에 명시했습니다.
 현재 `strata-poly` 경로는 server의 model-card sampling 자동 적용에서 제외되므로 `sampling`을 직접 지정합니다.
@@ -36,6 +55,9 @@ Vision 300-token 제한은 간단한 이미지용이며 세밀한 grounding·고
 Thinking 예산과 output 상한은 이번 변경에서 추가하지 않았습니다.
 
 ## 최초 준비와 평상시 제어
+
+이 절의 최초 준비는 기존 Strata assets와 다운로드 완료된 Unsloth GGUF를 재사용하는 현재 설치 기준입니다.
+빈 PC에 모델·Pack 전체를 설치하는 명령은 아닙니다. Hauhau는 아래 별도 준비 절차를 따릅니다.
 
 ```powershell
 # 기존 Qwen3.6 weights 다운로드가 완료된 뒤 한 번 수행합니다. Model은 Load하지 않습니다.
@@ -79,7 +101,7 @@ Strata에도 외부 `scripts/Strata/strata_entrypoint.py`를 연결해 다른 mo
 ./.venv/Strata/Scripts/python.exe -B scripts/LibreChat/verify-integration.py --mode chat --model qwen3.6-35b-a3b-ud-q4_k_m
 ```
 
-## RTX 5080 16 GB 실측
+## Unsloth RTX 5080 16 GB 실측
 
 150K KV를 미리 할당하고 CPU Vision을 Load한 상태에서 2026-10-22 측정했습니다.
 
@@ -111,7 +133,8 @@ GPU free는 Load 후 약 7.35 GiB였습니다. Reserve 8 GiB가 고정 buffers�
 
 ## HauhauCS Aggressive TTQ 실행
 
-2026-10-22에 기존 Unsloth profile을 보존하고 Hauhau profile을 추가해 전환했습니다.
+2026-10-22에 기존 Unsloth profile을 보존하고 Hauhau profile을 추가해 Load·LibreChat을 검증했습니다.
+실행 중인 profile은 사용자가 바꿀 수 있으므로 현재 상태는 관리 화면에서 확인합니다.
 
 | 항목 | 설정 |
 |---|---|
@@ -127,6 +150,56 @@ GPU free는 Load 후 약 7.35 GiB였습니다. Reserve 8 GiB가 고정 buffers�
 | 로그 | `runtime/PolyStrata/logs/hauhau-server.log`, `hauhau-engine.log` |
 
 다운로드 worker의 크기·SHA-256 검증이 완료된 세 파일로 준비합니다. 재준비는 기존 local 설정을 덮어쓰지 않습니다.
+본체·MTP는 `scripts/PolyStrata/download_hauhau_qwen36_ttq_q4_k_m.py`로 다운로드하며 이 worker에는 Vision projector가 포함되지 않습니다.
+해당 worker의 상태는 `runtime/PolyStrata/downloads/hauhau-ttq-q4km-mtp/{model,mtp}/status.json`에,
+Vision의 검증 상태는 `runtime/PolyStrata/downloads/hauhau-projector/status.json`에 보관합니다.
+준비 script는 이 검증 완료 기록과 현재 파일 크기를 확인하며 대용량 파일 전체를 다시 hash하지 않습니다.
+
+### 새 환경의 Hauhau 파일 준비
+
+기존 PolyStrata Engine·venv와 데이터 root 설정을 먼저 준비합니다. 아래는 Hauhau 파일이 없는 환경에서만 실행합니다.
+본체·MTP worker는 이어받기·SHA-256 검증을 수행합니다. 완료된 파일이 있는 환경에서 다시 실행하면 전체 hash를 읽으므로 단순 상태 조회용으로 실행하지 않습니다.
+
+```powershell
+./.venv/PolyStrata/Scripts/python.exe -B scripts/PolyStrata/download_hauhau_qwen36_ttq_q4_k_m.py
+```
+
+Vision은 [Hauhau 원본 배포](https://huggingface.co/HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive)의 별도 projector를 사용합니다.
+처음 사용한 Vision downloader는 Git 제외 runtime에 있으므로 새 환경에서는 아래 절차로 같은 pinned 파일과 검증 기록을 준비할 수 있습니다.
+Repo root의 PowerShell에서 실행하며 Engine이나 model을 기동하지 않습니다. 기존 파일도 크기·SHA-256이 일치해야 통과합니다.
+
+```powershell
+$dataDirectory = (Get-Content config/Strata/environment.local.json -Raw | ConvertFrom-Json).data_directory
+$projectorDirectory = Join-Path $dataDirectory 'models/qwen36-HauhauCS-TTQ-Q4_K_M'
+$projectorFilename = 'mmproj-Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-f16.gguf'
+$projectorRevision = 'f12a584fecbeb5f20001130d8ecd66c9327ae685'
+$projectorSha256 = 'c8e702344a81f8c226a914aa980ed6e1f604bce9374f1fed8e65c896908af414'
+$projectorPath = Join-Path $projectorDirectory $projectorFilename
+$projectorStatusDirectory = 'runtime/PolyStrata/downloads/hauhau-projector'
+New-Item -ItemType Directory -Path $projectorDirectory, $projectorStatusDirectory -Force | Out-Null
+$projectorReceivedPath = $projectorPath
+if (-not (Test-Path -LiteralPath $projectorPath)) {
+    $projectorReceivedPath = "${projectorPath}.part"
+    $projectorUrl = "https://huggingface.co/HauhauCS/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive/resolve/$projectorRevision/$projectorFilename"
+    curl.exe --fail --location --continue-at - --output $projectorReceivedPath $projectorUrl
+    if ($LASTEXITCODE -ne 0) { throw 'Projector 다운로드가 중단됐습니다. 다음 실행에서 이어받습니다.' }
+}
+if ((Get-Item -LiteralPath $projectorReceivedPath).Length -ne 899283072 -or
+    (Get-FileHash -LiteralPath $projectorReceivedPath -Algorithm SHA256).Hash -ne $projectorSha256) {
+    throw 'Projector 크기 또는 SHA-256이 다릅니다. 파일을 보존하고 확인합니다.'
+}
+if ($projectorReceivedPath -ne $projectorPath) {
+    Move-Item -LiteralPath $projectorReceivedPath -Destination $projectorPath
+}
+@{
+    state = 'completed'; model_path = $projectorPath; expected_bytes = 899283072
+    expected_sha256 = $projectorSha256; revision = $projectorRevision
+    received_bytes = 899283072; progress_percent = 100
+    updated_at = [DateTimeOffset]::UtcNow.ToString('o'); detail = 'size and SHA-256 verified'
+} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $projectorStatusDirectory 'status.json') -Encoding UTF8
+```
+
+세 파일이 준비된 뒤 tokenizer·local 설정을 만듭니다. 이 명령은 기존 local 파일을 덮어쓰지 않으므로 정책을 바꾸려면 해당 local 설정에도 반영해야 합니다.
 
 ```powershell
 ./.venv/PolyStrata/Scripts/python.exe -B scripts/PolyStrata/prepare_hauhau_environment.py
@@ -139,6 +212,7 @@ GPU free는 Load 후 약 7.35 GiB였습니다. Reserve 8 GiB가 고정 buffers�
 LibreChat 로그인·실제 채팅의 `STRATA_LIBRECHAT_READY` 응답 저장 통과. Profile 제어 관련 pytest 7개가 통과했습니다.
 Load 시 GPU 전체 8462 MiB (baseline 1419 MiB), 검증 중 peak 8620 MiB, OS 가용 RAM 감소 약 22.58 GiB,
 process tree working set 약 22.57 GiB를 관측했습니다. Working set과 RAM 감소량은 합산하지 않습니다.
+MTP가 실제로 제안·채택한 token을 확인했지만 MTP ON/OFF A/B 비교는 수행하지 않았습니다.
 이 수치는 짧은 생성·이미지·3624-token 요청 기준이며, 150K 전체 prefill이나 heavy Comfy 동시 작업의 보장값이 아닙니다.
 
 증거: `runtime/ManagementServer/verification-polystrata-qwen36-hauhau-q4km.json`,

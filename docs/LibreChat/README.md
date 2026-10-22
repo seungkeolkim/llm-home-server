@@ -7,7 +7,7 @@ Meilisearch, RAG API, PostgreSQL, Redis 및 별도 Admin Panel은 설치하지 �
 ## 준비 및 실행
 
 Docker Desktop의 Linux container engine과 `8488`에서 실행 중인 LLM profile이 필요합니다.
-관리 화면에서 실행한 model을 LibreChat에서도 선택합니다. Strata QFN과 PolyStrata Qwen3.6의 목록은 정적으로 고정하고 context는 모두 153,600 tokens입니다.
+관리 화면에서 실행한 model을 LibreChat에서도 선택합니다. Strata QFN, PolyStrata Qwen3.6 Unsloth·Hauhau의 목록은 정적으로 고정하고 context는 모두 153,600 tokens입니다.
 Title은 `current_model`, summarization은 현재 대화 model을 사용합니다. [PolyStrata 연결·실측 문서](../PolyStrata/README.md)를 참고하세요.
 명령은 이 repository root에서 실행합니다.
 먼저 아래 template을 파일명 끝의 `.template`만 제거한 이름으로 복사합니다.
@@ -91,10 +91,37 @@ Keenable 공개 endpoint는 공인 IP별 1,000 requests/hour, 최대 10 requests
 정책과 현재 한도는 [Keenable Rate limits](https://docs.keenable.ai/rate-limits)에서 확인합니다.
 
 `summarization.enabled: true`이며 LibreChat이 계산한 context budget의 80%에서 오래된 메시지를 요약합니다.
-요약도 같은 Strata 모델을 사용하며 최대 4,096 output tokens, 최근 2 turns 및 4,000 tokens 보존을 설정했습니다.
+요약도 현재 대화에서 선택한 LLM을 사용하며 최대 4,096 output tokens, 최근 2 turns 및 4,000 tokens 보존을 설정했습니다.
 요약은 손실 압축이지만 원본 대화 기록은 MongoDB에 유지됩니다.
-Strata 자체의 context window는 현재 local config에서 읽으며 최초 구성 시 163,840 tokens입니다.
+현재 세 profile의 Engine context와 LibreChat `maxContextTokens`는 모두 153,600 tokens입니다. 초기 구성의 163,840은 이전 값입니다.
 LibreChat은 여기에서 여유 공간을 빼므로 UI의 실제 context budget은 더 작습니다.
+
+## 모델 선택과 실행 profile
+
+Endpoint 이름 `Strata`는 기존 대화와 연결을 보존하기 위한 공통 식별자입니다. PolyStrata도 같은 `STRATA_BASE_URL`과 API key를 사용합니다.
+
+| LibreChat 선택 | 관리 profile | 요청 model ID |
+|---|---|---|
+| Strata · Qwen Flash-Next | `strata-qwen-flash-next` | `sc117-qwen3.8-flash-next-abliterated-iq3_xxs` |
+| PolyStrata · Qwen3.6 MoE | `polystrata-qwen36-q4km` | `qwen3.6-35b-a3b-ud-q4_k_m` |
+| PolyStrata · Qwen3.6 Hauhau | `polystrata-qwen36-hauhau-q4km` | `qwen3.6-35b-a3b-hauhau-ttq-q4_k_m` |
+
+관리 화면에서 기존 LLM을 끄고 새 profile을 켠 뒤 LibreChat의 model을 맞춥니다.
+LibreChat에서 선택만 바꾸면 LLM이 교체되는 것이 아닙니다. 두 Engine 모두 실행 model과 다른 ID의 요청을 생성 전에 HTTP 400으로 거부합니다.
+LibreChat에는 provider 오류가 표시되며 현재 model의 대체 답변은 생성하지 않습니다.
+저장된 메시지의 model label은 요청 시 선택한 값이므로 실제 Engine 상태 확인은 관리 화면 또는 `GET /v1/models`로 합니다.
+
+세 실행 설정의 `reasoning_loop_recovery: "stop"`은 thinking 반복 감지 시 생성을 중단합니다.
+API 종료 사유는 `length`이며, LibreChat에는 Qwen Code와 같은 전용 loop 감지 알림이 없습니다.
+Thinking에도 output token 예산이 사용됩니다. Loop 검사는 모든 반복을 잡거나 답변 완성을 보장하지 않습니다.
+PolyStrata 두 profile은 공식 일반 thinking sampling을 설정하지만 LibreChat에서 직접 지정한 sampling 값이 우선합니다.
+
+고정 model을 추가하면 관리 catalog, Engine local 설정, LibreChat YAML의 model 목록·tokenConfig·modelSpecs를 함께 맞춥니다.
+Template을 바꾸어도 기존 local YAML에는 자동 반영되지 않습니다. YAML만 수정한 뒤에는 LibreChat container만 재시작합니다.
+
+```powershell
+docker compose --env-file config/LibreChat/.env.local -f config/LibreChat/compose.yaml restart librechat
+```
 
 ## 저장 위치 및 운영 명령
 
@@ -182,18 +209,25 @@ MongoDB의 `/data/configdb`도 기존 anonymous volume에서 `llm-home-server-li
 
 ```powershell
 python -I -B .\scripts\LibreChat\verify-integration.py --mode login
-python -I -B .\scripts\LibreChat\verify-integration.py --mode chat
+python -I -B .\scripts\LibreChat\verify-integration.py --mode chat --model sc117-qwen3.8-flash-next-abliterated-iq3_xxs
+# Hauhau 실행 중에는 아래 model ID를 지정합니다.
+python -I -B .\scripts\LibreChat\verify-integration.py --mode chat --model qwen3.6-35b-a3b-hauhau-ttq-q4_k_m
 .\tests\LibreChat\verify-storage-boundaries.ps1
 ```
 
 `login`은 관리자 로그인과 대화 목록 접근을 확인합니다.
-`chat`은 실제 검증 대화를 만들며, `--mode search`는 외부 검색을 포함하는 검증 대화를 만듭니다.
+`chat`은 실제 검증 대화를 만들며, `--mode search`는 외부 검색을 포함하는 검증 대화를 만듭니다. 실행 중인 profile에 해당하는 명령 하나만 사용합니다.
+`--model`을 생략하면 Strata local 설정의 QFN ID를 사용하므로 PolyStrata 검증에서는 반드시 지정합니다.
 검증 응답은 `runtime/LibreChat/diagnostics`에 저장합니다.
 저장 경계 테스트는 같은 diagnostics 아래에 실제 secret을 사용하지 않는 임시 workspace를 만듭니다.
 방화벽 fixture는 `tests/LibreChat/verify-firewall-regression.ps1 -Scenario <시나리오>`로 실행합니다.
 `new_native`, `existing_native`는 종료 코드 0, `access_denied`, `bad_verification`은 종료 코드 1이 정상입니다.
 
 ## 검증 기록
+
+2026-10-22 세 profile의 실제 채팅 및 Hauhau의 MTP·CPU Vision을 검증했습니다.
+Strata request 정책 적용 후 LibreChat에서 QFN 정상 응답과 미실행 PolyStrata 선택 시 `status: 400` error content 저장을 확인했습니다.
+`verification-chat.json`은 최근 검증 때 덮어쓰는 파일입니다. Hauhau 기록은 `verification-hauhau-chat.json`, model 불일치는 `verification-strata-model-mismatch.json`에 별도 보존했습니다.
 
 2026-10-21 localhost 임시 port에서 다음을 확인했습니다.
 
