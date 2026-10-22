@@ -30,8 +30,8 @@ def load_configuration():
             raise ValueError(f"관리 서버 설정의 {field_name} 항목을 실제 값으로 바꿔 주세요.")
     if len(configuration["session_secret"]) < 32:
         raise ValueError("관리 서버 설정의 session_secret은 32자 이상이어야 합니다.")
-    if configuration["llm"]["adapter"] != "strata":
-        raise ValueError("현재 지원하는 LLM adapter는 strata입니다.")
+    if configuration["llm"]["adapter"] not in {"strata", "profiles"}:
+        raise ValueError("등록되지 않은 LLM adapter입니다.")
     return configuration
 
 

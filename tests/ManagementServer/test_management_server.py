@@ -3,6 +3,7 @@
 import asyncio
 import json
 import sys
+import time
 from types import SimpleNamespace
 
 from fastapi.testclient import TestClient
@@ -86,6 +87,79 @@ def test_operation_store_survives_reload_and_serializes(tmp_path):
     assert second_store.create("comfy", "unload")
     with pytest.raises(ValueError):
         second_store.create("comfy", "cancel")
+
+
+@pytest.mark.parametrize("final_status", ["succeeded", "failed"])
+def test_control_request_is_committed_and_logged_before_launch(configuration, tmp_path, monkeypatch, final_status):
+    """서비스 실행 전에 요청 ID와 접수 로그가 보존되고 같은 이력이 최종 상태로 바뀝니다."""
+    database_path = tmp_path / "operations.sqlite3"
+    store = OperationStore(database_path)
+    identifier = "1" * 32
+
+    def launch_recorded_operation(operation_identifier):
+        """실제 서비스를 실행하지 않고 별도 DB 연결에서 접수 기록을 확인합니다."""
+        recorded = OperationStore(database_path).get(operation_identifier)
+        assert recorded["status"] == "queued"
+        assert recorded["finished_at"] is None
+        log_path = store.log_directory / f"{operation_identifier}.log"
+        assert json.loads(log_path.read_text(encoding="utf-8"))["status"] == "queued"
+        assert store.begin(operation_identifier)
+        store.finish(operation_identifier, final_status, "mock final result")
+
+    monkeypatch.setattr(store, "launch", launch_recorded_operation)
+    with TestClient(create_app(configuration, store, DummyMonitor())) as client:
+        unlocked = client.post("/api/access", json={"access_string": "test-access"})
+        response = client.post("/api/services/llm/start", json={"identifier": identifier},
+                               headers={"X-CSRF-Token": unlocked.json()["csrf"]})
+        assert response.status_code == 202
+        assert response.json()["identifier"] == identifier
+        assert response.json()["status"] == final_status
+        assert len(client.get("/api/operations").json()) == 1
+    log_lines = (store.log_directory / f"{identifier}.log").read_text(encoding="utf-8").splitlines()
+    assert [json.loads(line)["status"] for line in log_lines] == ["queued", "running", final_status]
+
+
+@pytest.mark.parametrize("start_worker", [False, True])
+def test_reboot_marks_unfinished_request_interrupted_without_relaunch(tmp_path, monkeypatch, start_worker):
+    """재부팅 전에 접수 또는 실행 중이던 요청은 결과를 추정하지 않고 중단으로 남깁니다."""
+    store = OperationStore(tmp_path / "operations.sqlite3")
+    identifier = store.create("llm", "start")
+    if start_worker:
+        assert store.begin(identifier)
+    monkeypatch.setattr("management_server.operations.psutil.boot_time", lambda: time.time() + 1)
+
+    def unexpected_process_lookup(*arguments):
+        """이전 부팅의 PID를 현재 process에 연결하지 못하게 검사합니다."""
+        pytest.fail("재부팅 이전의 worker PID를 조회하면 안 됩니다.")
+
+    monkeypatch.setattr("management_server.operations.psutil.Process", unexpected_process_lookup)
+    OperationStore(store.database_path).recover_interrupted()
+    operation = store.get(identifier)
+    assert operation["status"] == "interrupted"
+    assert "재부팅" in operation["message"]
+    assert operation["finished_at"] is not None
+    assert not store.begin(identifier)
+    store.finish(identifier, "succeeded", "late result")
+    assert store.get(identifier)["status"] == "interrupted"
+
+
+def test_live_worker_survives_reload_and_recovery_preserves_final_result(tmp_path, monkeypatch):
+    """살아 있는 worker와 복구 판정 도중 완료된 결과는 중단 상태로 덮어쓰지 않습니다."""
+    store = OperationStore(tmp_path / "operations.sqlite3")
+    identifier = store.create("llm", "start")
+    assert store.begin(identifier)
+    with store.connect() as connection:
+        connection.execute("UPDATE operations SET created_at = ? WHERE identifier = ?",
+                           (time.time() - 30, identifier))
+    monkeypatch.setattr("management_server.operations.psutil.boot_time", lambda: time.time() - 300)
+    monkeypatch.setattr("management_server.operations.psutil.Process", lambda process_identifier:
+                        SimpleNamespace(cmdline=lambda: ["python", "-m", "management_server.worker", identifier]))
+    store.recover_interrupted()
+    assert store.get(identifier)["status"] == "running"
+    previous_operation = store.get(identifier)
+    store.finish(identifier, "succeeded", "done")
+    store.finish(identifier, "interrupted", "stale recovery", expected_operation=previous_operation)
+    assert store.get(identifier)["status"] == "succeeded"
 
 
 def test_comfy_queue_reads_without_prompt_or_cancellation():

@@ -5,7 +5,7 @@ version: 1.3.17
 cache: true
 
 interface:
-  customWelcome: Strata에 연결된 LibreChat입니다.
+  customWelcome: LLM Home Server에서 실행한 model을 선택해 주세요.
   modelSelect: true
   parameters: true
   presets: true
@@ -28,31 +28,43 @@ endpoints:
       models:
         default:
           - __STRATA_MODEL_NAME__
+          - qwen3.6-35b-a3b-ud-q4_k_m
         fetch: false
       titleConvo: true
-      titleModel: __STRATA_MODEL_NAME__
-      modelDisplayLabel: Strata
+      titleModel: current_model
+      modelDisplayLabel: Local LLM
       tokenConfig:
         __STRATA_MODEL_NAME__:
           prompt: 0
           completion: 0
           context: __STRATA_CONTEXT_TOKENS__
+        qwen3.6-35b-a3b-ud-q4_k_m:
+          prompt: 0
+          completion: 0
+          context: 153600
 
 modelSpecs:
   list:
     - name: strata-local
-      label: Strata SC117
+      label: Strata · Qwen Flash-Next
       description: Keenable Web Search와 자동 컨텍스트 압축을 사용할 수 있습니다.
       softDefault: true
       preset:
         endpoint: Strata
         model: __STRATA_MODEL_NAME__
         maxContextTokens: __STRATA_CONTEXT_TOKENS__
+    - name: polystrata-qwen36
+      label: PolyStrata · Qwen3.6 MoE
+      description: UD-Q4_K_M · KV Q8_0 · CPU Vision · 150K context
+      preset:
+        endpoint: Strata
+        model: qwen3.6-35b-a3b-ud-q4_k_m
+        maxContextTokens: 153600
 
 summarization:
   enabled: true
   provider: Strata
-  model: __STRATA_MODEL_NAME__
+  # model을 생략하면 현재 대화에서 선택한 고정 catalog model을 사용합니다.
   maxSummaryTokens: 4096
   reserveRatio: 0.05
   trigger:

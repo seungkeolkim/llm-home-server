@@ -12,7 +12,7 @@
     "--spec", "4",
     "--spec-min-p", "0.5",
     "--mtp", "${DATA_ROOT}/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/strata/rt",
-    "--max-context", "163840",
+    "--max-context", "153600",
     "--kv", "int8",
     "--kv-resident", "32768",
     "--vram-reserve-mib", "8192",

@@ -240,6 +240,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("prepare", "start", "stop", "status", "plan", "verify", "foreground"))
     parser.add_argument("--data-directory", type=Path, default=Path("C:/Strata-data"))
+    parser.add_argument("--if-owner-id")
+    parser.add_argument("--if-instance-id")
     arguments = parser.parse_args()
     if arguments.action == "prepare":
         return prepare_environment(arguments.data_directory)
@@ -255,6 +257,11 @@ def main() -> int:
         command = ["runtime", arguments.action, "--profile", PROFILE_NAME, "--output", "json"]
         if arguments.action in ("start", "verify"):
             command += ["--wait", "600"]
+        if arguments.action == "stop":
+            if arguments.if_owner_id:
+                command += ["--if-owner-id", arguments.if_owner_id]
+            if arguments.if_instance_id:
+                command += ["--if-instance-id", arguments.if_instance_id]
     return invoke_strata(command, environment)
 
 

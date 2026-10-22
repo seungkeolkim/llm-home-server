@@ -1,5 +1,7 @@
 "use strict";
 
+const pendingOperationStorageKey = "llm-home-server.pending-operations";
+
 const elements = Object.fromEntries(
   [...document.querySelectorAll("[id]")].map((element) => [
     element.id,
@@ -14,6 +16,7 @@ const state = {
   actionPending: false,
   queueSignature: null,
   operationSignature: null,
+  pendingOperations: [],
 };
 const statusLabels = {
   ready: "준비 완료",
@@ -28,7 +31,69 @@ const statusLabels = {
   accepted: "요청 접수",
   succeeded: "완료",
   failed: "실패",
+  submitting: "요청 전송 중",
+  unconfirmed: "접수 확인 필요",
+  interrupted: "중단됨",
 };
+
+/** HTTP 환경에서도 브라우저와 서버가 공유할 고유 요청 ID를 만듭니다. */
+function createOperationIdentifier() {
+  const randomBytes = crypto.getRandomValues(new Uint8Array(16));
+  const identifierParts = [];
+  for (const randomByte of randomBytes) {
+    identifierParts.push(randomByte.toString(16).padStart(2, "0"));
+  }
+  return identifierParts.join("");
+}
+
+/** 서버 응답 전의 버튼 조작도 브라우저 재시작 후 확인할 수 있게 저장합니다. */
+function savePendingOperations() {
+  localStorage.setItem(
+    pendingOperationStorageKey,
+    JSON.stringify(state.pendingOperations),
+  );
+}
+
+/** 재접속한 요청은 자동 재전송하지 않고 서버 이력과 대조할 때까지 보존합니다. */
+function restorePendingOperations() {
+  try {
+    const storedOperations = JSON.parse(
+      localStorage.getItem(pendingOperationStorageKey) || "[]",
+    );
+    if (!Array.isArray(storedOperations)) return;
+    for (const operation of storedOperations) {
+      if (!/^[0-9a-f]{32}$/.test(operation.identifier)) continue;
+      state.pendingOperations.push({
+        ...operation,
+        status: operation.status === "failed" ? "failed" : "unconfirmed",
+        message: operation.status === "failed"
+          ? operation.message
+          : "브라우저에서 요청했습니다. 서버 접수 여부를 확인하고 있습니다. 자동 재실행하지 않습니다.",
+      });
+    }
+  } catch (error) {
+    showToast("브라우저에 저장된 제어 요청을 읽지 못했습니다.");
+  }
+}
+
+/** 같은 요청 ID의 서버 상태로 브라우저 기록을 대체하고 미확인 요청은 남깁니다. */
+function reconcileOperations(operations) {
+  const serverIdentifiers = new Set(operations.map((operation) => operation.identifier));
+  const remainingOperations = state.pendingOperations.filter(
+    (operation) => !serverIdentifiers.has(operation.identifier),
+  );
+  if (remainingOperations.length !== state.pendingOperations.length) {
+    state.pendingOperations = remainingOperations;
+    try {
+      savePendingOperations();
+    } catch (error) {
+      showToast("브라우저의 요청 기록을 갱신하지 못했습니다. 서버 이력을 확인해 주세요.");
+    }
+  }
+  return [...state.pendingOperations, ...operations].sort(
+    (firstOperation, secondOperation) => secondOperation.created_at - firstOperation.created_at,
+  );
+}
 
 /** 서버 API를 호출하고 인증 만료와 오류 메시지를 구분합니다. */
 async function requestApi(path, options = {}) {
@@ -48,7 +113,9 @@ async function requestApi(path, options = {}) {
       typeof document.detail === "string"
         ? document.detail
         : "요청 내용을 확인해 주세요.";
-    throw new Error(message);
+    const error = new Error(message);
+    error.httpStatus = response.status;
+    throw error;
   }
   return document;
 }
@@ -162,6 +229,7 @@ function renderQueue(queue) {
 
 /** 접수와 실제 완료를 구분해 제어 이력을 표시합니다. */
 function renderOperations(operations) {
+  operations = reconcileOperations(operations);
   const signature = JSON.stringify(operations);
   if (signature === state.operationSignature) return;
   state.operationSignature = signature;
@@ -189,6 +257,11 @@ function renderOperations(operations) {
       operation.action
     ];
     detail.append(textElement("strong", "", `${target} · ${action}`));
+    if (operation.profile_id) {
+      const profile = state.snapshot.llm?.profiles?.find((candidate) => candidate.identifier === operation.profile_id);
+      detail.append(textElement("p", "muted", profile
+        ? `${profile.engine_label} · ${profile.model_label}` : operation.profile_id));
+    }
     detail.append(
       textElement(
         "p",
@@ -202,9 +275,9 @@ function renderOperations(operations) {
       statusLabels[operation.status] || operation.status,
     );
     badge.classList.add(
-      ["failed"].includes(operation.status)
+      ["failed", "interrupted", "unconfirmed"].includes(operation.status)
         ? "error"
-        : ["queued", "running"].includes(operation.status)
+        : ["queued", "running", "submitting"].includes(operation.status)
           ? "busy"
           : "ready",
     );
@@ -255,7 +328,7 @@ function renderButtons(snapshot) {
       disabled ||= !snapshot.comfy.connected;
     if (button.dataset.target === "llm") {
       if (button.dataset.action === "start")
-        disabled ||= ["ready", "generating"].includes(snapshot.llm.state);
+        disabled ||= snapshot.llm.state !== "stopped";
       if (button.dataset.action === "stop")
         disabled ||= snapshot.llm.state === "stopped";
     }
@@ -303,7 +376,7 @@ function renderSnapshot(snapshot) {
     "llm-description",
     snapshot.llm.in_flight
       ? `현재 ${snapshot.llm.in_flight}개 요청을 처리 중입니다.`
-      : `API :${snapshot.llm.port} · 현재 설정된 모델을 실행합니다.`,
+      : `API :${snapshot.llm.port} · 켜기를 누르면 Engine과 model을 선택합니다.`,
   );
   for (const serviceName of ["librechat", "mongodb"]) {
     const service = snapshot.librechat.services[serviceName];
@@ -412,10 +485,48 @@ function confirmAction(title, message) {
   );
 }
 
+/** 준비 목록에서 실행 profile을 고르고 취소하면 제어 요청을 만들지 않습니다. */
+async function selectExecutionProfile() {
+  const profiles = state.snapshot.llm.profiles;
+  const selection = elements["profile-selection"];
+  selection.replaceChildren();
+  for (const profile of profiles) {
+    const option = document.createElement("option");
+    option.value = profile.identifier;
+    option.textContent = `${profile.engine_label} · ${profile.model_label}${profile.state === "available" ? "" : ` · ${profile.problem}`}`;
+    option.disabled = profile.state !== "available";
+    selection.append(option);
+  }
+  const availableProfile = profiles.find((profile) => profile.state === "available");
+  selection.value = availableProfile?.identifier || "";
+  elements["profile-start"].disabled = !availableProfile;
+  /** 선택한 실행 설정을 Engine 인자 대신 사용자 정보로 표시합니다. */
+  function describeSelection() {
+    const profile = profiles.find((candidate) => candidate.identifier === selection.value);
+    elements["profile-description"].textContent = profile?.label || "기동 가능한 profile이 없습니다.";
+  }
+  selection.onchange = describeSelection;
+  describeSelection();
+  const dialog = elements["profile-dialog"];
+  dialog.returnValue = "cancel";
+  dialog.showModal();
+  return new Promise((resolve) => {
+    dialog.addEventListener("close", () => {
+      resolve(dialog.returnValue === "start"
+        ? profiles.find((profile) => profile.identifier === selection.value) : null);
+    }, { once: true });
+  });
+}
+
 /** 고정된 서비스 조작을 접수하고 별도 worker의 진행을 표시합니다. */
 async function controlService(event) {
   const { target, action } = event.currentTarget.dataset;
   if (state.actionPending) return;
+  let selectedProfile = null;
+  if (target === "llm" && action === "start" && state.snapshot.llm?.profiles) {
+    selectedProfile = await selectExecutionProfile();
+    if (!selectedProfile || state.actionPending) return;
+  }
   let message =
     action === "stop"
       ? "서비스를 종료합니다. 현재 작업이 있으면 종료 처리에 시간이 걸릴 수 있습니다."
@@ -432,10 +543,34 @@ async function controlService(event) {
     message =
       "ComfyUI queue가 남아 있습니다. LLM 기동 시 RAM·VRAM을 함께 사용합니다. 현재 리소스를 확인하고 진행해 주세요.";
   if (message && !(await confirmAction("서비스 제어", message))) return;
+  const identifier = createOperationIdentifier();
   state.actionPending = true;
   renderButtons(state.snapshot);
+  const pendingOperation = {
+    identifier,
+    target,
+    action,
+    profile_id: selectedProfile?.identifier || null,
+    created_at: Date.now() / 1000,
+    status: "submitting",
+    message: "버튼 요청을 기록했습니다. 서버에 접수하고 있습니다.",
+  };
+  let requestStarted = false;
   try {
-    await requestApi(`/api/services/${target}/${action}`, { method: "POST" });
+    state.pendingOperations.push(pendingOperation);
+    savePendingOperations();
+    renderOperations(state.snapshot.operations);
+    requestStarted = true;
+    const operation = await requestApi(`/api/services/${target}/${action}`, {
+      method: "POST",
+      body: JSON.stringify({ identifier, profile_id: selectedProfile?.identifier,
+        configuration_revision: selectedProfile?.revision }),
+    });
+    state.snapshot.operations = [
+      operation,
+      ...state.snapshot.operations.filter((previousOperation) => previousOperation.identifier !== identifier),
+    ];
+    renderOperations(state.snapshot.operations);
     showToast(
       "제어 요청을 접수했습니다. 최근 제어 이력에서 진행 상황을 확인하세요.",
     );
@@ -443,6 +578,23 @@ async function controlService(event) {
     state.snapshot.operations = operations;
     renderOperations(operations);
   } catch (error) {
+    pendingOperation.status = "unconfirmed";
+    pendingOperation.message = requestStarted
+      ? `서버 접수 또는 최종 결과를 확인하지 못했습니다. ${error.message}`
+      : "브라우저에 요청을 저장하지 못해 제어를 시작하지 않았습니다.";
+    if (!requestStarted) {
+      pendingOperation.status = "failed";
+      pendingOperation.message = "브라우저에 요청을 저장하지 못해 제어를 시작하지 않았습니다.";
+    } else if ([401, 403, 404, 409, 422].includes(error.httpStatus)) {
+      pendingOperation.status = "failed";
+      pendingOperation.message = `제어 요청이 거부됐습니다. ${error.message}`;
+    }
+    try {
+      savePendingOperations();
+    } catch (storageError) {
+      pendingOperation.message += " 브라우저의 요청 기록도 저장하지 못했습니다.";
+    }
+    renderOperations(state.snapshot.operations);
     showToast(error.message);
   } finally {
     state.actionPending = false;
@@ -496,6 +648,7 @@ async function lockSession() {
 
 /** 이벤트를 한 번 등록하고 기존 session을 복구합니다. */
 async function initializeApplication() {
+  restorePendingOperations();
   elements["access-form"].addEventListener("submit", submitAccess);
   elements["lock-button"].addEventListener("click", lockSession);
   elements["refresh-button"].addEventListener("click", refreshStatus);

@@ -52,7 +52,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\ManagementServer\a
 |---|---|
 | Windows | 물리 RAM 사용·여유량과 CPU 사용률 조회 |
 | GPU | NVIDIA GPU VRAM 사용·여유량, 사용률·온도·전력 조회 |
-| LLM | 현재 Strata adapter의 상태·모델명 조회와 공식 managed runtime start/stop |
+| LLM | 고정 profile 선택, Strata QFN·PolyStrata Qwen3.6의 상태·모델명 조회와 instance별 start/stop |
 | LibreChat | Docker Compose stack의 상태 조회, LibreChat·MongoDB 함께 start/stop |
 | ComfyUI 8188 | 실행·대기 queue 조회와 모델·execution cache unload 요청 |
 | Comfy Home Server 8388 | 바로가기만 제공. 이 서버의 코드·설정·프로세스는 관리하지 않음 |
@@ -63,19 +63,25 @@ Queue 취소·삭제·순서 변경, `/interrupt`, 작업 제출 API는 관리 �
 HTTP 성공은 **요청 접수**입니다. 작업 중이면 처리 후 반영되며, queue가 남으면 다음 작업에서 모델이 다시 로드될 수 있습니다.
 실제 RAM·VRAM 수치를 보고 결과를 확인합니다.
 
-LLM의 ON/OFF는 현재 serving engine인 Strata의 전체 서비스 기동·종료입니다.
-현재 모델은 기존 Strata 설정을 그대로 사용합니다. 여러 모델 선택이나 다른 engine adapter는 아직 구현하지 않았습니다.
+LLM의 ON/OFF는 선택한 serving profile의 전체 서비스 기동·종료입니다.
+Model 설정의 자유 편집 대신 서버에서 준비한 고정 profile을 선택합니다.
 다른 engine은 `create_llm_adapter()` 경계에 adapter를 추가할 수 있으며 화면·일반 제어 API는 `llm`이라는 이름을 사용합니다.
+「켜기 → Engine·model 조합 선택 → 기동」을 구현했습니다. 기존 Strata + QFN과 PolyStrata + Qwen3.6 MoE를 선택할 수 있고 같은 `8488` port를 공유합니다. 두 profile과 LibreChat의 context는 153,600 tokens입니다. PolyStrata + QFN은 후속입니다. [운영 계획](OPERATING_PLAN.md#llm-enginemodel-선택-기동-설계)과 [실행·실측 문서](../PolyStrata/README.md)를 참고하세요.
+초기에는 LLM 하나만 실행하며 다른 조합으로 바꾸려면 끈 뒤 다시 선택해 켭니다. LibreChat의 지원 model 목록과 model별 약 150K context는 고정 설정으로 관리할 계획입니다. Engine을 유지한 채 model·KV만 unload/offload하는 기능은 TODO이며 초기 구현에 포함하지 않습니다.
 LLM 시작이 ComfyUI queue를 취소하거나 메모리를 자동 해제하지는 않습니다.
 
 ## 작업 이력과 reload
 
 - 상태는 연결한 브라우저 수와 무관하게 약 3초마다 한 번 수집합니다.
 - 제어는 고정된 동작만 받으며 동시에 하나만 접수합니다.
+- 버튼 조작을 확정하면 API 응답을 기다리기 전에 요청 ID와 시각을 브라우저에 저장하고 이력에 표시합니다. 확인창을 취소하면 요청하지 않습니다.
+- 서버는 같은 요청 ID를 SQLite에 commit하고 접수 로그를 디스크에 반영한 후 worker를 실행합니다. 접수 → 실행 중 → 최종 결과가 같은 이력에서 갱신됩니다.
+- 응답 전에 연결이 끊기거나 브라우저가 재시작되면 브라우저 기록을 서버 이력과 대조합니다. 서버 접수를 확인할 수 없으면 `접수 확인 필요`로 남기며 자동 재전송하지 않습니다. 브라우저 저장에 실패하면 제어를 시작하지 않습니다.
 - 제어 worker는 API server와 독립 실행하므로 browser를 닫거나 API를 reload해도 이미 접수한 동작은 이어집니다.
 - 완료·실패·접수 결과는 `data/ManagementServer/operations.sqlite3`에 보관합니다.
-- Worker가 비정상 종료되면 상태를 실패로 기록하며 자동 재실행하지 않습니다.
+- 재부팅 전의 미완료 요청이나 종료된 worker의 요청은 `중단됨`으로 기록합니다. 당시 서비스의 성공·실패를 추정하지 않으며 자동 재실행하지 않습니다. 관리 서버 시작 시와 주기적인 상태 조회에서 확인합니다.
 - Worker 로그는 `runtime/ManagementServer/operations/`에 보관합니다. 화면에서는 최근 12 KB만 조회합니다.
+- Worker 로그에는 접수·실행·최종 상태의 시각을 추가 기록합니다. SQLite는 `synchronous=EXTRA`, 단계 로그는 `flush`와 `fsync` 후 다음 단계로 진행합니다.
 - LLM·LibreChat 비밀키와 사용자 데이터는 기존 서비스 설정·데이터 위치에 보존합니다.
 
 ## 검증
@@ -83,6 +89,9 @@ LLM 시작이 ComfyUI queue를 취소하거나 메모리를 자동 해제하지�
 ```powershell
 .\.venv\ManagementServer\Scripts\python.exe -m pip install -r requirements/ManagementServer/test.txt
 .\.venv\ManagementServer\Scripts\python.exe -m pytest tests/ManagementServer -q
+node --test tests/ManagementServer/test_control_history.cjs
 ```
+
+제어 기록 테스트는 임시 DB와 Mock을 사용하며 실제 LLM이나 ComfyUI를 기동·종료하지 않습니다.
 
 운영 의도와 구현 범위는 [운영 계획](OPERATING_PLAN.md)에서 이어갑니다.

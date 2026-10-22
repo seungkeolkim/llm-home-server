@@ -1,12 +1,14 @@
 # LibreChat 실행 환경
 
-LibreChat과 MongoDB만 Docker로 실행합니다. 모델 추론과 컨텍스트 요약은 기존 Windows Strata를 사용하며,
+LibreChat과 MongoDB만 Docker로 실행합니다. 모델 추론과 컨텍스트 요약은 관리 화면에서 선택한 Windows Strata 또는 PolyStrata를 사용하며,
 Web Search와 페이지 본문 추출은 API key 없이 Keenable을 호출합니다.
 Meilisearch, RAG API, PostgreSQL, Redis 및 별도 Admin Panel은 설치하지 않습니다.
 
 ## 준비 및 실행
 
-Docker Desktop의 Linux container engine과 실행 중인 Strata가 필요합니다.
+Docker Desktop의 Linux container engine과 `8488`에서 실행 중인 LLM profile이 필요합니다.
+관리 화면에서 실행한 model을 LibreChat에서도 선택합니다. Strata QFN과 PolyStrata Qwen3.6의 목록은 정적으로 고정하고 context는 모두 153,600 tokens입니다.
+Title은 `current_model`, summarization은 현재 대화 model을 사용합니다. [PolyStrata 연결·실측 문서](../PolyStrata/README.md)를 참고하세요.
 명령은 이 repository root에서 실행합니다.
 먼저 아래 template을 파일명 끝의 `.template`만 제거한 이름으로 복사합니다.
 
@@ -217,3 +219,57 @@ python -I -B .\scripts\LibreChat\verify-integration.py --mode chat
 
 RAG API를 설치하지 않아 기동 시 RAG unavailable warning이 출력됩니다.
 File Search와 Run Code는 꺼져 있으며 기본 채팅, Web Search 및 자동 압축에는 영향이 없습니다.
+
+## 미해결 장애: 답변 streaming 중 LibreChat 종료
+
+기록일: 2026-10-22. 아래 시각은 별도 표기가 없으면 한국 시간(KST)입니다.
+상태: 원인 분석 완료, 수정 미적용. 기록 당시 Strata는 가동 중이며 조사 과정에서 중지하거나 재시작하지 않았습니다.
+
+### 증상과 발생 순서
+
+사용자는 think 과정이 끝난 뒤 최종 답변이 작성되는 도중 화면에서 사라지는 현상이 다시 발생했다고 보고했습니다.
+
+| 시각 | 확인한 내용 |
+|---|---|
+| 2026-10-22 00:47:45 | 해당 사용자 메시지를 LibreChat이 접수하고 MongoDB에 저장했습니다. |
+| 2026-10-22 00:51:07 | `undici`에서 `AssertionError: assert(!this.paused)`가 발생하고 LibreChat process가 종료됐습니다. |
+| 2026-10-22 00:51:08 | Docker의 `unless-stopped` 정책으로 LibreChat container가 다시 시작됐습니다. |
+
+### 확인한 근거
+
+- 오류 로그: `runtime/LibreChat/logs/error-2026-10-21.log`의 40번째 줄. 로그 timestamp는 `2026-10-21T15:51:07.027Z`(UTC)입니다.
+- 해당 request ID: `9bf2ca80-5f70-4d0f-841a-3fc9188e6ccc`, 요청 경로: `POST /api/agents`.
+- Stack: `Parser.finish` (`/app/node_modules/undici/lib/dispatcher/client-h1.js:374`) → `Socket.onHttpSocketEnd` (같은 파일의 959번째 줄).
+- Docker events에 같은 시각의 `die`와 1초 뒤 `start`가 있으며, 조사 시 `RestartCount=1`, `OOMKilled=false`였습니다.
+- MongoDB에 사용자 메시지 `89cce95e-74bc-4476-adaa-bcfa2b430e76`은 존재하지만, 이를 `parentMessageId`로 갖는 assistant 답변은 0개였습니다. 대화 본문은 이 문서에 기록하지 않습니다.
+- 동일 stack의 오류가 2026-10-21 21:29:31, 21:50:03, 21:54:38에도 기록돼 있습니다.
+- 조사 시 실행 환경: LibreChat `v0.8.8`, Node.js `v24.16.0`, 설치된 npm package `undici 7.30.0`. Node 내장 `undici`는 `7.25.0`이지만 이번 stack은 `/app/node_modules/undici/`를 가리킵니다.
+- 운영 image digest: `sha256:ff73f3e16986f70dc95680b96b60fccca38dcef2843cff3b9748e3688d0ef4c8`.
+
+### 원인과 판단의 한계
+
+설치된 `undici` 코드는 HTTP parser가 paused 상태일 때 socket 종료 경로에서 `Parser.finish()`를 호출하고,
+그 안의 `assert(!this.paused)`로 예외를 발생시킵니다. LibreChat의 `uncaughtException` handler는
+이 오류에 대해 `process.exit(1)`로 종료합니다.
+
+이는 응답 body의 backpressure로 parser가 일시 정지한 상태에서 상대가 연결을 닫으면 발생하는
+[Undici issue #5360](https://github.com/nodejs/undici/issues/5360)의 조건 및 stack과 일치합니다.
+Strata의 `serve/server.py`는 응답에 `Connection: close`를 보내며 SSE에도 이 경로를 사용합니다.
+이 연결 종료 방식이 해당 bug의 발생 조건에 노출됩니다.
+다만 이번 요청에서 backpressure가 발생한 세부 원인과 순간적인 buffer 상태는 기존 로그만으로 확정하지 못했습니다.
+
+화면에 표시하던 streaming 답변이 최종 저장되기 전에 LibreChat이 종료됐고,
+재연결 시 저장된 대화만 표시되면서 답변이 사라진 흐름으로 판단합니다.
+사용자 메시지 저장, assistant 답변 부재 및 process 종료는 확인했지만,
+당시 브라우저의 SSE event나 원본 응답 전체를 확보한 것은 아닙니다.
+
+### 후속 수정 방향과 운영 경계
+
+[Upstream PR #5474](https://github.com/nodejs/undici/pull/5474)는 paused parser를 재개하고 남은 데이터를 처리한 뒤
+socket 종료를 완료하도록 수정합니다. 후속 작업에서는 이 수정이 포함된 LibreChat image 또는 호환되는 dependency 구성을
+확인해야 하며, image tag나 Node 버전만으로 적용 여부를 판단하지 않습니다.
+현재 설치된 package에는 문제가 발생하는 assertion 경로가 남아 있음을 직접 확인했습니다.
+
+이번 조사는 로그·실행 코드·container 상태·MongoDB 조회만 수행했습니다.
+LLM 및 LibreChat을 수동으로 중지·재시작하지 않았으며 source, 운영 설정, dependency와 대화 데이터를 변경하지 않았습니다.
+위의 LibreChat 재시작은 장애 발생 당시 Docker가 자동으로 수행한 동작입니다.

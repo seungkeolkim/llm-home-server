@@ -833,3 +833,15 @@ input:focus-visible {
     scroll-behavior: auto;
   }
 }
+/* 실행 조합 선택은 모바일에서도 줄바꿈 없이 화면 폭 안에 유지합니다. */
+#profile-selection {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.8rem;
+  margin-top: 0.7rem;
+  color: var(--text, #e7edf5);
+  background: var(--surface, #192331);
+  border: 1px solid #526178;
+  border-radius: 0.6rem;
+}
