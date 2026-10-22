@@ -78,7 +78,7 @@ RAM·VRAM의 주요 수치는 `사용량 / 전체 용량 GiB`이며 사용률과
 | 단계 | UI에서 선택할 Engine | Model | 의미 |
 |---|---|---|---|
 | 현재 유지 | Strata | Qwen3.8-Flash-Next (QFN) | 현재 사용 중인 기존 실행 경로와 설정을 보존합니다. |
-| 1차 추가 | PolyStrata | Qwen3.6-35B-A3B MoE | 먼저 추가할 새 실행 조합입니다. 선택한 모델 weights는 Unsloth `UD-Q4_K_M`입니다. |
+| 1차 추가 | PolyStrata | Qwen3.6-35B-A3B MoE | Unsloth `UD-Q4_K_M` 및 HauhauCS Aggressive TTQ Q4_K_M을 별도 profile로 지원합니다. 2026-10-22 Hauhau에 MTP sidecar·CPU Vision을 연결하고 LibreChat 검증 후 전환했습니다. |
 | 2차 추가 | PolyStrata | Qwen3.8-Flash-Next (QFN) | 기존 Strata 조합과 나란히 남기는 후속 조합입니다. |
 
 최종 목표는 **Strata + QFN / PolyStrata + QFN / PolyStrata + Qwen3.6 MoE**의 세 조합입니다. 최종이라는 표현은 이번 작업의 목표를 뜻하며, 이후 Engine·model 추가를 제한하지 않습니다.

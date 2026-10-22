@@ -1,0 +1,30 @@
+{
+  "exe": "__DATA__/components/PolyStrata/v0.1.45-poly.2/strata-poly.exe",
+  "args": [
+    "--model", "__DATA__/models/qwen36-HauhauCS-TTQ-Q4_K_M/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-TTQ-4.90bpw-Q4_K_M.gguf",
+    "--draft-model", "__DATA__/models/qwen36-HauhauCS-TTQ-Q4_K_M/Qwen3.6-35B-A3B-MTP-ONLY-Q4_K_M-shared.gguf",
+    "--max-context", "153600", "--kv", "q8_0", "--kv-whole",
+    "--vram-reserve-mib", "8192", "--threads", "8",
+    "--conversation-cache-mib", "0", "--tail-skip", "6"
+  ],
+  "cwd": "__WORKSPACE__/runtime/PolyStrata/hauhau/working",
+  "tokenizer": "__DATA__/packs/qwen36-hauhau-ttq-q4_k_m/tokenizer",
+  "model_name": "qwen3.6-35b-a3b-hauhau-ttq-q4_k_m",
+  "log": "__WORKSPACE__/runtime/PolyStrata/logs/hauhau-engine.log",
+  "lib_dirs": ["__WORKSPACE__/.venv/PolyStrata/Lib/site-packages/nvidia/cu13/bin/x86_64"],
+  "host": "0.0.0.0", "port": 8488,
+  "api_key": "__SHARED_API_KEY__", "parallel": 1,
+  "reasoning_effort": "medium", "open_browser": false,
+  "sampling": {
+    "temperature": 1.0, "top_p": 0.95, "top_k": 20, "min_p": 0.0,
+    "presence_penalty": 1.5, "repetition_penalty": 1.0
+  },
+  "reasoning_loop_recovery": "stop",
+  "switch_on_request": false, "idle_unload_s": 0,
+  "vision": {
+    "exe": "__DATA__/components/PolyStrata/v0.1.45-poly.2/strata-vision.exe",
+    "mmproj": "__DATA__/models/qwen36-HauhauCS-TTQ-Q4_K_M/mmproj-Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-f16.gguf",
+    "model": "__DATA__/models/qwen36-HauhauCS-TTQ-Q4_K_M/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-TTQ-4.90bpw-Q4_K_M.gguf",
+    "gpu": false, "threads": 8, "max_tokens": 300
+  }
+}

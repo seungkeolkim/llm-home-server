@@ -66,7 +66,7 @@ Strata는 보호된 process의 command line을 읽는 대신 native ownership RP
 ## LibreChat 연결
 
 LibreChat의 기존 endpoint 식별자 `Strata`를 유지해 저장된 대화를 보존합니다.
-UI에는 `Strata · Qwen Flash-Next`, `PolyStrata · Qwen3.6 MoE` 두 고정 항목이 표시되며 context는 모두 153,600입니다.
+UI에는 `Strata · Qwen Flash-Next`, `PolyStrata · Qwen3.6 MoE`, `PolyStrata · Qwen3.6 Hauhau` 고정 항목이 표시되며 context는 모두 153,600입니다.
 Model 목록은 Engine 실행 여부에 따라 자동 변경하지 않습니다. 관리 화면에서 실제 실행한 model을 LibreChat에서도 선택합니다.
 Title은 `current_model`, summarization은 model override를 생략해 현재 대화의 model을 사용합니다.
 
@@ -108,6 +108,41 @@ GPU free는 Load 후 약 7.35 GiB였습니다. Reserve 8 GiB가 고정 buffers�
 - `runtime/ManagementServer/verification-polystrata-qwen36-q4km.json`: baseline·Load·생성·Vision·3,624-token 요청·process 메모리.
 - `runtime/ManagementServer/verification-strata-qwen-flash-next.json`: 기존 Strata 기동·생성 검사.
 - `runtime/LibreChat/diagnostics/verification-chat.json`: 마지막 LibreChat 검증 대화.
+
+## HauhauCS Aggressive TTQ 실행
+
+2026-10-22에 기존 Unsloth profile을 보존하고 Hauhau profile을 추가해 전환했습니다.
+
+| 항목 | 설정 |
+|---|---|
+| 관리 profile | `polystrata-qwen36-hauhau-q4km` |
+| API model ID | `qwen3.6-35b-a3b-hauhau-ttq-q4_k_m` |
+| LibreChat 선택 | `PolyStrata · Qwen3.6 Hauhau` |
+| 실제 설정 / 복사용 설정 | `config/PolyStrata/qwen36-hauhau.local.json` / 같은 이름의 `.template` |
+| Weights | `C:/Strata-data/models/qwen36-HauhauCS-TTQ-Q4_K_M`의 HauhauCS Aggressive TTQ 4.90bpw Q4_K_M |
+| MTP | 본체에 내장되어 있지 않아 같은 폴더의 `Qwen3.6-35B-A3B-MTP-ONLY-Q4_K_M-shared.gguf`를 `--draft-model`로 연결 |
+| Vision | Hauhau 배포자의 `mmproj-Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-f16.gguf`, CPU |
+| Tokenizer | Hauhau 본체에서 추출한 `C:/Strata-data/packs/qwen36-hauhau-ttq-q4_k_m/tokenizer` |
+| 공통 정책 | 8488, context 153600, KV Q8_0 whole, reserve 8192 MiB, tail skip 6, 공식 일반 thinking sampling, loop 감지 시 stop |
+| 로그 | `runtime/PolyStrata/logs/hauhau-server.log`, `hauhau-engine.log` |
+
+다운로드 worker의 크기·SHA-256 검증이 완료된 세 파일로 준비합니다. 재준비는 기존 local 설정을 덮어쓰지 않습니다.
+
+```powershell
+./.venv/PolyStrata/Scripts/python.exe -B scripts/PolyStrata/prepare_hauhau_environment.py
+```
+
+기동은 관리 화면에서 Hauhau profile을 선택합니다. LibreChat에도 Hauhau를 선택해야 하며, 기존 Unsloth model ID를 요청하면 400으로 거부합니다.
+제목과 summarization은 선택한 Hauhau model을 따릅니다. LibreChat 고정 model 목록 변경 후에는 LibreChat container만 재시작합니다.
+
+검증 결과: tokenizer round-trip 16개 통과, 관리 API Load·텍스트 생성·CPU Vision 파란색 분석·미실행 model 거부 통과,
+LibreChat 로그인·실제 채팅의 `STRATA_LIBRECHAT_READY` 응답 저장 통과. Profile 제어 관련 pytest 7개가 통과했습니다.
+Load 시 GPU 전체 8462 MiB (baseline 1419 MiB), 검증 중 peak 8620 MiB, OS 가용 RAM 감소 약 22.58 GiB,
+process tree working set 약 22.57 GiB를 관측했습니다. Working set과 RAM 감소량은 합산하지 않습니다.
+이 수치는 짧은 생성·이미지·3624-token 요청 기준이며, 150K 전체 prefill이나 heavy Comfy 동시 작업의 보장값이 아닙니다.
+
+증거: `runtime/ManagementServer/verification-polystrata-qwen36-hauhau-q4km.json`,
+`runtime/LibreChat/diagnostics/verification-hauhau-chat.json`.
 
 ## 후속 범위
 

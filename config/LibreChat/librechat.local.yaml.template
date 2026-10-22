@@ -29,6 +29,7 @@ endpoints:
         default:
           - __STRATA_MODEL_NAME__
           - qwen3.6-35b-a3b-ud-q4_k_m
+          - qwen3.6-35b-a3b-hauhau-ttq-q4_k_m
         fetch: false
       titleConvo: true
       titleModel: current_model
@@ -39,6 +40,10 @@ endpoints:
           completion: 0
           context: __STRATA_CONTEXT_TOKENS__
         qwen3.6-35b-a3b-ud-q4_k_m:
+          prompt: 0
+          completion: 0
+          context: 153600
+        qwen3.6-35b-a3b-hauhau-ttq-q4_k_m:
           prompt: 0
           completion: 0
           context: 153600
@@ -59,6 +64,14 @@ modelSpecs:
       preset:
         endpoint: Strata
         model: qwen3.6-35b-a3b-ud-q4_k_m
+        maxContextTokens: 153600
+
+    - name: polystrata-qwen36-hauhau
+      label: PolyStrata · Qwen3.6 Hauhau
+      description: HauhauCS Aggressive TTQ Q4_K_M · MTP · KV Q8_0 · CPU Vision · 150K context
+      preset:
+        endpoint: Strata
+        model: qwen3.6-35b-a3b-hauhau-ttq-q4_k_m
         maxContextTokens: 153600
 
 summarization:
