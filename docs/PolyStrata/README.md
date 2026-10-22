@@ -18,12 +18,22 @@
 | VRAM reserve | 8,192 MiB. Process 사용량의 hard limit이 아님 |
 | CPU experts | 8 threads, adaptive GPU expert cache |
 | Conversation parking | Host cache 0 MiB |
+| Sampling | 일반 thinking 공식값: temperature 1.0, top_p 0.95, top_k 20, min_p 0.0, presence_penalty 1.5, repetition_penalty 1.0 |
+| Thinking loop | `reasoning_loop_recovery: "stop"`. 반복 감지 시 생성을 중단 |
 | Tail skip | Upstream setup과 같은 `6`. CPU에 있는 낮은 순위 experts 일부를 생략하는 근사 최적화 |
 
 KV는 GPU에 있고 active KV의 CPU streaming은 없습니다. Q8_0 KV의 150K 본체는 약 1.71 GiB이며 alignment·workspace는 별도입니다.
 `--kv-whole`은 긴 대화에서 KV 증가로 expert cache가 뒤늦게 줄어드는 것을 피하고 최대 context의 메모리 비용을 Load 시 드러냅니다.
 정확도와 속도 비교 검증은 하지 않았습니다. Tail skip을 끄려면 local 설정의 `--tail-skip`을 `0`으로 바꾸고 명시적으로 재기동합니다.
 Vision 300-token 제한은 간단한 이미지용이며 세밀한 grounding·고해상도 이미지 정확도는 별도 검증이 필요합니다.
+
+2026-10-22 thinking 반복 발생 후 [Qwen3.6 공식 일반 thinking sampling](https://huggingface.co/Qwen/Qwen3.6-35B-A3B#best-practices)을 local 설정과 template에 명시했습니다.
+현재 `strata-poly` 경로는 server의 model-card sampling 자동 적용에서 제외되므로 `sampling`을 직접 지정합니다.
+요청에서 전달한 sampling 값이 설정의 기본값보다 우선합니다. LibreChat에서 값을 지정하면 해당 값이 적용됩니다.
+`reasoning_loop_recovery: "stop"`은 약 512 output tokens 간격으로 thinking의 반복 구절을 검사합니다.
+감지 시 서버 로그에 사유를 기록하고 API는 `finish_reason: "length"`로 종료하므로 LibreChat의 전용 반복 감지 알림은 없습니다.
+정상적인 반복을 오인하거나 표현이 다른 반복을 놓칠 수 있으며, loop 원인을 해결하거나 답변 완성을 보장하는 기능은 아닙니다.
+Thinking 예산과 output 상한은 이번 변경에서 추가하지 않았습니다.
 
 ## 최초 준비와 평상시 제어
 
