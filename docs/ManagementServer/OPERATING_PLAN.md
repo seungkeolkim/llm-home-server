@@ -32,6 +32,7 @@
 - 관리 서버 수동 기동·재기동 자체가 Strata나 LibreChat을 자동 기동하거나 중지시키지 않도록 합니다. 하위 서비스 ON/OFF는 명시적인 사용자 조작으로 수행합니다.
 - 표시 이름은 **LLM Home Server**, 로컬 폴더와 GitHub 저장소 이름은 **llm-home-server**입니다. 현재 Strata 제어는 adapter로 분리했습니다.
 - 관리 서버는 HTTP `0.0.0.0:8788`에 bind합니다. HTTPS는 사용하지 않습니다. 공유기 외부 **38788 → PC 8788** 포트포워딩은 사용자가 설정합니다.
+- 채팅 바로가기는 현재 접속 hostname을 유지하며 외부 LibreChat port **38588 → PC 8588**을 사용합니다. 현재 외부 주소는 `http://azzi-home.iptime.org:38588/`입니다. LAN·localhost 접속에서는 내부 port 8588로 연결합니다.
 - 계정·관리자 로그인 체계 없이 local 설정의 접속 문자열 하나를 확인하고 해당 브라우저 session을 허용합니다.
 - 기본으로 backend·HTML·CSS·JS·설정 변경을 reload합니다. Reload는 자동 장애 복구와 별개입니다.
 

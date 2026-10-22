@@ -45,6 +45,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\ManagementServer\a
 외부 접속 주소는 `http://azzi-home.iptime.org:38788`입니다. 포트포워딩은 사용자가 설정합니다.
 화면 바로가기는 현재 접속 hostname을 유지하며 local·외부 port 매핑은 local 설정의 `links`, `external_links`에서 수정합니다.
 현재 Comfy Home Server의 외부 port는 사용자 제공 주소에 맞춰 38388로 설정합니다.
+채팅 열기는 외부 접속 시 `http://azzi-home.iptime.org:38588/`로 연결합니다. 외부 LibreChat port는 `external_links.librechat: 38588`, 내부 port는 `links.librechat: 8588`로 구분합니다.
 
 ## 기능과 제어 경계
 
