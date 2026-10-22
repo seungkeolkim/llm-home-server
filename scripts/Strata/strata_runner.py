@@ -54,7 +54,7 @@ def runtime_environment(data_directory: Path) -> dict[str, str]:
 
 def invoke_strata(arguments: list[str], environment: dict[str, str]) -> int:
     """바깥 Python으로 공식 CLI를 실행하고 원래 exit code를 돌려줍니다."""
-    command = [sys.executable, "-B", str(SOURCE_ROOT / "strata.py"), *arguments]
+    command = [sys.executable, "-B", str(RUNNER_ROOT / "scripts/Strata/strata_entrypoint.py"), *arguments]
     completed = subprocess.run(command, cwd=RUNNER_ROOT, env=environment, check=False)
     return completed.returncode
 

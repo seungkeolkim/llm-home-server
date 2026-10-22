@@ -71,8 +71,8 @@ Model 목록은 Engine 실행 여부에 따라 자동 변경하지 않습니다.
 Title은 `current_model`, summarization은 model override를 생략해 현재 대화의 model을 사용합니다.
 
 PolyStrata의 외부 `serve_profile.py`는 미실행 model 요청을 HTTP 400으로 거부하고 직접 Load·Unload·설정 변경 API를 막습니다.
-기존 Strata의 생성 API는 다른 model ID에도 현재 model로 답하는 upstream 동작이 남아 있습니다. 자동 기동·전환은 하지 않습니다.
-따라서 Strata 사용 시에도 LibreChat에서 실제 실행 model을 선택해야 합니다. 이 제한은 이번 Qwen3.6 추가 과정에서 새로 생긴 동작이 아닙니다.
+Strata에도 외부 `scripts/Strata/strata_entrypoint.py`를 연결해 다른 model ID를 생성 전에 HTTP 400으로 거부합니다.
+두 Engine 모두 LibreChat에서 실제 실행 model을 선택해야 합니다. 자동 기동·전환은 하지 않습니다.
 
 ```powershell
 # 실제 생성 요청을 보내는 명시적 통합 검사입니다.

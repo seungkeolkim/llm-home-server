@@ -149,7 +149,7 @@ Modal·별도 선택 화면·단일 조합 목록 등 구체적인 표시 형태
 - 기존 Strata와 PolyStrata 각각 관리 API start/stop·readiness·실제 생성이 통과했고 LibreChat 로그인·대화 생성도 각각 통과했습니다. 관리 화면에서 선택 후 취소하면 기동하지 않는 것을 확인했습니다.
 - Qwen3.6은 CPU Vision 이미지 색상 식별과 3,624-token 요청을 추가 검증했습니다. GPU 전체 peak 8.40 GiB, baseline 대비 증가 약 7.07 GiB, OS 가용 RAM 감소 약 23.78 GiB였습니다. 150K 전체 prefill·heavy Comfy 동시 작업의 실측은 아닙니다.
 - 기존 Strata는 native ownership RPC·API identity·launch attestation을 재사용합니다. 보호된 process의 command line을 조회하지 않고 owner·instance 조건을 붙여 종료합니다.
-- PolyStrata는 다른 model ID를 요청하면 거부합니다. 기존 Strata 생성 API에는 다른 model ID에도 현재 model로 답하는 upstream 동작이 남아 있으므로 LibreChat에서 실제 실행 model을 선택해야 합니다. 자동 Engine 전환은 하지 않습니다.
+- Strata·PolyStrata 모두 외부 wrapper에서 미실행 model ID를 생성 전에 HTTP 400으로 거부합니다. LibreChat에서 실제 실행 model을 선택해야 하며 자동 Engine 전환은 하지 않습니다. 두 실행 설정의 `reasoning_loop_recovery: "stop"`은 thinking의 반복 구절 감지 시 생성을 중단합니다.
 
 ## 현재 구조와 유지할 원칙
 

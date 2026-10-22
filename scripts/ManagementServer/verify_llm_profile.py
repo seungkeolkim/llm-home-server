@@ -120,7 +120,7 @@ def main():
                 "model": "inactive-verification-model", "messages": [{"role": "user", "content": "Do not generate."}],
                 "max_tokens": 1})
             evidence["inactive_model_http_status"] = invalid.status_code
-            if profile["engine"] == "polystrata" and invalid.status_code != 400:
+            if invalid.status_code != 400:
                 raise RuntimeError("Inactive model request was not rejected")
             if arguments.vision:
                 encoded_image = blue_image_fixture()
