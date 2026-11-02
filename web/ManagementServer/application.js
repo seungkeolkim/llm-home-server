@@ -489,20 +489,46 @@ function confirmAction(title, message) {
 async function selectExecutionProfile() {
   const profiles = state.snapshot.llm.profiles;
   const selection = elements["profile-selection"];
-  selection.replaceChildren();
+  selection.replaceChildren(textElement("legend", "", "모델 · Quantization"));
+  const availableProfile = profiles.find((profile) => profile.state === "available");
   for (const profile of profiles) {
-    const option = document.createElement("option");
-    option.value = profile.identifier;
-    option.textContent = `${profile.engine_label} · ${profile.model_label}${profile.state === "available" ? "" : ` · ${profile.problem}`}`;
-    option.disabled = profile.state !== "available";
+    const option = textElement("label", "profile-option", "");
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "execution-profile";
+    radio.value = profile.identifier;
+    radio.required = true;
+    radio.disabled = profile.state !== "available";
+    radio.checked = profile === availableProfile;
+    const content = textElement("span", "profile-option-content", "");
+    const heading = textElement("span", "profile-option-heading", "");
+    heading.append(
+      textElement("span", "profile-engine", profile.engine_label),
+      textElement("span", "profile-availability", radio.disabled ? "준비 필요" : "기동 가능"),
+    );
+    const metadata = textElement("span", "profile-option-metadata", "");
+    metadata.append(
+      textElement("span", "profile-quantization", `Quant ${profile.quantization || "미등록"}`),
+      textElement("span", "muted", `Context ${Number(profile.context_tokens).toLocaleString("en-US")} tokens`),
+    );
+    content.append(
+      heading,
+      textElement("span", "profile-model", profile.model_label),
+      textElement("span", "profile-variant", profile.variant_label || ""),
+      metadata,
+    );
+    if (profile.problem) {
+      content.append(textElement("span", "profile-problem", profile.problem));
+    }
+    option.append(radio, content);
     selection.append(option);
   }
-  const availableProfile = profiles.find((profile) => profile.state === "available");
-  selection.value = availableProfile?.identifier || "";
-  elements["profile-start"].disabled = !availableProfile;
   /** 선택한 실행 설정을 Engine 인자 대신 사용자 정보로 표시합니다. */
   function describeSelection() {
-    const profile = profiles.find((candidate) => candidate.identifier === selection.value);
+    const selectedIdentifier = selection.querySelector("input:checked")?.value;
+    const profile = profiles.find((candidate) => candidate.identifier === selectedIdentifier);
+    elements["profile-start"].disabled = !profile || profile.state !== "available";
+    elements["profile-model-name"].textContent = profile?.model_name || "—";
     elements["profile-description"].textContent = profile?.label || "기동 가능한 profile이 없습니다.";
   }
   selection.onchange = describeSelection;
@@ -512,8 +538,9 @@ async function selectExecutionProfile() {
   dialog.showModal();
   return new Promise((resolve) => {
     dialog.addEventListener("close", () => {
+      const selectedIdentifier = selection.querySelector("input:checked")?.value;
       resolve(dialog.returnValue === "start"
-        ? profiles.find((profile) => profile.identifier === selection.value) : null);
+        ? profiles.find((profile) => profile.identifier === selectedIdentifier && profile.state === "available") : null);
     }, { once: true });
   });
 }

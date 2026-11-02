@@ -96,6 +96,8 @@ RAM·VRAM의 주요 수치는 `사용량 / 전체 용량 GiB`이며 사용률과
 
 현재는 켜기 버튼에서 profile 선택 modal을 표시하며 취소하면 기동 요청을 보내지 않습니다. 기동 중이거나 실행 중인 LLM이 있으면 다른 조합을 추가 기동하지 않습니다. 먼저 현재 LLM을 명시적으로 종료하고 종료 상태를 확인한 뒤 새 기동을 요청합니다. 기동 실패 시 다른 model을 자동 Load하거나 이전 profile로 자동 복구하지 않습니다.
 
+2026-11-02에 선택 modal을 카드 목록으로 변경했습니다. 각 카드에서 Engine, 모델명, 배포 variant와 Quantization을 비교하고 정확한 context를 확인합니다. 선택한 카드 아래에는 실제 Model ID와 실행 설정을 표시합니다. 표시 정보는 고정 catalog의 `variant_label`·`quantization`과 local 설정의 `model_name`을 사용합니다.
+
 ### LibreChat의 고정 model 목록과 context
 
 - 지원할 model과 model별 context를 정적으로 등록합니다. 현재 세 profile의 정확한 context는 모두 153,600 tokens이며 LibreChat과 Engine 양쪽에 반영했습니다. 앞서 작성한 32K 검토 초안은 현재 실행 설정이 아닙니다.

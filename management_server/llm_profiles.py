@@ -46,6 +46,8 @@ class ProfileCatalog:
         result = {"identifier": profile["identifier"], "engine": profile["engine"],
                   "engine_label": self.document["engines"][profile["engine"]],
                   "model_label": self.document["models"][profile["model"]]["label"],
+                  "variant_label": profile.get("variant_label", ""),
+                  "quantization": profile.get("quantization", "미등록"),
                   "context_tokens": self.document["models"][profile["model"]]["context_tokens"],
                   "label": profile["label"], "state": "available", "problem": ""}
         download_status_path = profile.get("download_status_path")

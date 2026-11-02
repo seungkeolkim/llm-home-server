@@ -69,6 +69,7 @@ Model 설정의 자유 편집 대신 서버에서 준비한 고정 profile을 �
 다른 engine은 `create_llm_adapter()` 경계에 adapter를 추가할 수 있으며 화면·일반 제어 API는 `llm`이라는 이름을 사용합니다.
 「켜기 → Engine·model 조합 선택 → 기동」을 구현했습니다. Strata + QFN, PolyStrata + Qwen3.6 Unsloth, PolyStrata + Qwen3.6 Hauhau의 세 profile이 같은 `8488` port를 공유합니다. 세 profile과 LibreChat의 context는 153,600 tokens입니다. PolyStrata + QFN은 후속입니다. [운영 계획](OPERATING_PLAN.md#llm-enginemodel-선택-기동-설계)과 [실행·실측 문서](../PolyStrata/README.md)를 참고하세요.
 LLM은 하나만 실행하며 다른 조합으로 바꾸려면 끈 뒤 다시 선택해 켭니다. LibreChat의 지원 model 목록과 model별 context는 고정 설정으로 관리합니다. Engine을 유지한 채 model·KV만 unload/offload하는 기능은 TODO이며 구현하지 않았습니다.
+「LLM 켜기」의 선택 카드에는 모델명, 배포 variant(SC117·Unsloth·HauhauCS 등), Quantization과 Engine을 구분해서 표시합니다. 선택한 모델의 정확한 Model ID와 실행 설정은 카드 목록 아래에서 확인합니다. `config/ManagementServer/llm-profiles.json`의 `variant_label`·`quantization`은 표시용 정보이며 실제 실행 옵션은 각 profile의 local 설정을 따릅니다.
 LibreChat에서도 기동한 model을 선택합니다. 미실행 model ID는 두 Engine 모두 HTTP 400으로 거부하며 자동 전환하지 않습니다.
 두 Engine의 thinking 반복 감지는 `stop`이며, 반복 중단은 `finish_reason: length`로 전달됩니다. 상세 동작은 [Strata 정책·검증 기록](../Strata/RESTORATION.md#후속-변경-model-id-검증과-thinking-loop-중단)에 있습니다.
 LLM 시작이 ComfyUI queue를 취소하거나 메모리를 자동 해제하지는 않습니다.
