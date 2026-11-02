@@ -1,6 +1,6 @@
 # 운영 의도와 관리 서버 구성 계획
 
-작성 기준: 2026-10-21
+작성 기준: 2026-10-21. 현재 구현 대조 갱신: 2026-10-22.
 
 이 문서는 사용자가 설명한 운영 의도와 현재 구조 검토에서 나온 제안을 정리합니다.
 새 대화나 후속 구현에서 운영 목적과 환경 분리 원칙을 이어가기 위한 기준 문서입니다.
@@ -32,6 +32,7 @@
 - 관리 서버 수동 기동·재기동 자체가 Strata나 LibreChat을 자동 기동하거나 중지시키지 않도록 합니다. 하위 서비스 ON/OFF는 명시적인 사용자 조작으로 수행합니다.
 - 표시 이름은 **LLM Home Server**, 로컬 폴더와 GitHub 저장소 이름은 **llm-home-server**입니다. 현재 Strata 제어는 adapter로 분리했습니다.
 - 관리 서버는 HTTP `0.0.0.0:8788`에 bind합니다. HTTPS는 사용하지 않습니다. 공유기 외부 **38788 → PC 8788** 포트포워딩은 사용자가 설정합니다.
+- 채팅 바로가기는 현재 접속 hostname을 유지하며 외부 LibreChat port **38588 → PC 8588**을 사용합니다. 현재 외부 주소는 `http://azzi-home.iptime.org:38588/`입니다. LAN·localhost 접속에서는 내부 port 8588로 연결합니다.
 - 계정·관리자 로그인 체계 없이 local 설정의 접속 문자열 하나를 확인하고 해당 브라우저 session을 허용합니다.
 - 기본으로 backend·HTML·CSS·JS·설정 변경을 reload합니다. Reload는 자동 장애 복구와 별개입니다.
 
@@ -50,18 +51,117 @@
 | ComfyUI | 8188에 직접 연결해 실행·대기 queue 조회, 모델·cache unload 요청. Queue 취소·삭제·interrupt는 제공하지 않음 |
 | Comfy Home Server | 8388은 바로가기만 제공하며 코드·설정·실행 상태를 변경하지 않음 |
 
-현재 LLM ON/OFF는 Strata 전체 서비스의 start/stop입니다. 별도 LLM 모델 Load/Unload, 모델 선택과 영상·채팅 모드 전환은 후속 범위입니다.
-다른 serving engine을 지원할 때 adapter를 추가하며 현재는 Strata adapter만 구현했습니다.
+현재 LLM ON/OFF는 선택한 Strata 또는 PolyStrata profile의 전체 서비스 start/stop입니다. 별도 model·KV unload/offload와 영상·채팅 모드 전환은 후속 범위입니다.
+2026-10-22에 고정 catalog와 Engine·model 선택 UI, PolyStrata Qwen3.6 adapter를 구현했습니다.
+Engine·model 선택 기동의 확정 방향과 단계는 아래 「LLM Engine·model 선택 기동 설계」를 따릅니다.
 리소스 카드는 CPU → RAM → GPU → VRAM 순서의 동일한 크기로 표시합니다.
 RAM·VRAM의 주요 수치는 `사용량 / 전체 용량 GiB`이며 사용률과 함께 보여줍니다.
 넓은 화면은 네 열, 좁은 화면은 두 열로 배치합니다.
+
+## LLM Engine·model 선택 기동 설계
+
+2026-10-22에 확정한 설계이며, 같은 날 기존 Strata 유지와 PolyStrata + Qwen3.6 추가까지 구현했습니다. 상세 설정·검증·제한은 [PolyStrata 실행 문서](../PolyStrata/README.md)를 따릅니다. PolyStrata + QFN은 후속 범위입니다.
+이 결정은 앞서 검토한 「Flash-Next까지 PolyStrata로 일원화」를 대체합니다. Strata를 폐기하거나 즉시 PolyStrata로 전환하지 않고 두 실행 체계를 함께 지원합니다.
+
+### 사용자 확정 사항
+
+- 기존 Strata와 현재 Flash-Next 실행 경로를 유지합니다.
+- 먼저 PolyStrata와 Qwen3.6 MoE 실행 조합만 추가합니다.
+- 그다음 Flash-Next도 PolyStrata로 실행할 수 있게 추가합니다. 이때 기존 Strata의 Flash-Next 조합도 남깁니다.
+- LLM Home Server의 기존 「LLM 서버 켜기」를 누르면 어떤 Engine으로 어떤 model을 실행할지 먼저 선택하고, 선택한 조합으로 기동하도록 바꿉니다.
+- 새로운 Engine이나 특정 model에 특화된 Engine이 추가될 수 있음을 전제로 설계합니다. Strata·PolyStrata 두 종류나 특정 model 이름에 UI·일반 제어 흐름을 고정하지 않습니다.
+- LibreChat의 사용 가능 model 목록과 model별 context는 미리 고정해서 관리합니다. 초기 지원 model은 모두 약 150K context를 기준으로 사용하며, 기동할 때 실제 Engine을 조회해 LibreChat 설정을 동적으로 바꾸는 방식은 사용하지 않습니다.
+- 초기에는 LLM 하나만 실행합니다. 다른 조합을 사용하려면 현재 LLM을 끈 뒤 새 조합을 선택해 켭니다. 실행 중 자동 교체·자동 drain·실패 시 이전 model 자동 복구는 초기 구현에 포함하지 않습니다.
+- 실행 profile, 요청 시점의 설정 revision과 실제 실행 instance를 구분해 관리합니다. 준비와 기동을 분리하고, adapter의 공통 제어 계약과 profile별 리소스 예산을 둡니다.
+
+### 단계별 지원 조합
+
+| 단계 | UI에서 선택할 Engine | Model | 의미 |
+|---|---|---|---|
+| 현재 유지 | Strata | Qwen3.8-Flash-Next (QFN) | 현재 사용 중인 기존 실행 경로와 설정을 보존합니다. |
+| 1차 추가 | PolyStrata | Qwen3.6-35B-A3B MoE | Unsloth `UD-Q4_K_M` 및 HauhauCS Aggressive TTQ Q4_K_M을 별도 profile로 지원합니다. 2026-10-22 Hauhau에 MTP sidecar·CPU Vision을 연결하고 LibreChat 검증 후 전환했습니다. |
+| 2차 추가 | PolyStrata | Qwen3.8-Flash-Next (QFN) | 기존 Strata 조합과 나란히 남기는 후속 조합입니다. |
+
+최종 목표는 **Strata + QFN / PolyStrata + QFN / PolyStrata + Qwen3.6 MoE**의 세 조합입니다. 최종이라는 표현은 이번 작업의 목표를 뜻하며, 이후 Engine·model 추가를 제한하지 않습니다.
+이 세 조합은 Engine·model family 기준이며 Qwen3.6의 Unsloth·Hauhau 같은 variant는 별도 실행 profile로 구분합니다.
+
+이 문서에서 UI의 Engine 선택은 사용자가 구분하는 Strata·PolyStrata 실행 체계입니다. 내부 executable·backend는 별도로 구분합니다. 예를 들어 PolyStrata에서 QFN은 `strata`, Qwen3.6은 `strata-poly` executable을 사용할 수 있으므로, UI의 Engine 이름과 executable 이름을 같은 식별자로 취급하지 않습니다.
+
+### UI 동작
+
+1. 사용자가 「LLM 서버 켜기」를 누르면 Engine과 model을 고르는 단계를 엽니다.
+2. 선택한 Engine에서 실행 가능한 model 조합을 보여줍니다. 아직 준비되지 않은 조합을 실행 가능한 항목처럼 표시하지 않습니다.
+3. 사용자가 선택을 확정했을 때 그 조합의 기동 요청을 보냅니다. 선택 화면을 열거나 취소하는 것만으로 서비스를 기동하거나 model을 Load하지 않습니다.
+4. 상태 카드에는 실제 실행 중인 Engine과 model을 표시합니다. 「끄기」는 실제 실행 중인 조합을 종료하는 동작과 연결합니다.
+
+현재는 켜기 버튼에서 profile 선택 modal을 표시하며 취소하면 기동 요청을 보내지 않습니다. 기동 중이거나 실행 중인 LLM이 있으면 다른 조합을 추가 기동하지 않습니다. 먼저 현재 LLM을 명시적으로 종료하고 종료 상태를 확인한 뒤 새 기동을 요청합니다. 기동 실패 시 다른 model을 자동 Load하거나 이전 profile로 자동 복구하지 않습니다.
+
+2026-11-02에 선택 modal을 카드 목록으로 변경했습니다. 각 카드에서 Engine, 모델명, 배포 variant와 Quantization을 비교하고 정확한 context를 확인합니다. 선택한 카드 아래에는 실제 Model ID와 실행 설정을 표시합니다. 표시 정보는 고정 catalog의 `variant_label`·`quantization`과 local 설정의 `model_name`을 사용합니다.
+
+### LibreChat의 고정 model 목록과 context
+
+- 지원할 model과 model별 context를 정적으로 등록합니다. 현재 세 profile의 정확한 context는 모두 153,600 tokens이며 LibreChat과 Engine 양쪽에 반영했습니다. 앞서 작성한 32K 검토 초안은 현재 실행 설정이 아닙니다.
+- model 목록과 context를 현재 실행 중인 Engine의 응답으로 자동 변경하지 않습니다. 지원 조합이 추가되거나 model별 context 정책이 바뀔 때 고정 설정을 명시적으로 갱신합니다.
+- LibreChat의 model 목록뿐 아니라 token/context 설정, 제목 생성과 요약에 쓰는 model 참조도 등록한 고정 model 목록 안에서 정의합니다. model별 context를 다르게 잡아야 할 경우에도 고정 설정에서 관리합니다.
+- LibreChat에 model이 등록돼 있다는 사실과 해당 model이 현재 실행 중이라는 사실을 구분합니다. 미실행 조합으로 요청이 들어왔다는 이유로 관리 화면의 명시적 조작 없이 다른 Engine·model을 자동 기동하거나 교체하지 않습니다.
+
+### 실행 profile과 제어 대상 고정
+
+- 선택·기동의 내부 단위는 Engine, model과 실행 설정을 묶은 profile입니다. Model weights의 quantization, KV 형식, context, Vision 위치와 메모리 예산이 profile에 속합니다. 초기 UI는 준비된 profile 선택을 제공하며 모든 Engine option의 자유 편집 기능부터 만들지 않습니다.
+- 현재 Qwen3.6 profile은 Unsloth UD-Q4_K_M 및 Hauhau TTQ Q4_K_M이며 KV Q8_0 whole, context 153,600, CPU Vision을 사용합니다. 표시 label과 실제 인자는 고정 catalog 및 해당 local 설정을 기준으로 합니다.
+- 기동 접수 시 profile 식별자와 설정 revision을 제어 작업에 고정합니다. Worker 실행 시점의 최신 선택값을 다시 읽어 다른 조합을 켜지 않습니다. 설정이 바뀌었다면 대상 변경을 묵인하지 않고 해당 요청의 불일치를 처리합니다.
+- 종료는 다음 기동을 위해 선택해 둔 profile이 아니라 실제 실행 instance를 대상으로 합니다. 소유 process와 시작 시각, 실행 profile의 관계를 보존해 관리 서버 reload 이후에도 대상을 식별합니다.
+- 실제 실행 대상 Engine·model·profile과 revision을 제어 이력에 남깁니다. 설정 revision이나 이력에 API key 같은 secret을 노출하지 않습니다.
+
+### 준비 상태, adapter 계약과 리소스
+
+- 다운로드 중, Engine 미설치, 파일 검증 실패, 기동 가능, Loading, 사용 가능 등의 상태를 구분합니다. 환경 준비 완료와 model이 실제 Load돼 생성 가능한 상태를 같은 의미로 쓰지 않습니다.
+- 「켜기」는 준비된 조합을 기동하는 동작입니다. 선택이나 기동 요청만으로 dependency 설치·다운로드·설정 재생성을 묵시적으로 수행하지 않습니다.
+- Adapter의 초기 공통 계약은 준비 상태 조회, start, status, stop과 로그 위치 제공을 중심으로 둡니다. Engine별 status API, process 제어, 로그 경로와 인증 차이는 adapter 안에서 처리합니다. 지원하지 않는 기능을 공통 기능처럼 제공하지 않습니다.
+- Profile마다 RAM·VRAM의 예상 사용량, Load·생성 시 peak와 검증 여부를 관리합니다. 추정치와 실측값을 구분하고, 기동 직전 가용 리소스도 확인합니다. Reserve나 LLM용 8 GiB 예산은 실제 사용량의 hard limit으로 표시하지 않습니다.
+- ComfyUI의 작업 취소·강제 unload를 LLM 기동에 묵시적으로 연결하지 않는 기존 운영 경계를 유지합니다.
+
+### TODO: Engine 유지와 model·KV offload 분리
+
+- 나중에 Engine 또는 serving process를 유지한 채 model weights와 KV를 GPU 밖으로 offload하거나 unload하는 제어가 필요할 수 있습니다.
+- **현재는 TODO로만 기록하고 초기 구현 범위에 포함하지 않습니다.** 지금은 서비스 전체 켜기·끄기와 실행 profile 선택을 우선하며, 이 기능을 위한 UI·API·adapter 동작은 구현하지 않습니다.
+- 실제 필요성이 생기면 Engine 유지의 의미, weights·KV 각각의 unload와 CPU RAM offload 차이, 대화 상태 보존, 재Load trigger와 자동 재Load 차단 정책을 구분해 설계합니다. 모든 Engine이 같은 기능을 지원한다고 가정하지 않습니다.
+
+### 확장을 위한 설계 반영 방향
+
+아래는 사용자 운영 의도를 구현에 반영할 방향이며, 구체적인 schema·API 계약은 구현 시 현재 코드와 함께 정합니다.
+
+- Engine 정의, model 정의, 실행 가능한 조합의 설정을 분리합니다. 같은 QFN model이라도 Strata 실행 조합과 PolyStrata 실행 조합을 서로 구분합니다.
+- 각 실행 조합은 식별 가능한 configuration/profile을 참조하고, Engine adapter가 해당 조합의 준비 상태·기동·조회·종료를 담당하게 합니다. LibreChat의 고정 model 목록을 실행 가능한 profile과 연결하는 mapping도 명시적으로 관리합니다.
+- 공통 UI와 일반 제어 API는 선택 가능한 조합 목록을 사용하고, Engine별 CLI·process 제어 차이는 adapter 안에 둡니다. 새로운 Engine 때문에 화면과 일반 제어 흐름 전체를 다시 작성하지 않도록 합니다.
+- 현재 실행 중인 조합과 사용자가 다음 기동을 위해 선택한 조합을 구분합니다. 제어 이력에도 실제 대상 Engine·model 조합을 식별할 수 있게 합니다.
+- 화면 선택을 위해 임의 executable·shell command를 받지 않고, 서버에서 관리하는 실행 조합을 참조합니다. 복잡한 plugin framework나 별도 microservice를 먼저 만드는 것은 목표가 아닙니다.
+- 기존 Strata 설정·API key·model 파일과 실행 경로를 유지하며 PolyStrata의 설정·dependency·runtime·스크립트는 별도 시스템 폴더에서 관리합니다. 공식 source clone 내부에는 자체 설정이나 설치 산출물을 추가하지 않습니다.
+
+### 현재 준비 상태와 남은 작업
+
+- PolyStrata Engine·venv·Unsloth 및 Hauhau weights·tokenizer·CPU Vision 준비와 실제 Load를 완료했습니다. Hauhau는 MTP sidecar를 연결했습니다. 파일·profile별 설정과 실측은 [PolyStrata 운영 안내](../PolyStrata/README.md)를 따릅니다.
+- 기존 Q4_K_XL·Q6·Q8 config template은 앞서 작성한 Strata용 검토 초안입니다. 현재 PolyStrata Qwen3.6 실행 설정으로 사용하지 않습니다.
+- 고정 catalog `config/ManagementServer/llm-profiles.json`, 선택 UI, profile·revision·instance를 고정하는 제어 이력과 PolyStrata 실행 경로를 구현했습니다. 두 Engine은 `8488`을 공유하며 한 개만 기동합니다.
+- 현재 작업 branch는 `migration/polystrata`입니다. Branch 이름과 별개로 구현 목표는 기존 Strata 유지와 PolyStrata 추가 지원입니다.
+- 이후 사용자가 개발·LibreChat 연결·실제 VRAM 측정을 요청하고 VRAM을 비웠으므로 기동·생성 검증까지 수행했습니다. 앞선 기동 금지와 config 작성 보류는 이번 요청으로 해제됐습니다. ComfyUI의 process·queue·model은 조작하지 않았습니다.
+
+### 2026-10-22 구현·검증 결과
+
+- Context를 QFN·Unsloth Qwen3.6·Hauhau Qwen3.6의 세 profile과 LibreChat 모두 **153,600 tokens**로 고정했습니다. 기존 Strata의 163,840 설정도 이 값으로 맞췄습니다.
+- PolyStrata는 UD-Q4_K_M, KV Q8_0, 최대 KV 선할당, CPU Vision, reserve 8,192 MiB입니다. 설치·tokenizer 생성은 기동과 분리했습니다.
+- 기존 Strata와 PolyStrata 각각 관리 API start/stop·readiness·실제 생성이 통과했고 LibreChat 로그인·대화 생성도 각각 통과했습니다. 관리 화면에서 선택 후 취소하면 기동하지 않는 것을 확인했습니다.
+- Qwen3.6은 CPU Vision 이미지 색상 식별과 3,624-token 요청을 추가 검증했습니다. GPU 전체 peak 8.40 GiB, baseline 대비 증가 약 7.07 GiB, OS 가용 RAM 감소 약 23.78 GiB였습니다. 150K 전체 prefill·heavy Comfy 동시 작업의 실측은 아닙니다.
+- 기존 Strata는 native ownership RPC·API identity·launch attestation을 재사용합니다. 보호된 process의 command line을 조회하지 않고 owner·instance 조건을 붙여 종료합니다.
+- Strata·PolyStrata 모두 외부 wrapper에서 미실행 model ID를 생성 전에 HTTP 400으로 거부합니다. LibreChat에서 실제 실행 model을 선택해야 하며 자동 Engine 전환은 하지 않습니다. 두 실행 설정의 `reasoning_loop_recovery: "stop"`은 thinking의 반복 구절 감지 시 생성을 중단합니다.
+- Hauhau는 본체·MTP·전용 projector의 SHA-256 검증 후 별도 profile로 추가했습니다. CPU Vision·실제 MTP 동작·LibreChat 채팅을 확인했고, 짧은 검증에서 GPU 전체 peak 8,620 MiB와 OS 가용 RAM 감소 약 22.58 GiB를 관측했습니다.
 
 ## 현재 구조와 유지할 원칙
 
 | 위치 | 현재 역할과 유지할 원칙 |
 |---|---|
-| `external_repo/Strata`, `external_repo/LibreChat` | 독립된 공식 source clone입니다. 자체 수정, dependency 설치, 실행 산출물을 추가하지 않습니다. |
-| `.venv/Strata`, `requirements/Strata` | Strata 전용 Python·CUDA runtime과 dependency 정의를 분리합니다. |
+| `external_repo/Strata`, `external_repo/PolyStrata`, `external_repo/LibreChat` | 독립된 공식 source clone입니다. 자체 수정, dependency 설치, 실행 산출물을 추가하지 않습니다. |
+| `.venv/Strata`, `requirements/Strata`, `.venv/PolyStrata`, `requirements/PolyStrata` | 각 Engine 전용 Python·CUDA runtime과 dependency 정의를 분리합니다. |
 | `config/<시스템 이름>/` | 시스템별 template과 Git에서 제외하는 local 설정을 관리합니다. |
 | `scripts/<시스템 이름>/` | 준비·실행·운영 스크립트를 관리합니다. |
 | `docs/<시스템 이름>/` | 시스템별 운영·복구 문서를 관리합니다. |
@@ -201,7 +301,9 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - [x] 관리 서버의 독립 실행 환경과 수동 실행 명령을 구성합니다.
 - [x] 현재 runner와 Compose를 연결하여 상태 조회 및 ON/OFF를 제공합니다.
 - [x] RAM·VRAM과 작업 상태 모니터링을 제공합니다.
-- [ ] 모델 Load/Unload와 영상·채팅 모드 전환을 연결합니다.
+- [x] 기존 Strata + QFN을 유지하면서 Engine·model 선택 기동 UI와 PolyStrata + Qwen3.6 MoE 조합을 추가합니다.
+- [ ] PolyStrata + QFN을 추가해 세 조합을 지원합니다. 이후 Engine·model을 추가할 수 있는 구조를 유지합니다.
+- [ ] TODO: 실제 필요성이 생기면 Engine 유지 상태의 model·KV unload/offload와 영상·채팅 모드 전환을 별도로 설계합니다. 초기 선택 기동 구현에는 포함하지 않습니다.
 - [ ] 실제 원격 사용에서 상태 표시, 중복 제어, 진행 중 작업 처리와 복구를 검증합니다.
 - [ ] 관련 구현과 구조 정리가 끝나면 사용자와 `AGENTS.md`의 이 문서 참조 유지 여부를 검토합니다.
 
@@ -259,8 +361,33 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - Python 테스트 12개와 Windows PowerShell 저장 경계 테스트를 통과했습니다. 이전에 확인한 PowerShell 인코딩·native stderr 처리 문제도 수정해 실제 스크립트로 검증했습니다.
 - 운영 설정 5개 파일의 hash가 유지되며 관리 서버·LibreChat health와 외부 관리 URL의 HTTP 200을 확인했습니다.
 
+## 구현 기록: 제어 요청 선기록과 중단 이력
+
+- 사용자가 LLM start 중 시스템 freeze 후 전원 버튼으로 재부팅했다고 보고했습니다. 기존 stop timeout 기록과 별개의 현상이며, freeze의 원인은 이번 변경으로 확정하지 않습니다.
+- 브라우저는 버튼 조작 확정 시 요청 ID·시각을 먼저 저장하고 화면에 표시합니다. 서버는 같은 ID의 접수 이력과 단계 로그를 디스크에 기록한 뒤 제어 worker를 실행합니다.
+- 같은 요청의 상태를 접수·실행 중·최종 결과로 갱신하며, 응답을 받지 못한 브라우저 기록은 재접속 시 서버 이력과 대조합니다.
+- 시스템 재부팅 또는 worker 종료로 완료되지 못한 요청은 `중단됨`으로 보존합니다. 당시 결과를 추정하거나 자동으로 다시 실행하지 않습니다.
+- 기존 SQLite schema와 이력을 유지하며 외부 Strata source·설정·runtime dependency는 변경하지 않았습니다.
+- 실제 LLM을 켜지 않고 임시 DB와 Mock으로 접수 선기록, 최종 상태 갱신, 재부팅 복구와 브라우저 기록 보존을 검증했습니다.
+
+## 검토 기록: Qwen3.6 config 초안
+
+아래 두 절은 구현 전 조사·다운로드 단계의 이력입니다. 당시의 기동 금지·미구현 상태는 현재 지시가 아니며 현재 상태는 상단 구현 결과를 따릅니다.
+
+- 2026-10-22에 Qwen3.6의 Q4·Q6·Q8별 CPU Vision config template과 8 GiB reserve를 목표로 하는 정적 VRAM 계산을 작성했습니다. Context 32K는 아직 사용자 선택 전인 초안의 가정입니다.
+- ComfyUI 작업 중 Strata도 기동하지 말라는 사용자 지시에 따라 서비스 기동·모델 Load·생성 검증은 수행하지 않았습니다. 현재 Strata 설정과 관리 서버의 모델 연결도 유지했습니다.
+- 이 작업은 모델 선택이나 Load/Unload 연동의 구현 완료를 뜻하지 않습니다. 실제 모델·tokenizer 준비, runner 연동, 실행 허용 후 메모리 실측은 후속 범위입니다.
+- 계산과 성능 절충의 상세 내용은 [Qwen3.6 설정 초안](../Strata/QWEN36_CONFIGURATION.md)에 기록합니다.
+
+## 준비 기록: Qwen3.6 Q4_K_M 다운로드
+
+- 2026-10-22에 사용자가 Qwen3.6 `UD-Q4_K_M`을 선택하고 다운로드만 백그라운드로 진행하도록 요청했습니다. Model GGUF는 `C:/Strata-data/models/qwen36-UD-Q4_K_M/`에 저장합니다.
+- 공식 PolyStrata Setup의 pinned revision·파일 크기·SHA-256을 사용하며, helper는 `scripts/PolyStrata/download_qwen36_ud_q4_k_m.py`, 진행 상태와 로그는 `runtime/PolyStrata/downloads/qwen36-UD-Q4_K_M/`에 둡니다. 사용자가 물을 때 상태를 확인하며 정기 조회나 알림은 설정하지 않았습니다.
+- 다운로드만 요청받은 당시에는 Strata·PolyStrata 기동, 모델 Load, runtime 설치와 기존 서비스 설정 변경을 하지 않았습니다. 이후 실행 허용과 구현 요청으로 Unsloth·Hauhau profile 및 LibreChat 연결 검증까지 완료했습니다. PolyStrata + QFN은 후속 범위입니다.
+
 ## 관련 문서
 
+- [PolyStrata 추가 지원 handoff](POLYSTRATA_HANDOFF.md): context 압축 후 현재 profile·운영 경계·주요 commit·검증과 후속 작업을 이어가는 메모입니다.
 - [프로젝트 소개와 실행 안내](../../README.md)
 - [Strata 복구 및 검증 기록](../Strata/RESTORATION.md)
 - [LibreChat 운영 안내](../LibreChat/README.md)

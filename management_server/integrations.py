@@ -62,6 +62,9 @@ class StrataAdapter:
 
 def create_llm_adapter(configuration):
     """설정한 serving engine에 해당하는 adapter를 선택합니다."""
+    if configuration["adapter"] == "profiles":
+        from .llm_runtime import ProfileRuntime
+        return ProfileRuntime(configuration)
     if configuration["adapter"] == "strata":
         return StrataAdapter(configuration)
     raise ValueError("등록되지 않은 LLM adapter입니다.")

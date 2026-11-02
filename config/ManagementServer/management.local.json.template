@@ -6,8 +6,9 @@
   "session_hours": 168,
   "comfy_url": "http://127.0.0.1:8188",
   "llm": {
-    "adapter": "strata",
-    "name": "Strata",
+    "adapter": "profiles",
+    "name": "LLM",
+    "catalog_path": "config/ManagementServer/llm-profiles.json",
     "configuration_path": "config/Strata/strata.local.json"
   },
   "links": {
@@ -16,7 +17,7 @@
     "comfy_home": 8388
   },
   "external_links": {
-    "librechat": 8588,
+    "librechat": 38588,
     "llm": 8488,
     "comfy_home": 38388
   }

@@ -4,6 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager, suppress
 import hmac
 from pathlib import Path
+from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -24,6 +25,14 @@ class AccessInput(BaseModel):
     access_string: str = Field(min_length=1, max_length=256)
 
 
+class ControlInput(BaseModel):
+    """브라우저에서 먼저 기록한 요청 ID를 서버 이력과 연결합니다."""
+
+    identifier: UUID
+    profile_id: str | None = Field(default=None, max_length=128)
+    configuration_revision: str | None = Field(default=None, max_length=64)
+
+
 def asset_revision():
     """열린 브라우저가 HTML·CSS·JS 변경을 감지할 수 있는 revision을 만듭니다."""
     return "-".join(str((WEB_DIRECTORY / filename).stat().st_mtime_ns)
@@ -40,6 +49,7 @@ def create_app(configuration=None, operations=None, monitor=None):
     @asynccontextmanager
     async def lifespan(application):
         """Reload 시 상태 수집만 재시작하고 작업 worker와 하위 서비스는 유지합니다."""
+        await asyncio.to_thread(operations.recover_interrupted)
         collection_task = asyncio.create_task(monitor.run())
         yield
         collection_task.cancel()
@@ -115,10 +125,16 @@ def create_app(configuration=None, operations=None, monitor=None):
                 "external_links": configuration.get("external_links", configuration["links"])}
 
     @application.post("/api/services/{target}/{action}", status_code=202)
-    async def control_service(target: str, action: str):
+    async def control_service(target: str, action: str, payload: ControlInput | None = None):
         """미리 등록한 조작만 비동기로 접수하며 임의 command를 받지 않습니다."""
         try:
-            identifier = await asyncio.to_thread(operations.create, target, action)
+            selection = None
+            if target == "llm" and configuration["llm"]["adapter"] == "profiles":
+                selection = await asyncio.to_thread(
+                    monitor.adapter.pin_operation, action, payload.profile_id if payload else None,
+                    payload.configuration_revision if payload else None)
+            identifier = await asyncio.to_thread(operations.create, target, action,
+                                                  payload.identifier.hex if payload else None, selection)
         except ValueError as error:
             raise HTTPException(404, str(error)) from None
         except RuntimeError as error:
@@ -139,7 +155,8 @@ def create_app(configuration=None, operations=None, monitor=None):
     async def read_logs(target: str):
         """허용된 로그의 끝부분만 읽고 local secret을 가립니다."""
         if target == "llm":
-            log_path = WORKSPACE_DIRECTORY / "runtime/Strata/logs/strata-engine.log"
+            log_path = (monitor.adapter.log_path() if hasattr(monitor.adapter, "log_path") else
+                        WORKSPACE_DIRECTORY / "runtime/Strata/logs/strata-engine.log")
         elif target == "control":
             recent_operations = operations.recent()
             if not recent_operations:
@@ -152,8 +169,15 @@ def create_app(configuration=None, operations=None, monitor=None):
         with log_path.open("rb") as log_stream:
             log_stream.seek(max(0, log_path.stat().st_size - 12000))
             text = log_stream.read().decode("utf-8", errors="replace")
-        for secret_value in (configuration["access_string"], configuration["session_secret"],
-                             monitor.adapter.native_configuration.get("api_key", "")):
+        secret_values = [configuration["access_string"], configuration["session_secret"],
+                         monitor.adapter.native_configuration.get("api_key", "")]
+        if hasattr(monitor.adapter, "catalog"):
+            for profile in monitor.adapter.catalog.profiles.values():
+                try:
+                    secret_values.append(monitor.adapter.catalog.native_configuration(profile).get("api_key", ""))
+                except (OSError, ValueError):
+                    continue
+        for secret_value in secret_values:
             if secret_value:
                 text = text.replace(secret_value, "[REDACTED]")
         return {"text": text}

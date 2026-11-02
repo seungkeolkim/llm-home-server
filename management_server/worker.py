@@ -21,7 +21,15 @@ async def execute_operation(operation, configuration):
             response.raise_for_status()
             return "accepted", "모델·cache unload 요청을 접수했습니다. 작업 중이면 처리 후 반영됩니다. RAM·VRAM을 확인해 주세요."
         if target == "llm":
-            command = create_llm_adapter(configuration["llm"]).control_command(action)
+            adapter = create_llm_adapter(configuration["llm"])
+            if configuration["llm"]["adapter"] == "profiles":
+                instance = await asyncio.to_thread(adapter.execute, operation)
+                if instance:
+                    with OperationStore().connect() as connection:
+                        connection.execute("UPDATE operations SET instance_id=? WHERE identifier=?",
+                                           (instance["identifier"], operation["identifier"]))
+                return "succeeded", "기동을 완료했습니다." if action == "start" else "종료를 완료했습니다."
+            command = adapter.control_command(action)
         elif target == "librechat":
             command = [*compose_arguments(), "up", "-d", "--wait", "--wait-timeout", "240"] if action == "start" else [*compose_arguments(), "stop"]
         else:
@@ -40,7 +48,8 @@ def main():
     operation = store.get(identifier)
     if not operation or operation["status"] != "queued":
         raise SystemExit("실행 대기 중인 작업을 찾지 못했습니다.")
-    store.begin(identifier)
+    if not store.begin(identifier):
+        raise SystemExit("이미 종료되거나 실행 중인 제어 요청입니다.")
     try:
         status, message = asyncio.run(execute_operation(operation, load_configuration()))
     except Exception as error:

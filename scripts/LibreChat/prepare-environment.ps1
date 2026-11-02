@@ -84,6 +84,13 @@ foreach ($requiredSettingName in @(
 if ($environmentSettings['STRATA_API_KEY'] -cne [string]$strataConfiguration.api_key) {
     throw 'STRATA_API_KEY는 Strata local config의 api_key와 같아야 합니다.'
 }
+$polystrataConfigurationPath = Join-Path $workspaceRoot 'config\PolyStrata\qwen36.local.json'
+if (Test-Path -LiteralPath $polystrataConfigurationPath) {
+    $polystrataConfiguration = Get-Content -LiteralPath $polystrataConfigurationPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($polystrataConfiguration.port -ne 8488 -or $polystrataConfiguration.api_key -cne $environmentSettings['STRATA_API_KEY']) {
+        throw 'PolyStrata도 공통 port 8488과 동일한 API key를 사용해야 합니다.'
+    }
+}
 if ($environmentSettings['CREDS_KEY'] -notmatch '^[0-9a-fA-F]{64}$' -or $environmentSettings['CREDS_IV'] -notmatch '^[0-9a-fA-F]{32}$') {
     throw 'CREDS_KEY는 64자리 hex, CREDS_IV는 32자리 hex여야 합니다.'
 }

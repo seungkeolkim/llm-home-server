@@ -1,0 +1,39 @@
+{
+  "engines": {"strata": "Strata", "polystrata": "PolyStrata"},
+  "models": {
+    "qwen-flash-next": {"label": "Qwen3.8 Flash-Next", "context_tokens": 153600},
+    "qwen36-moe": {"label": "Qwen3.6 35B A3B MoE", "context_tokens": 153600},
+    "qwen36-hauhau-moe": {"label": "Qwen3.6 35B A3B · HauhauCS", "context_tokens": 153600}
+  },
+  "profiles": [
+    {
+      "identifier": "strata-qwen-flash-next", "engine": "strata", "model": "qwen-flash-next",
+      "variant_label": "SC117 · GSQ-RCO · Abliterated", "quantization": "IQ3_XXS",
+      "configuration_path": "config/Strata/strata.local.json",
+      "label": "IQ3_XXS · KV INT8 · GPU 32K · 150K · CPU Vision",
+      "minimum_ram_gib": 48, "minimum_free_vram_mib": 9216,
+      "resource_budget": {"target_llm_vram_gib": 8, "reserve_mib": 8192, "measured_ram_gib": 45.8},
+      "log_path": "runtime/Strata/logs/strata-engine.log"
+    },
+    {
+      "identifier": "polystrata-qwen36-q4km", "engine": "polystrata", "model": "qwen36-moe",
+      "variant_label": "Unsloth", "quantization": "UD-Q4_K_M",
+      "configuration_path": "config/PolyStrata/qwen36.local.json",
+      "label": "UD-Q4_K_M · KV Q8_0 · 150K · CPU Vision",
+      "minimum_ram_gib": 26, "minimum_free_vram_mib": 9216,
+      "resource_budget": {"target_llm_vram_gib": 8, "reserve_mib": 8192, "measured_ram_gib": 23.8},
+      "download_status_path": "runtime/PolyStrata/downloads/qwen36-UD-Q4_K_M/status.json",
+      "log_path": "runtime/PolyStrata/logs/server.log"
+    },
+    {
+      "identifier": "polystrata-qwen36-hauhau-q4km", "engine": "polystrata", "model": "qwen36-hauhau-moe",
+      "variant_label": "HauhauCS · Uncensored · Aggressive TTQ 4.90bpw", "quantization": "Q4_K_M",
+      "configuration_path": "config/PolyStrata/qwen36-hauhau.local.json",
+      "label": "TTQ Q4_K_M · MTP · KV Q8_0 · 150K · CPU Vision",
+      "minimum_ram_gib": 26, "minimum_free_vram_mib": 9216,
+      "resource_budget": {"target_llm_vram_gib": 8, "reserve_mib": 8192},
+      "download_status_path": "runtime/PolyStrata/downloads/hauhau-ttq-q4km-mtp/status.json",
+      "log_path": "runtime/PolyStrata/logs/hauhau-server.log"
+    }
+  ]
+}

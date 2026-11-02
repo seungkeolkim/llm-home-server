@@ -2,6 +2,10 @@
 
 검증일: 2026-10-21, Windows / PowerShell, Asia/Seoul.
 
+> 이 문서는 초기 복원과 후속 변경의 날짜별 기록입니다. 초기의 context 163,840·reserve 7,168·Vision off는 현재 값이 아닙니다.
+> 현재 QFN은 context 153,600, reserve 8,192 MiB, KV INT8 / GPU resident 32,768, CPU Vision과 loop 중단을 사용합니다.
+> 현재 지원 profile 전체와 운영 절차는 [프로젝트 README](../../README.md), 마지막 model ID 정책 검증은 아래 [후속 기록](#후속-변경-model-id-검증과-thinking-loop-중단)을 따릅니다.
+
 ## 동작을 확인한 조합
 
 | 항목 | 값 |
@@ -194,3 +198,26 @@ context, vision, VRAM reserve 등의 추론 설정은 변경하지 않았습니�
 LAN 주소 검증은 이 PC에서 수행했습니다. 다른 기기에서의 inbound 접속까지는 검증하지 않았습니다.
 Windows Firewall 규칙 조회는 현재 process에 관리자 권한이 없어 Access denied였으며,
 방화벽 규칙은 변경하지 않았습니다.
+
+## 후속 변경: model ID 검증과 thinking loop 중단
+
+2026-10-22 LibreChat에서 미실행 PolyStrata model을 선택해도 QFN으로 답하던 동작을 외부 wrapper에서 차단했습니다.
+공식 clone은 수정하지 않고 `scripts/Strata/strata_entrypoint.py`를 통해 CLI·managed host·server를 실행합니다.
+Managed runtime의 소유권 pipe, 환경, readiness 및 launch attestation 인자는 보존합니다.
+
+- Chat Completions, Responses, Anthropic Messages 및 token 계산에서 명시한 model ID가 실행 model과 다르면 HTTP 400입니다.
+- 인증과 JSON parsing은 upstream에 맡기며 model 검증은 prompt 처리·생성·SSE 응답 전에 수행합니다.
+- 현재 model ID와 model을 생략한 기존 요청은 허용합니다. 다른 model로 자동 전환하거나 대체 답변하지 않습니다.
+- Local config와 template에 `reasoning_loop_recovery: "stop"`, `repeat_stop_tokens: 256`을 명시했습니다.
+- Thinking의 반복 구절을 약 512 output tokens 간격으로 검사하며, 같은 token의 256회 연속 반복도 중단합니다.
+- Loop 중단은 `finish_reason: "length"`와 서버 로그로 전달됩니다. LibreChat 전용 loop 알림은 없습니다.
+- 정상적인 반복을 오인하거나 표현이 다른 반복을 놓칠 수 있습니다. Thinking 예산·출력 상한·기존 sampling은 변경하지 않았습니다.
+
+Idle QFN을 관리 API로 종료·재기동한 뒤 `ready`, `verified_now`, `api_identity_verified`, `launch_attested`, `generation_ready`를 확인했습니다.
+미실행 PolyStrata model ID 두 개를 네 API에 보낸 실제 요청 8건이 JSON HTTP 400으로 거부됐으며 QFN은 `STRATA_POLICY_READY`로 응답했습니다.
+LibreChat에서도 정상 QFN 채팅과 잘못된 PolyStrata 선택의 저장된 error content (`status: 400`, 대체 답변 없음)를 확인했습니다.
+
+검증: 외부 request 정책·managed launch 테스트 5개, upstream CPU-only loop 회귀 테스트 18개, 관리 profile 테스트 7개 통과.
+실제 model을 반복 상태로 만들지는 않았으며 loop 감지·중단은 mock Engine으로 검증했습니다.
+증거는 Git 제외 경로 `runtime/Strata/request-policy-verification.json`,
+`runtime/LibreChat/diagnostics/verification-strata-model-mismatch.json`에 있습니다.

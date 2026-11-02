@@ -12,7 +12,7 @@
     "--spec", "4",
     "--spec-min-p", "0.5",
     "--mtp", "${DATA_ROOT}/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/strata/rt",
-    "--max-context", "163840",
+    "--max-context", "153600",
     "--kv", "int8",
     "--kv-resident", "32768",
     "--vram-reserve-mib", "8192",
@@ -27,6 +27,8 @@
   "api_key": "CHANGE_ME_이 부분을 바꾸세요_Strata API key",
   "port": 8488,
   "parallel": 1,
+  "reasoning_loop_recovery": "stop",
+  "repeat_stop_tokens": 256,
   "vision": {
     "exe": "${ENGINE_ROOT}/strata-vision.exe",
     "mmproj": "${DATA_ROOT}/models/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF/mmproj-Qwen3.8-Flash-Next-BF16.gguf",

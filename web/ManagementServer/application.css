@@ -833,3 +833,129 @@ input:focus-visible {
     scroll-behavior: auto;
   }
 }
+.profile-modal {
+  width: min(640px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+}
+.profile-options {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 18px 0;
+  padding: 0;
+  border: 0;
+}
+.profile-options legend {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.profile-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #3d4b62;
+  border-radius: 12px;
+  background: #141e2e;
+  cursor: pointer;
+}
+.profile-option:has(input:checked) {
+  border-color: var(--mint);
+  background: #17302f;
+}
+.profile-option:has(input:focus-visible) {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+}
+.profile-option:has(input:disabled) {
+  background: #151b27;
+  cursor: not-allowed;
+}
+.profile-option input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  accent-color: var(--mint);
+}
+.profile-option-content {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.profile-option-heading,
+.profile-option-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  font-size: 12px;
+}
+.profile-option-heading {
+  justify-content: space-between;
+}
+.profile-engine {
+  color: var(--mint);
+  font-weight: 700;
+}
+.profile-availability,
+.profile-variant {
+  color: #b5c2d8;
+  font-size: 12px;
+}
+.profile-model {
+  font-size: 16px;
+  font-weight: 700;
+}
+.profile-quantization {
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: #26394c;
+  color: #eff8ff;
+  font-weight: 700;
+}
+.profile-problem {
+  color: #ffb4a9;
+  font-size: 12px;
+}
+.profile-summary {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.profile-summary-label {
+  color: var(--muted);
+  font-size: 11px;
+}
+.profile-summary code {
+  display: block;
+  margin: 5px 0 8px;
+  font-size: 12px;
+}
+.profile-modal .modal-actions {
+  position: sticky;
+  bottom: -24px;
+  padding: 14px 0;
+  background: #151d2b;
+}
+@media (max-width: 480px) {
+  .profile-modal {
+    padding: 18px;
+  }
+  .profile-modal .modal-actions {
+    bottom: -18px;
+  }
+  .profile-modal .modal-actions .button {
+    flex: 1;
+    padding-inline: 10px;
+    white-space: nowrap;
+  }
+  .profile-modal .modal-actions .primary {
+    flex: 2;
+  }
+}

@@ -54,7 +54,7 @@ def runtime_environment(data_directory: Path) -> dict[str, str]:
 
 def invoke_strata(arguments: list[str], environment: dict[str, str]) -> int:
     """바깥 Python으로 공식 CLI를 실행하고 원래 exit code를 돌려줍니다."""
-    command = [sys.executable, "-B", str(SOURCE_ROOT / "strata.py"), *arguments]
+    command = [sys.executable, "-B", str(RUNNER_ROOT / "scripts/Strata/strata_entrypoint.py"), *arguments]
     completed = subprocess.run(command, cwd=RUNNER_ROOT, env=environment, check=False)
     return completed.returncode
 
@@ -240,6 +240,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("prepare", "start", "stop", "status", "plan", "verify", "foreground"))
     parser.add_argument("--data-directory", type=Path, default=Path("C:/Strata-data"))
+    parser.add_argument("--if-owner-id")
+    parser.add_argument("--if-instance-id")
     arguments = parser.parse_args()
     if arguments.action == "prepare":
         return prepare_environment(arguments.data_directory)
@@ -255,6 +257,11 @@ def main() -> int:
         command = ["runtime", arguments.action, "--profile", PROFILE_NAME, "--output", "json"]
         if arguments.action in ("start", "verify"):
             command += ["--wait", "600"]
+        if arguments.action == "stop":
+            if arguments.if_owner_id:
+                command += ["--if-owner-id", arguments.if_owner_id]
+            if arguments.if_instance_id:
+                command += ["--if-instance-id", arguments.if_instance_id]
     return invoke_strata(command, environment)
 
 

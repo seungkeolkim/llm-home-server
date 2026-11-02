@@ -61,7 +61,7 @@ def create_authenticated_client(base_url, public_url):
     return client
 
 
-def submit_chat_turn(client, base_url, prompt_text, search_enabled=False):
+def submit_chat_turn(client, base_url, prompt_text, search_enabled=False, model_name=None):
     """공식 Agent route로 검증 대화를 만들고 최종 응답을 기다립니다."""
     configuration_path = WORKSPACE_ROOT / "config/Strata/strata.local.json"
     configuration = json.loads(configuration_path.read_text(encoding="utf-8-sig"))
@@ -78,7 +78,7 @@ def submit_chat_turn(client, base_url, prompt_text, search_enabled=False):
         "responseMessageId": response_message_identifier,
         "endpoint": "Strata",
         "endpointType": "custom",
-        "model": configuration["model_name"],
+        "model": model_name or configuration["model_name"],
         "isTemporary": False,
         "isRegenerate": False,
         "error": False,
@@ -110,6 +110,7 @@ def main():
     parser.add_argument("--port", type=int, default=int(settings.get("LIBRECHAT_PORT", "8588")))
     parser.add_argument("--public-url", default=settings["DOMAIN_CLIENT"])
     parser.add_argument("--mode", choices=("login", "chat", "search"), default="login")
+    parser.add_argument("--model", help="고정 catalog에 등록된 검증 대상 model ID")
     arguments = parser.parse_args()
     base_url = f"http://127.0.0.1:{arguments.port}"
     client = create_authenticated_client(base_url, arguments.public_url)
@@ -120,7 +121,7 @@ def main():
         prompt_text = "Connection verification: reply with exactly STRATA_LIBRECHAT_READY."
         if arguments.mode == "search":
             prompt_text = "Use web_search to find Python's official asyncio documentation. Read a result and provide its title and URL."
-        evidence = submit_chat_turn(client, base_url, prompt_text, arguments.mode == "search")
+        evidence = submit_chat_turn(client, base_url, prompt_text, arguments.mode == "search", arguments.model)
         if arguments.mode == "chat":
             visible_text = []
             for content_part in evidence["response"].get("content", []):
