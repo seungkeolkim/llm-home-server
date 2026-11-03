@@ -99,6 +99,8 @@ RAM·VRAM의 주요 수치는 `사용량 / 전체 용량 GiB`이며 사용률과
 
 2026-11-02에 선택 modal을 카드 목록으로 변경했습니다. 각 카드에서 Engine, 모델명, 배포 variant와 Quantization을 비교하고 정확한 context를 확인합니다. 선택한 카드 아래에는 실제 Model ID와 실행 설정을 표시합니다. 표시 정보는 고정 catalog의 `variant_label`·`quantization`과 local 설정의 `model_name`을 사용합니다.
 
+2026-11-03에 사용자가 기본 Sampling 설정에서도 답변 반복을 확인하고 QFN Q2_0의 사용 중단을 결정했습니다. 추가했던 Q2 전용 모델·Pack·준비 worker·native profile·관리 catalog·LibreChat 등록과 실행 지원을 제거했습니다. 기존 IQ3_XXS와 PolyStrata 두 profile, 공유 MTP·CPU Vision·Engine은 유지합니다. 이 결정은 사용자 환경의 사용 결과에 따른 것이며 반복의 기술적 원인을 확정한 것은 아닙니다.
+
 ### LibreChat의 고정 model 목록과 context
 
 - 지원할 model과 model별 context를 정적으로 등록합니다. 현재 세 profile의 정확한 context는 모두 153,600 tokens이며 LibreChat과 Engine 양쪽에 반영했습니다. 앞서 작성한 32K 검토 초안은 현재 실행 설정이 아닙니다.
