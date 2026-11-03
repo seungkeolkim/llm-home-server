@@ -28,12 +28,50 @@
 5. 선택 설정으로 짧은·32K·128K·260K 입력, cache 복원, Tool·Vision·NaN 회귀 검사.
 6. 유효한 설정만 실제 profile에 반영하고 관리 경로로 기동한 뒤 문서·측정 요약을 commit.
 
-현재 단계: API screening 진행 중. 3개 task와 round 앞·뒤 baseline, 후보 5개를 3회 교차 순서로 측정합니다. 요청마다 원본과 결과를 저장하며 아직 최적화 설정을 채택하지 않았습니다.
+현재 단계: API screening 완료, 재기동 후보 screening 진행 중. 아직 최적화 설정을 채택하지 않았습니다.
+
+### API screening 결과
+
+3개 task × 7개 arm(앞·뒤 baseline 포함) × 3 rounds = 63 requests, 오류 0.
+입력 prefix가 겹치지 않도록 식별자를 넣고 384-token 출력을 사용했습니다.
+Round 앞·뒤 baseline 차이의 중앙값은 약 2.71%였습니다.
+
+| 후보 | baseline 대비 decode 비율 중앙값 | 판단 |
+| --- | --- | --- |
+| PCIe share 0.0 | 0.7648 | 제외 |
+| PCIe share 0.2 | 0.8243 | 제외 |
+| PCIe share 0.35 | 0.9128 | 제외 |
+| PCIe share 0.5 | 1.0115 | 변동 범위, 미채택 |
+| Spec confidence 0.7 | 1.0057 | 변동 범위, 미채택 |
+
+따라서 다음 단계는 자동 PCIe share와 spec-min-p 0.5를 유지합니다.
+다른 기기의 0.2 또는 0.35 설정을 그대로 복사하면 이 PC에서는 손해였습니다.
+원본은 로컬 작업 폴더의 `api-screen/summary.json`과 요청별 파일에 보존했습니다.
+
+### 재기동 측정에서 확인한 baseline 오답
+
+첫 재기동 baseline(`r01-baseline`)에서 긴 검색은 3/3이었지만, thinking off의
+`17*23+19를 계산해서 숫자만 출력하세요.`에 `390`을 반환했습니다(정답 410).
+최적화 인자를 바꾸기 전 결과이며 원본 파일과 failed summary를 그대로 보존했습니다.
+기존 33건의 다른 형식 검산 결과를 수정하거나 이 오답을 숨기지 않습니다.
+
+이후 측정은 API·계측 유효성과 semantic 정답을 별도 필드로 기록합니다.
+`status: completed`는 측정 완료를 뜻하고, `quality_all_passed`·`quality_failures`·`retrieval_passed`로 정답을 판단합니다.
+기존 greedy 검산에 더해 실사용 thinking medium(256-token budget) 검산을 추가하며, 새로운 round부터 적용합니다.
+최종 선택에서는 baseline보다 품질이 나빠지는 후보를 제외합니다.
 
 재개 명령:
 
 ```powershell
 .\.venv\Strata\Scripts\strata-runtime-python.exe -X utf8 -I -B scripts/Strata/optimize_api_profile.py --phase api-screen --rounds 3
+```
+
+재기동 단계는 [Engine 후보 측정 script](../../scripts/Strata/measure_engine_candidates.py)를 사용합니다.
+공식 `WorkerSession`이 복사 설정·별도 port로 후보를 실행합니다. 단계 시작 때 관리 중인 IQ3_XXS만 종료하고,
+성공·실패 모두 `finally`에서 기존 운영 profile을 다시 기동합니다. 중단 전 완료된 `summary.json`은 건너뜁니다.
+
+```powershell
+.\.venv\Strata\Scripts\strata-runtime-python.exe -X utf8 -I -B scripts/Strata/measure_engine_candidates.py --round 2 --trials baseline prefill-4096 prefill-8192
 ```
 
 ## 중단 후 이어가기
