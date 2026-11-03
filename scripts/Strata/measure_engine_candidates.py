@@ -6,7 +6,6 @@ import argparse
 import copy
 import json
 from pathlib import Path
-import statistics
 import sys
 import time
 import uuid
@@ -22,7 +21,8 @@ sys.path.insert(0, str(WORKSPACE_DIRECTORY / "external_repo/Strata"))
 from measure_api_baseline import BaselineMeasurement
 from optimize_api_profile import (DEFAULT_OUTPUT_DIRECTORY, TASKS, atomic_json, check_fixed_configuration,
                                   geometric_mean, record_progress, timestamp)
-from strata_control.tune_session import StartFailed, WorkerSession
+from strata_control.tune_session import WorkerSession
+from summarize_optimization_results import summarize_trials
 
 
 CANDIDATES = {
@@ -36,6 +36,7 @@ CANDIDATES = {
     "host-core-last": {"args": {"--host-core": "last"}, "env": {}},
     "spec-3": {"args": {"--spec": "3"}, "env": {}},
     "kv-resident-16k": {"args": {"--kv-resident": "16384"}, "env": {}},
+    "kv-resident-48k": {"args": {"--kv-resident": "49152"}, "env": {}},
     "kv-resident-64k": {"args": {"--kv-resident": "65536"}, "env": {}},
     "adapt-async": {"args": {"--adapt-async": "1"}, "env": {}},
     "adapt-faster": {"args": {"--adapt-every": "1", "--adapt-swaps": "80", "--adapt-decay": "0.97"}, "env": {}},
@@ -173,6 +174,17 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
         health = measurement.get_json("/health")
         if health.get("max_context") != 262144:
             raise RuntimeError("Candidate did not preserve the full Context")
+        native_processes = []
+        for process in psutil.process_iter(["name", "cmdline"]):
+            try:
+                if process.info["name"] == "strata.exe":
+                    native_processes.append(process.info["cmdline"])
+            except psutil.Error:
+                continue
+        if len(native_processes) != 1:
+            raise RuntimeError("Expected exactly one native comparison Engine")
+        check_fixed_configuration({"args": native_processes[0]})
+        engine.facts["actual_native_arguments"] = native_processes[0]
         for warmup_number in range(2):
             payload = measurement.request_payload([{"role": "user", "content": f"Warmup {warmup_number}: explain how a computer works in detail."}], 64)
             payload["strata_checkpoint"] = False
@@ -202,9 +214,13 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
             payload["strata_tune"] = request_settings
         measurement.measure("quality-arithmetic-medium", payload, ["410"])
         measurement.finish()
+        engine_log = next((trial_directory / ("worker-" + attempt_name)).glob("engine-*.log"))
+        engine.facts["prompt_configuration_log"] = [line for line in engine_log.read_text(encoding="utf-8", errors="replace").splitlines()
+                                                     if "prompt chunk" in line or "KV streaming:" in line or "short of GPU memory" in line]
         summary = trial_summary(trial_directory, identifier, settings, measurement.results, engine.facts)
     record_progress(output_directory, "trial_finished", current_trial=identifier, trial_status=summary["status"],
                     last_decode=summary["decode_geometric_mean"], last_prefill=summary["prefill_tokens_per_second"])
+    summarize_trials(output_directory)
     print(json.dumps({key: summary[key] for key in ("trial", "status", "decode_geometric_mean", "prefill_tokens_per_second", "gpu_peak_used_mib")}), flush=True)
     return summary
 

@@ -30,6 +30,27 @@
 
 현재 단계: API screening 완료, 재기동 후보 screening 진행 중. 아직 최적화 설정을 채택하지 않았습니다.
 
+### 재기동 screening checkpoint (18:58 KST)
+
+| 후보 | 짧은 decode 기하평균 (tok/s) | cold 32K prefill (tok/s) | 전체 GPU peak (MiB) |
+| --- | ---: | ---: | ---: |
+| baseline, round 2 | 83.99 | 1234.7 | 9981 |
+| prefill 4096 | 91.14 | 477.6 | 9089 |
+| prefill 8192 | 89.81 | 472.6 | 9089 |
+
+두 fixed prefill 후보 모두 검색 3/3, medium 검산 정답, 기존 greedy 검산 오답을 유지했습니다.
+짧은 decode의 이득만으로 채택하지 않습니다. 32K 입력 처리량이 약 61~62% 감소했습니다.
+또한 native Engine 로그에서 실제 `--kv-resident`가 32768에서 4096으로 바뀌었습니다.
+공식 `vram_fit.fit_start`는 `user_args`로 고정되지 않은 KV window를 줄일 수 있으므로,
+이 결과는 prefill 하나만의 순수한 효과가 아닌 자동 조정까지 포함한 결과입니다.
+운영 원본 설정은 바꾸지 않았습니다. 이후 trial에서는 native process의 실제 인자를 함께 저장하고
+Context·reserve가 실제 기동 명령에서도 유지되는지 검사합니다.
+
+숫자형 prefill 추가 시험과 KV 16K·worker 4/5는 제외합니다.
+공식 tuner의 좁은 범위를 우선하여 worker 6, host last, spec 3, KV 48K/64K,
+async, adaptive 속도, CPU prefill share off, overlap을 이어서 비교합니다.
+완료된 결과는 [Engine screening JSON](benchmarks/2026-11-03-optimization-engine-screen.json)에 후보별로 자동 저장합니다.
+
 ### API screening 결과
 
 3개 task × 7개 arm(앞·뒤 baseline 포함) × 3 rounds = 63 requests, 오류 0.
@@ -72,6 +93,12 @@ Round 앞·뒤 baseline 차이의 중앙값은 약 2.71%였습니다.
 
 ```powershell
 .\.venv\Strata\Scripts\strata-runtime-python.exe -X utf8 -I -B scripts/Strata/measure_engine_candidates.py --round 2 --trials baseline prefill-4096 prefill-8192
+```
+
+진행 중인 후속 batch:
+
+```powershell
+.\.venv\Strata\Scripts\strata-runtime-python.exe -X utf8 -I -B scripts/Strata/measure_engine_candidates.py --round 2 --trials workers-6 host-core-last spec-3 kv-resident-48k kv-resident-64k adapt-async adapt-faster prefill-cpu-share-off adapt-overlap
 ```
 
 ## 중단 후 이어가기
