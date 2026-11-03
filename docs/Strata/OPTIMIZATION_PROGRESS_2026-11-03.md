@@ -151,6 +151,27 @@ MTP on baseline은 cache가 작아 prompt buffer를 따로 할당했습니다.
 추가 후보 `prefill-unfused`와 `prefill-unfused-layer-major`는 MTP on을 유지한 채 이 prefill 경로를 비교합니다.
 최종 quality 단계에는 한국어 서술·대화 각 512-token throughput도 추가합니다. 해당 두 문제는 언어 품질 점수로 해석하지 않습니다.
 
+19:24 checkpoint: round 3 후반 baseline은 decode 81.84 / PP 1243.9였습니다.
+앞 baseline 83.47과의 decode 차이는 약 1.95%입니다. 후보 채택 전 A/B/A 반복으로 이 변동을 보정합니다.
+`pin-by-need`는 decode 75.34 / PP 1022.2로 제외합니다.
+routed prefill과 PCIe balance는 각각 PP 1247.9 / 1239.7로 뚜렷한 이득이 없었습니다.
+
+round 4의 `prefill-unfused`만 지정한 결과는 baseline 수준입니다.
+`prefill-unfused-layer-major`는 **MTP on을 유지하면서** decode 83.60 / PP 2499.0을 기록했습니다.
+GPU peak는 10501MiB로 baseline보다 약 520MiB 증가했습니다. 검색과 medium 검산은 통과했습니다.
+원본 native 구현은 super-chunk 단위(기본 8192)로 처리하므로 문서 전체를 한꺼번에 중간 버퍼에 넣지는 않습니다.
+`STRATA_PREFILL_LM_R=host`로 residual buffer를 RAM에 두는 후보와 불필요한 fused override를 제거한 후보도 비교할 예정입니다.
+단일 32K 결과만으로 이 환경변수를 운영 설정에 넣지 않습니다.
+
+현재 실행 명령:
+
+```powershell
+.\.venv\Strata\Scripts\strata-runtime-python.exe -X utf8 -I -B scripts/Strata/measure_engine_candidates.py --round 4 --trials prefill-unfused prefill-unfused-layer-major mtp-off-kv20k prefill-unfused-layer-major-kv20k baseline-tail
+```
+
+다음 단계의 paired confirmation은 `--round 10 --repeat-rounds 3 --trials baseline <candidate> baseline-tail` 형식입니다.
+중간 round의 순서를 뒤집으며, 후보마다 새 Engine을 사용합니다. 아직 최종 candidate를 정하지 않았습니다.
+
 ## 중단 후 이어가기
 
 - 로컬 작업 폴더: `runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144/`.

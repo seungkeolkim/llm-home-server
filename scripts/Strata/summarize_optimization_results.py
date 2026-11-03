@@ -9,10 +9,39 @@ import re
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from optimize_api_profile import DEFAULT_OUTPUT_DIRECTORY, atomic_json, timestamp
+from optimize_api_profile import DEFAULT_OUTPUT_DIRECTORY, atomic_json, geometric_mean, timestamp
 
 
 DEFAULT_SUMMARY_PATH = Path(__file__).resolve().parents[2] / "docs/Strata/benchmarks/2026-11-03-optimization-engine-screen.json"
+
+
+def paired_comparisons(trials: list[dict]) -> list[dict]:
+    """같은 round의 앞뒤 기준값으로 후보의 속도와 A/A 변동을 계산합니다."""
+    groups = {}
+    for trial in trials:
+        if trial["status"] != "completed":
+            continue
+        round_name, arm = trial["trial"].split("-", 1)
+        groups.setdefault(round_name, {})[arm] = trial
+    comparisons = []
+    for round_name, arms in groups.items():
+        first = arms.get("baseline") or arms.get("mtp-on")
+        last = arms.get("baseline-tail")
+        if not first or not last:
+            continue
+        decode_reference = geometric_mean([first["decode_geometric_mean"], last["decode_geometric_mean"]])
+        prefill_reference = geometric_mean([first["prefill_tokens_per_second"], last["prefill_tokens_per_second"]])
+        for arm, trial in arms.items():
+            if arm in ("baseline", "baseline-tail", "mtp-on"):
+                continue
+            comparisons.append({
+                "round": round_name, "arm": arm, "control_trials": [first["trial"], last["trial"]],
+                "baseline_decode_absolute_drift": abs(last["decode_geometric_mean"] / first["decode_geometric_mean"] - 1),
+                "baseline_prefill_absolute_drift": abs(last["prefill_tokens_per_second"] / first["prefill_tokens_per_second"] - 1),
+                "decode_ratio": trial["decode_geometric_mean"] / decode_reference,
+                "prefill_ratio": trial["prefill_tokens_per_second"] / prefill_reference,
+            })
+    return comparisons
 
 
 def summarize_trials(output_directory: Path, summary_path: Path = DEFAULT_SUMMARY_PATH) -> dict:
@@ -49,7 +78,7 @@ def summarize_trials(output_directory: Path, summary_path: Path = DEFAULT_SUMMAR
         "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
         "protocol": "Fresh engine; two 64-token warmups; three 384-token decode prompts; cold 32K retrieval; arithmetic off and medium.",
         "interpretation": "completed means valid API measurement, not full semantic correctness; inspect quality fields. r01 predates separated quality fields.",
-        "trials": trials,
+        "trials": trials, "paired_comparisons": paired_comparisons(trials),
     }
     atomic_json(summary_path, summary)
     return summary

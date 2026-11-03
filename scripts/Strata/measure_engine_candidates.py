@@ -57,6 +57,10 @@ CANDIDATES = {
     "pcie-balance": {"args": {}, "env": {"STRATA_PCIE_BALANCE": "1"}},
     "prefill-unfused": {"args": {}, "env": {"STRATA_PF_FUSED": "0"}},
     "prefill-unfused-layer-major": {"args": {}, "env": {"STRATA_PF_FUSED": "0", "STRATA_PREFILL_LAYER_MAJOR": "1"}},
+    "prefill-unfused-layer-major-kv20k": {"args": {"--kv-resident": "20480"},
+                                          "env": {"STRATA_PF_FUSED": "0", "STRATA_PREFILL_LAYER_MAJOR": "1"}},
+    "prefill-layer-major": {"args": {}, "env": {"STRATA_PREFILL_LAYER_MAJOR": "1"}},
+    "prefill-layer-major-host": {"args": {}, "env": {"STRATA_PREFILL_LAYER_MAJOR": "1", "STRATA_PREFILL_LM_R": "host"}},
 }
 
 DEFAULT_CANDIDATES = ["baseline", "workers-6", "host-core-last", "spec-3", "kv-resident-48k", "kv-resident-64k",
@@ -279,10 +283,13 @@ def main() -> None:
     parser.add_argument("--output-directory", type=Path, default=DEFAULT_OUTPUT_DIRECTORY)
     parser.add_argument("--trials", nargs="+", choices=list(CANDIDATES), default=DEFAULT_CANDIDATES)
     parser.add_argument("--round", type=int, default=1)
+    parser.add_argument("--repeat-rounds", type=int, default=1)
     parser.add_argument("--request-settings", type=json.loads, default={})
     parser.add_argument("--quality-suite", action="store_true")
     parser.add_argument("--long-suite", action="store_true")
     arguments = parser.parse_args()
+    if arguments.repeat_rounds < 1:
+        parser.error("--repeat-rounds must be positive")
     snapshot_directory = arguments.output_directory / "protocol-snapshots" / uuid.uuid4().hex
     snapshot_directory.mkdir(parents=True)
     source_hashes = {}
@@ -293,23 +300,28 @@ def main() -> None:
         source_hashes[filename] = hashlib.sha256(source_bytes).hexdigest()
     atomic_json(snapshot_directory / "manifest.json", {"created_at": timestamp(), "source_sha256": source_hashes,
                                                      "trials": arguments.trials, "round": arguments.round,
+                                                     "repeat_rounds": arguments.repeat_rounds,
                                                      "quality_suite": arguments.quality_suite, "long_suite": arguments.long_suite})
     record_progress(arguments.output_directory, "batch_sources_saved", protocol_snapshot=str(snapshot_directory))
     manager = ManagementClient(arguments.output_directory)
     manager.control("stop")
     batch_completed = False
     try:
-        for name in arguments.trials:
-            identifier = f"r{arguments.round:02d}-" + name
-            try:
-                summary = measure_trial(arguments.output_directory, identifier, CANDIDATES[name], arguments.request_settings,
-                                        arguments.quality_suite, arguments.long_suite)
-            except Exception as error:
-                record_progress(arguments.output_directory, "trial_failed", current_trial=identifier,
-                                status="failed", error=str(error), next_action="Inspect worker logs before retrying; production profile is restored in finally.")
-                raise
-            if summary["status"] != "completed":
-                raise RuntimeError("Candidate API measurement is invalid: " + identifier)
+        for repetition in range(arguments.repeat_rounds):
+            names = list(arguments.trials)
+            if repetition % 2:
+                names.reverse()
+            for name in names:
+                identifier = f"r{arguments.round + repetition:02d}-" + name
+                try:
+                    summary = measure_trial(arguments.output_directory, identifier, CANDIDATES[name], arguments.request_settings,
+                                            arguments.quality_suite, arguments.long_suite)
+                except Exception as error:
+                    record_progress(arguments.output_directory, "trial_failed", current_trial=identifier,
+                                    status="failed", error=str(error), next_action="Inspect worker logs before retrying; production profile is restored in finally.")
+                    raise
+                if summary["status"] != "completed":
+                    raise RuntimeError("Candidate API measurement is invalid: " + identifier)
         batch_completed = True
     finally:
         record_progress(arguments.output_directory, "restoring_production", status="restoring")
