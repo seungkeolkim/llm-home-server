@@ -60,4 +60,12 @@ def measure_quality(measurement: BaselineMeasurement) -> list[dict]:
                        "truncated": result["completion_truncated"], "elapsed_seconds": result["elapsed_seconds"]})
         atomic_json(measurement.output_directory / "quality-validation.json", checks)
         print(json.dumps({"quality_case": case["name"], "exact_passed": passed}), flush=True)
+    style_prompts = {
+        "style-korean-story": "한국어 소설의 한 장면을 길게 쓰세요. 늦가을 비가 내리는 공연장에서 두 성인 배우가 마지막 리허설을 합니다. 무대의 조명과 소리, 작은 동작과 인물의 감정을 구체적으로 묘사하세요. 요약이나 항목 목록 없이 자연스러운 문단으로 장면을 계속 이어가세요.",
+        "style-korean-dialogue": "한국어로 긴 대화 장면을 쓰세요. 오래된 서점에서 십 년 만에 만난 두 친구가 함께 준비했던 공연과 지금의 삶을 이야기합니다. 대사 사이에 표정과 동작을 넣고 인물의 말투를 구별하세요. 결말을 서둘러 내지 말고 구체적인 대화를 충분히 이어가세요.",
+    }
+    for name, prompt in style_prompts.items():
+        payload = measurement.request_payload([{"role": "user", "content": prompt}], 512)
+        payload["strata_checkpoint"] = False
+        measurement.measure(name, payload)
     return checks

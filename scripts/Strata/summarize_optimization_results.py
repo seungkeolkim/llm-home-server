@@ -34,12 +34,13 @@ def summarize_trials(output_directory: Path, summary_path: Path = DEFAULT_SUMMAR
         actual_arguments = trial["facts"].get("actual_native_arguments", [])
         log_paths = sorted(result_path.parent.glob("worker-attempt-*/engine-*.log"))
         engine_log = log_paths[-1].read_text(encoding="utf-8", errors="replace") if log_paths else ""
+        engine_command = next((line for line in engine_log.splitlines() if "engine started:" in line), "")
         trial["actual_key_arguments"] = {}
         for flag in ("--kv-resident", "--max-context", "--vram-reserve-mib", "--prefill", "--spec", "--pool-workers", "--host-core", "--mtp"):
-            if flag in actual_arguments:
-                value = actual_arguments[actual_arguments.index(flag) + 1]
+            if actual_arguments:
+                value = actual_arguments[actual_arguments.index(flag) + 1] if flag in actual_arguments else None
             else:
-                matched = re.search(re.escape(flag) + r"\s+(\S+)", engine_log)
+                matched = re.search(re.escape(flag) + r"\s+(\S+)", engine_command)
                 value = matched.group(1) if matched else None
             trial["actual_key_arguments"][flag] = value
         trials.append(trial)

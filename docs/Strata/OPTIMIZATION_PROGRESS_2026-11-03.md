@@ -136,6 +136,21 @@ MTP만 끄며 기존 text prompt lookup은 유지합니다. Context 262144 / res
 최종 후보의 `--long-suite`는 동일한 기존 128K·260K fixture를 재사용하고,
 260K 문서에서 새 record의 값을 찾은 뒤 512-token 출력을 생성해 긴 KV 상태의 decode도 측정합니다.
 
+19:14 checkpoint (첫 on/off 비교, 반복 확인 전):
+
+| 설정 | 짧은 decode (tok/s) | cold 32K prefill (tok/s) | GPU peak (MiB) | Expert cache |
+| --- | ---: | ---: | ---: | ---: |
+| MTP on, round 3 | 83.47 | 1246.2 | 9981 | 343 slots |
+| MTP off, round 3 | 74.31 | 2503.6 | 9351 | 799 slots |
+| MTP on + 실제 KV 20K | 87.50 | 1247.8 | 9979 | 429 slots |
+
+off는 짧은 출력 약 11% 감소, 32K 입력 약 2배, GPU peak 약 630MiB 감소였습니다.
+따라서 이득·손해를 분리해 보고하고 긴 입력 측정을 생략하지 않습니다.
+Engine은 off에서 자동으로 `unfused experts + layer-major walk`, chunk 1024, cache 520 slots 대여를 선택했습니다.
+MTP on baseline은 cache가 작아 prompt buffer를 따로 할당했습니다.
+추가 후보 `prefill-unfused`와 `prefill-unfused-layer-major`는 MTP on을 유지한 채 이 prefill 경로를 비교합니다.
+최종 quality 단계에는 한국어 서술·대화 각 512-token throughput도 추가합니다. 해당 두 문제는 언어 품질 점수로 해석하지 않습니다.
+
 ## 중단 후 이어가기
 
 - 로컬 작업 폴더: `runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144/`.

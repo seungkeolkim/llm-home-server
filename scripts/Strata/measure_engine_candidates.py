@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -33,6 +34,7 @@ CANDIDATES = {
     "baseline-tail": {"args": {}, "env": {}},
     "mtp-on": {"args": {}, "env": {}},
     "mtp-off": {"args": {}, "env": {}, "configuration": {"drafting": "off", "mtp": False}},
+    "mtp-off-kv20k": {"args": {"--kv-resident": "20480"}, "env": {}, "configuration": {"drafting": "off", "mtp": False}},
     "prefill-4096": {"args": {"--prefill": "4096"}, "env": {}},
     "prefill-8192": {"args": {"--prefill": "8192"}, "env": {}},
     "prefill-16384": {"args": {"--prefill": "16384"}, "env": {}},
@@ -53,6 +55,8 @@ CANDIDATES = {
     "pin-by-need": {"args": {}, "env": {"STRATA_PIN_BY_NEED": "1"}},
     "prefill-routed-stream": {"args": {}, "env": {"STRATA_PREFILL_ROUTED_STREAM": "1"}},
     "pcie-balance": {"args": {}, "env": {"STRATA_PCIE_BALANCE": "1"}},
+    "prefill-unfused": {"args": {}, "env": {"STRATA_PF_FUSED": "0"}},
+    "prefill-unfused-layer-major": {"args": {}, "env": {"STRATA_PF_FUSED": "0", "STRATA_PREFILL_LAYER_MAJOR": "1"}},
 }
 
 DEFAULT_CANDIDATES = ["baseline", "workers-6", "host-core-last", "spec-3", "kv-resident-48k", "kv-resident-64k",
@@ -279,6 +283,18 @@ def main() -> None:
     parser.add_argument("--quality-suite", action="store_true")
     parser.add_argument("--long-suite", action="store_true")
     arguments = parser.parse_args()
+    snapshot_directory = arguments.output_directory / "protocol-snapshots" / uuid.uuid4().hex
+    snapshot_directory.mkdir(parents=True)
+    source_hashes = {}
+    for filename in ("measure_engine_candidates.py", "measure_optimization_quality.py", "summarize_optimization_results.py",
+                     "optimize_api_profile.py", "measure_api_baseline.py"):
+        source_bytes = (SCRIPT_DIRECTORY / filename).read_bytes()
+        (snapshot_directory / filename).write_bytes(source_bytes)
+        source_hashes[filename] = hashlib.sha256(source_bytes).hexdigest()
+    atomic_json(snapshot_directory / "manifest.json", {"created_at": timestamp(), "source_sha256": source_hashes,
+                                                     "trials": arguments.trials, "round": arguments.round,
+                                                     "quality_suite": arguments.quality_suite, "long_suite": arguments.long_suite})
+    record_progress(arguments.output_directory, "batch_sources_saved", protocol_snapshot=str(snapshot_directory))
     manager = ManagementClient(arguments.output_directory)
     manager.control("stop")
     batch_completed = False
