@@ -229,13 +229,28 @@ cached prefix 260033 tokens, TTFT 0.675초였습니다. 최소 여유 RAM은 약
 - medium 정답 12/12, 128K·260K 검색 3/3씩, 새 record 확인 후 512-token 생성 통과.
 - 짧은 세 작업 decode 기하평균 83.4422 tok/s (원본 83.4417).
 - cold 32K PP 2742.8 tok/s (원본 1250.9).
-- 128K prompt 50.422초 (원본 112.411), 260K prompt 108.928초 (원본 232.918).
+- 128K prompt 50.422초 (원본 112.411), 260K prompt 108.928초 (원본 232.904).
 - 260K 이후 512-token decode 87.5 tok/s (원본 84.5), prefix 260032 재사용.
 - 전체 GPU peak 10427MiB (원본 9996), 최소 여유 RAM 10.41GiB (원본 11.05).
 
 Context 262144 / reserve 8192 / KV resident 32768 / MTP on을 유지한 결과입니다.
 추가 GPU 약 431MiB와 RAM 약 0.64GiB의 비용이 있으므로 자원 사용량도 함께 보고합니다.
 현재 같은 prefill을 적용한 MTP off를 측정 중입니다. 다음 단계는 위 on 후보의 3회 A/B/A와 한국어 두 작업 비교입니다.
+
+19:55 재개 안내: `r07-mtp-off-layer-major-host-16k`의 medium 12/12와 128K 검색 3/3은 통과했고,
+128K prompt 50.449초로 동일 prefill의 on(50.422초)과 거의 같습니다. 260K는 진행 중입니다.
+네 설정의 결과를 먼저 확인한 뒤 다음 명령으로 반복 검증합니다.
+
+```powershell
+.\.venv\Strata\Scripts\strata-runtime-python.exe -X utf8 -I -B scripts/Strata/measure_engine_candidates.py --round 10 --repeat-rounds 3 --trials baseline prefill-layer-major-host-16k baseline-tail --style-suite
+```
+
+최종 후보가 검증되면 관리 API로 운영 profile을 종료하고 local 설정과 template에만 해당 `env` 세 값을 반영합니다.
+원본 `args`(262144 / 8192 / KV 32768 / MTP on)는 유지합니다.
+다시 관리 API로 기동한 뒤 cold nonstream Hello·#3465 입력, 기존 `measure_api_baseline.py --suite all`의
+8K·32K·128K·260K와 issue 검사를 별도 `managed-final` 폴더에서 실행합니다.
+마지막으로 doctor의 설정된 Vision 경로·Engine 로그·관리 상태·source clean 상태를 확인하고 결과 문서와 summary를 commit합니다.
+검증 실패 시 운영 설정을 `original-configuration/strata.local.json`으로 복원하며 원본 secret을 보존합니다.
 
 ## 중단 후 이어가기
 
