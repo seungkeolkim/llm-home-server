@@ -198,6 +198,18 @@ VRAM 8K 후보보다 PP가 빠르고 GPU peak가 작아 후속 검증 대상으�
 기본 on/off와 동일한 prefill 설정을 적용한 on/off를 모두 비교합니다.
 원본 모델·quantization·Sampling 설정과 고정 Context/reserve는 바꾸지 않습니다.
 
+19:40 긴 검증 진행: `r07-baseline`의 medium 정답 검사 12/12,
+한국어 서술/대화 각각 512-token 생성 완료(85.7 / 83.8 tok/s).
+131051-token cold 문서는 검색 3/3, prompt 112.411초 / 1165.8 tok/s였습니다.
+259997-token 문서는 처리 중입니다. 이어서 긴 KV 상태의 512-token 생성과 나머지 세 설정을 같은 순서로 측정합니다.
+이 시점에도 운영 profile의 원본 설정은 바꾸지 않았습니다.
+
+19:42 `r07-baseline` 완료: 260K 검색 3/3, TTFT 233.227초, PP 1116.3 tok/s.
+260K 문서 이후 새 record 값을 찾고 512 tokens를 생성한 요청도 정답이며 decode 84.5 tok/s,
+cached prefix 260033 tokens, TTFT 0.675초였습니다. 최소 여유 RAM은 약 11.05GiB였습니다.
+새 medium 검사 12/12를 통과했고, 이전부터 알려진 thinking off 단문 산술 390 오답은 그대로입니다.
+현재 `r07-mtp-off`를 측정 중이며 이후 on/off + host 16K prefill 후보를 측정합니다.
+
 ## 중단 후 이어가기
 
 - 로컬 작업 폴더: `runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144/`.
