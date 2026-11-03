@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -30,6 +31,17 @@ def summarize_trials(output_directory: Path, summary_path: Path = DEFAULT_SUMMAR
             "usage", "timings", "done_received", "error",
         )} for case in result["results"]]
         trial["facts"] = result.get("facts", {})
+        actual_arguments = trial["facts"].get("actual_native_arguments", [])
+        log_paths = sorted(result_path.parent.glob("worker-attempt-*/engine-*.log"))
+        engine_log = log_paths[-1].read_text(encoding="utf-8", errors="replace") if log_paths else ""
+        trial["actual_key_arguments"] = {}
+        for flag in ("--kv-resident", "--max-context", "--vram-reserve-mib", "--prefill", "--spec", "--pool-workers", "--host-core", "--mtp"):
+            if flag in actual_arguments:
+                value = actual_arguments[actual_arguments.index(flag) + 1]
+            else:
+                matched = re.search(re.escape(flag) + r"\s+(\S+)", engine_log)
+                value = matched.group(1) if matched else None
+            trial["actual_key_arguments"][flag] = value
         trials.append(trial)
     summary = {
         "updated_at": timestamp(), "context_tokens": 262144, "reserve_mib": 8192,

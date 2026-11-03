@@ -115,6 +115,27 @@ spec 3 = 86.33 / 1240.5, KV 48K = 80.72 / 1229.5 tok/s입니다.
 산술 4, 논리 3, JSON 3, 문자열 복사 1, 한국어 추출 1을 thinking medium / budget 512 / max 1024로 비교합니다.
 부분 문자열 일치 대신 전체 문자열 또는 JSON 값을 비교합니다. `--quality-suite`를 붙인 새 round에서 실행합니다.
 
+19:05 checkpoint: KV 64K를 요청한 후보는 decode 88.94 / PP 1245.8 tok/s였지만,
+**실제 native 명령은 KV 20480**이었습니다. 64K의 성능 개선으로 해석하면 안 됩니다.
+`vram_fit`의 자동 축소로 expert cache가 baseline 343에서 429 slots로 늘었습니다.
+KV 48K 후보는 실제로 49152를 유지했고 cache 225 slots였습니다.
+이 현상을 바탕으로 실제 20K 후보를 별도로 시험합니다. 공식 tuner는 기존 값보다 낮은 KV를 권장하지 않으므로
+이 후보를 채택하려면 특히 128K·260K 입력과 긴 대화 생성에서 손해가 없는지 확인해야 합니다.
+
+### 사용자 추가 요청: MTP on/off
+
+19:07 요청을 반영하여 다음 batch의 첫 비교를 MTP off/on으로 변경합니다.
+LM Studio에서 MTP off가 더 적은 메모리로 빨랐다는 사용자의 경험을 현재 Strata에서 직접 확인합니다.
+공식 `draft_layer.py`도 draft layer 약 1GiB와 expert cache 사이의 trade-off를 설명합니다.
+실험은 `drafting: off`, `mtp: false`와 공식 `draft_layer.apply`를 사용하고,
+실제 native 명령에 `--mtp`가 남으면 실패로 처리합니다.
+MTP만 끄며 기존 text prompt lookup은 유지합니다. Context 262144 / reserve 8192는 그대로입니다.
+원본 profile은 MTP on으로 보존되어 있습니다.
+
+후속 후보: `mtp-off mtp-on kv-resident-20k adapt-decay-09 pin-by-need prefill-routed-stream pcie-balance baseline-tail`.
+최종 후보의 `--long-suite`는 동일한 기존 128K·260K fixture를 재사용하고,
+260K 문서에서 새 record의 값을 찾은 뒤 512-token 출력을 생성해 긴 KV 상태의 decode도 측정합니다.
+
 ## 중단 후 이어가기
 
 - 로컬 작업 폴더: `runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144/`.

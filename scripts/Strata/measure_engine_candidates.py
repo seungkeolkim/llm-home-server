@@ -6,6 +6,7 @@ import argparse
 import copy
 import json
 from pathlib import Path
+import re
 import sys
 import time
 import uuid
@@ -22,6 +23,7 @@ from measure_api_baseline import BaselineMeasurement
 from optimize_api_profile import (DEFAULT_OUTPUT_DIRECTORY, TASKS, atomic_json, check_fixed_configuration,
                                   geometric_mean, record_progress, timestamp)
 from strata_control.tune_session import WorkerSession
+from strata_control import draft_layer
 from summarize_optimization_results import summarize_trials
 from measure_optimization_quality import measure_quality
 
@@ -29,6 +31,8 @@ from measure_optimization_quality import measure_quality
 CANDIDATES = {
     "baseline": {"args": {}, "env": {}},
     "baseline-tail": {"args": {}, "env": {}},
+    "mtp-on": {"args": {}, "env": {}},
+    "mtp-off": {"args": {}, "env": {}, "configuration": {"drafting": "off", "mtp": False}},
     "prefill-4096": {"args": {"--prefill": "4096"}, "env": {}},
     "prefill-8192": {"args": {"--prefill": "8192"}, "env": {}},
     "prefill-16384": {"args": {"--prefill": "16384"}, "env": {}},
@@ -38,6 +42,7 @@ CANDIDATES = {
     "host-core-last": {"args": {"--host-core": "last"}, "env": {}},
     "spec-3": {"args": {"--spec": "3"}, "env": {}},
     "kv-resident-16k": {"args": {"--kv-resident": "16384"}, "env": {}},
+    "kv-resident-20k": {"args": {"--kv-resident": "20480"}, "env": {}},
     "kv-resident-48k": {"args": {"--kv-resident": "49152"}, "env": {}},
     "kv-resident-64k": {"args": {"--kv-resident": "65536"}, "env": {}},
     "adapt-async": {"args": {"--adapt-async": "1"}, "env": {}},
@@ -153,7 +158,27 @@ def trial_summary(trial_directory: Path, name: str, settings: dict, results: lis
     return summary
 
 
-def measure_trial(output_directory: Path, identifier: str, settings: dict, request_settings: dict, quality_suite: bool = False) -> dict:
+def measure_long_context(measurement: BaselineMeasurement, fixture_directory: Path, output_directory: Path) -> None:
+    """동일한 128K·260K 문서 검색과 큰 KV를 재사용하는 512-token 생성을 비교합니다."""
+    for target in (131072, 260000):
+        name = "retrieval-" + str(target)
+        payload = json.loads((fixture_directory / (name + ".request.json")).read_text(encoding="utf-8"))
+        fixture = json.loads((fixture_directory / (name + ".fixture.json")).read_text(encoding="utf-8"))
+        record_progress(output_directory, "long_request_started", current_request=name)
+        result = measurement.measure(name, payload, fixture["values"])
+        record_progress(output_directory, "long_request_finished", current_request=name, last_passed=result["passed"])
+    content = payload["messages"][0]["content"]
+    records = re.findall(r"record (\d+): zone=([0-9a-f]+);", content)
+    record_number, expected_zone = records[len(records) // 3]
+    messages = [*payload["messages"], {"role": "assistant", "content": result["content"]},
+                {"role": "user", "content": f"원래 문서의 record {record_number}의 zone 값을 첫 줄에 정확하게 쓰세요. 이어서 로컬 LLM 서버 운영 체크리스트 30개를 한국어로 쓰세요. 각 항목은 두 문장으로 쓰고 끝까지 계속하세요."}]
+    record_progress(output_directory, "long_request_started", current_request="long-generation-260k")
+    result = measurement.measure("long-generation-260k", measurement.request_payload(messages, 512), [expected_zone])
+    record_progress(output_directory, "long_request_finished", current_request="long-generation-260k", last_passed=result["passed"])
+
+
+def measure_trial(output_directory: Path, identifier: str, settings: dict, request_settings: dict, quality_suite: bool = False,
+                  long_suite: bool = False) -> dict:
     """공식 WorkerSession으로 복사된 설정을 기동하고 실제 HTTP API를 측정합니다."""
     trial_directory = output_directory / "restart-screen" / identifier
     if (trial_directory / "summary.json").exists():
@@ -163,8 +188,11 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
     attempt_name = f"attempt-{attempt_number:03d}"
     base = json.loads((output_directory / "original-configuration/strata.local.json").read_text(encoding="utf-8-sig"))
     base["args"] = changed_arguments(base["args"], settings["args"])
+    base.update(copy.deepcopy(settings.get("configuration", {})))
+    draft_layer.apply(base)
     check_fixed_configuration(base)
-    atomic_json(trial_directory / "candidate.json", {"args": base["args"], "env": settings["env"], "request_settings": request_settings})
+    atomic_json(trial_directory / "candidate.json", {"args": base["args"], "env": settings["env"], "request_settings": request_settings,
+                                                    "configuration_overrides": settings.get("configuration", {})})
     wait_for_memory()
     extra_environment = {"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1", "PYTHONUTF8": "1",
                          "STRATA_NO_ACQUIRE": "1", "STRATA_REQUIRE_SIGNED_COMPONENTS": "1",
@@ -195,6 +223,8 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
         if len(native_processes) != 1:
             raise RuntimeError("Expected exactly one native comparison Engine")
         check_fixed_configuration({"args": native_processes[0]})
+        if settings.get("configuration", {}).get("mtp") is False and "--mtp" in native_processes[0]:
+            raise RuntimeError("MTP off candidate still loaded the draft layer")
         engine.facts["actual_native_arguments"] = native_processes[0]
         for warmup_number in range(2):
             payload = measurement.request_payload([{"role": "user", "content": f"Warmup {warmup_number}: explain how a computer works in detail."}], 64)
@@ -225,6 +255,8 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
             payload["strata_tune"] = request_settings
         measurement.measure("quality-arithmetic-medium", payload, ["410"])
         quality_checks = measure_quality(measurement) if quality_suite else []
+        if long_suite:
+            measure_long_context(measurement, fixture_directory, output_directory)
         measurement.finish()
         engine_log = next((trial_directory / ("worker-" + attempt_name)).glob("engine-*.log"))
         engine.facts["prompt_configuration_log"] = [line for line in engine_log.read_text(encoding="utf-8", errors="replace").splitlines()
@@ -245,6 +277,7 @@ def main() -> None:
     parser.add_argument("--round", type=int, default=1)
     parser.add_argument("--request-settings", type=json.loads, default={})
     parser.add_argument("--quality-suite", action="store_true")
+    parser.add_argument("--long-suite", action="store_true")
     arguments = parser.parse_args()
     manager = ManagementClient(arguments.output_directory)
     manager.control("stop")
@@ -253,7 +286,8 @@ def main() -> None:
         for name in arguments.trials:
             identifier = f"r{arguments.round:02d}-" + name
             try:
-                summary = measure_trial(arguments.output_directory, identifier, CANDIDATES[name], arguments.request_settings, arguments.quality_suite)
+                summary = measure_trial(arguments.output_directory, identifier, CANDIDATES[name], arguments.request_settings,
+                                        arguments.quality_suite, arguments.long_suite)
             except Exception as error:
                 record_progress(arguments.output_directory, "trial_failed", current_trial=identifier,
                                 status="failed", error=str(error), next_action="Inspect worker logs before retrying; production profile is restored in finally.")
