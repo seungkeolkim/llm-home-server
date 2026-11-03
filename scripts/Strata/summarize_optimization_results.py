@@ -34,12 +34,23 @@ def paired_comparisons(trials: list[dict]) -> list[dict]:
         for arm, trial in arms.items():
             if arm in ("baseline", "baseline-tail", "mtp-on"):
                 continue
+            first_cases = {case["case"]: case for case in first["cases"]}
+            last_cases = {case["case"]: case for case in last["cases"]}
+            task_ratios = {}
+            for case in trial["cases"]:
+                case_name = case["case"]
+                if not case_name.startswith(("decode-", "style-")) or case_name not in first_cases or case_name not in last_cases:
+                    continue
+                reference = geometric_mean([first_cases[case_name]["timings"]["predicted_per_second"],
+                                            last_cases[case_name]["timings"]["predicted_per_second"]])
+                task_ratios[case_name] = case["timings"]["predicted_per_second"] / reference
             comparisons.append({
                 "round": round_name, "arm": arm, "control_trials": [first["trial"], last["trial"]],
                 "baseline_decode_absolute_drift": abs(last["decode_geometric_mean"] / first["decode_geometric_mean"] - 1),
                 "baseline_prefill_absolute_drift": abs(last["prefill_tokens_per_second"] / first["prefill_tokens_per_second"] - 1),
                 "decode_ratio": trial["decode_geometric_mean"] / decode_reference,
                 "prefill_ratio": trial["prefill_tokens_per_second"] / prefill_reference,
+                "task_ratios": task_ratios,
             })
     return comparisons
 

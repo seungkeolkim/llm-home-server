@@ -210,6 +210,20 @@ cached prefix 260033 tokens, TTFT 0.675초였습니다. 최소 여유 RAM은 약
 새 medium 검사 12/12를 통과했고, 이전부터 알려진 thinking off 단문 산술 390 오답은 그대로입니다.
 현재 `r07-mtp-off`를 측정 중이며 이후 on/off + host 16K prefill 후보를 측정합니다.
 
+19:50 checkpoint:
+
+- 기본 MTP off도 medium 정답 12/12, 128K·260K 검색과 새 record/512-token 생성까지 통과했습니다.
+- off의 128K prompt 55.561초, 260K prompt 119.596초로 원본 대비 약 절반입니다.
+- off의 긴 문서 이후 decode는 71.1 tok/s로 원본 84.5 대비 약 15.9% 감소했습니다.
+- off의 한국어 서술/대화는 82.6 / 80.0 tok/s로 원본 85.7 / 83.8보다 약 4% 낮았습니다.
+- 전체 GPU peak는 원본 9996MiB, off 9360MiB였습니다.
+- MTP on + host 16K 후보도 medium 정답 12/12와 128K 검색 3/3을 통과했습니다.
+- 해당 on 후보의 128K prompt는 50.422초 / 2599.1 tok/s였습니다. 260K 측정은 진행 중입니다.
+
+후속 paired confirmation에는 `--style-suite`를 붙여 12문제 전체를 반복하지 않고
+한국어 서술·대화의 512-token throughput도 3 rounds에서 함께 비교합니다.
+정답 12문제와 긴 입력은 현재 네 가지 설정 각각에서 한 번 이상 검증합니다.
+
 ## 중단 후 이어가기
 
 - 로컬 작업 폴더: `runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144/`.

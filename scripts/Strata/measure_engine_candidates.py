@@ -26,7 +26,7 @@ from optimize_api_profile import (DEFAULT_OUTPUT_DIRECTORY, TASKS, atomic_json, 
 from strata_control.tune_session import WorkerSession
 from strata_control import draft_layer
 from summarize_optimization_results import summarize_trials
-from measure_optimization_quality import measure_quality
+from measure_optimization_quality import measure_quality, measure_style
 
 
 CANDIDATES = {
@@ -193,7 +193,7 @@ def measure_long_context(measurement: BaselineMeasurement, fixture_directory: Pa
 
 
 def measure_trial(output_directory: Path, identifier: str, settings: dict, request_settings: dict, quality_suite: bool = False,
-                  long_suite: bool = False) -> dict:
+                  long_suite: bool = False, style_suite: bool = False) -> dict:
     """공식 WorkerSession으로 복사된 설정을 기동하고 실제 HTTP API를 측정합니다."""
     trial_directory = output_directory / "restart-screen" / identifier
     if (trial_directory / "summary.json").exists():
@@ -270,6 +270,8 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
             payload["strata_tune"] = request_settings
         measurement.measure("quality-arithmetic-medium", payload, ["410"])
         quality_checks = measure_quality(measurement) if quality_suite else []
+        if quality_suite or style_suite:
+            measure_style(measurement)
         if long_suite:
             measure_long_context(measurement, fixture_directory, output_directory)
         measurement.finish()
@@ -294,6 +296,7 @@ def main() -> None:
     parser.add_argument("--request-settings", type=json.loads, default={})
     parser.add_argument("--quality-suite", action="store_true")
     parser.add_argument("--long-suite", action="store_true")
+    parser.add_argument("--style-suite", action="store_true")
     arguments = parser.parse_args()
     if arguments.repeat_rounds < 1:
         parser.error("--repeat-rounds must be positive")
@@ -308,7 +311,8 @@ def main() -> None:
     atomic_json(snapshot_directory / "manifest.json", {"created_at": timestamp(), "source_sha256": source_hashes,
                                                      "trials": arguments.trials, "round": arguments.round,
                                                      "repeat_rounds": arguments.repeat_rounds,
-                                                     "quality_suite": arguments.quality_suite, "long_suite": arguments.long_suite})
+                                                     "quality_suite": arguments.quality_suite, "long_suite": arguments.long_suite,
+                                                     "style_suite": arguments.style_suite})
     record_progress(arguments.output_directory, "batch_sources_saved", protocol_snapshot=str(snapshot_directory))
     manager = ManagementClient(arguments.output_directory)
     manager.control("stop")
@@ -322,7 +326,8 @@ def main() -> None:
                 identifier = f"r{arguments.round + repetition:02d}-" + name
                 try:
                     summary = measure_trial(arguments.output_directory, identifier, CANDIDATES[name], arguments.request_settings,
-                                            arguments.quality_suite, arguments.long_suite)
+                                            quality_suite=arguments.quality_suite, long_suite=arguments.long_suite,
+                                            style_suite=arguments.style_suite)
                 except Exception as error:
                     record_progress(arguments.output_directory, "trial_failed", current_trial=identifier,
                                     status="failed", error=str(error), next_action="Inspect worker logs before retrying; production profile is restored in finally.")
