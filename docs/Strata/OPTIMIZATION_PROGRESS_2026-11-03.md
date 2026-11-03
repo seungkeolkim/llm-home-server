@@ -172,6 +172,32 @@ GPU peak는 10501MiB로 baseline보다 약 520MiB 증가했습니다. 검색과 
 다음 단계의 paired confirmation은 `--round 10 --repeat-rounds 3 --trials baseline <candidate> baseline-tail` 형식입니다.
 중간 round의 순서를 뒤집으며, 후보마다 새 Engine을 사용합니다. 아직 최종 candidate를 정하지 않았습니다.
 
+19:33 checkpoint: MTP on + layer-major의 세부 비교는 다음과 같습니다.
+
+| residual 위치 / super-chunk | decode (tok/s) | cold 32K PP (tok/s) | 전체 GPU peak (MiB) |
+| --- | ---: | ---: | ---: |
+| VRAM / 8K | 84.63 | 2495.5 | 10510 |
+| pinned RAM / 4K | 84.51 | 1766.1 | 10134 |
+| pinned RAM / 8K | 83.44 | 2313.9 | 10230 |
+| pinned RAM / 16K | 85.23 | 2748.1 | 10428 |
+
+reserve 인자는 모두 8192이고 실제 GPU 여유 8GiB를 보장하는 hard cap이 아닙니다.
+16K host 후보는 원본 대비 GPU peak 약 447MiB 증가, PP 약 2.2배의 trade-off입니다.
+VRAM 8K 후보보다 PP가 빠르고 GPU peak가 작아 후속 검증 대상으로 고릅니다.
+아직 운영 설정에는 적용하지 않았습니다. KV 20K는 공식 tuner의 축소 경고를 감안하여 screening 결과로만 보존합니다.
+
+사용자에게 MTP on의 균형과 off의 VRAM 절약 중 우선순위를 optional 질문으로 확인 중입니다.
+응답을 기다리는 동안 네 가지 설정의 검증을 계속합니다. 별도 지시가 없다면 MTP on + 빠른 prefill의 균형을 우선합니다.
+
+다음 긴 검증 명령:
+
+```powershell
+.\.venv\Strata\Scripts\strata-runtime-python.exe -X utf8 -I -B scripts/Strata/measure_engine_candidates.py --round 7 --trials baseline mtp-off prefill-layer-major-host-16k mtp-off-layer-major-host-16k --quality-suite --long-suite
+```
+
+기본 on/off와 동일한 prefill 설정을 적용한 on/off를 모두 비교합니다.
+원본 모델·quantization·Sampling 설정과 고정 Context/reserve는 바꾸지 않습니다.
+
 ## 중단 후 이어가기
 
 - 로컬 작업 폴더: `runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144/`.

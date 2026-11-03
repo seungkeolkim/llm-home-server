@@ -61,6 +61,13 @@ CANDIDATES = {
                                           "env": {"STRATA_PF_FUSED": "0", "STRATA_PREFILL_LAYER_MAJOR": "1"}},
     "prefill-layer-major": {"args": {}, "env": {"STRATA_PREFILL_LAYER_MAJOR": "1"}},
     "prefill-layer-major-host": {"args": {}, "env": {"STRATA_PREFILL_LAYER_MAJOR": "1", "STRATA_PREFILL_LM_R": "host"}},
+    "prefill-layer-major-host-4k": {"args": {}, "env": {"STRATA_PREFILL_LAYER_MAJOR": "1", "STRATA_PREFILL_LM_R": "host",
+                                                       "STRATA_PREFILL_LM_TOKENS": "4096"}},
+    "prefill-layer-major-host-16k": {"args": {}, "env": {"STRATA_PREFILL_LAYER_MAJOR": "1", "STRATA_PREFILL_LM_R": "host",
+                                                        "STRATA_PREFILL_LM_TOKENS": "16384"}},
+    "mtp-off-layer-major-host-16k": {"args": {}, "configuration": {"drafting": "off", "mtp": False},
+                                    "env": {"STRATA_PREFILL_LAYER_MAJOR": "1", "STRATA_PREFILL_LM_R": "host",
+                                            "STRATA_PREFILL_LM_TOKENS": "16384"}},
 }
 
 DEFAULT_CANDIDATES = ["baseline", "workers-6", "host-core-last", "spec-3", "kv-resident-48k", "kv-resident-64k",
