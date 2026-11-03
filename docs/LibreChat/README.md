@@ -7,7 +7,7 @@ Meilisearch, RAG API, PostgreSQL, Redis 및 별도 Admin Panel은 설치하지 �
 ## 준비 및 실행
 
 Docker Desktop의 Linux container engine과 `8488`에서 실행 중인 LLM profile이 필요합니다.
-관리 화면에서 실행한 model을 LibreChat에서도 선택합니다. Strata QFN, PolyStrata Qwen3.6 Unsloth·Hauhau의 목록은 정적으로 고정하고 context는 모두 153,600 tokens입니다.
+관리 화면에서 실행한 model을 LibreChat에서도 선택합니다. Strata QFN, PolyStrata Qwen3.6 Unsloth·Hauhau의 목록은 정적으로 고정합니다. Context는 Strata QFN 262,144 tokens, PolyStrata Qwen3.6 두 profile 153,600 tokens입니다.
 Title은 `current_model`, summarization은 현재 대화 model을 사용합니다. [PolyStrata 연결·실측 문서](../PolyStrata/README.md)를 참고하세요.
 명령은 이 repository root에서 실행합니다.
 먼저 아래 template을 파일명 끝의 `.template`만 제거한 이름으로 복사합니다.
@@ -93,7 +93,7 @@ Keenable 공개 endpoint는 공인 IP별 1,000 requests/hour, 최대 10 requests
 `summarization.enabled: true`이며 LibreChat이 계산한 context budget의 80%에서 오래된 메시지를 요약합니다.
 요약도 현재 대화에서 선택한 LLM을 사용하며 최대 4,096 output tokens, 최근 2 turns 및 4,000 tokens 보존을 설정했습니다.
 요약은 손실 압축이지만 원본 대화 기록은 MongoDB에 유지됩니다.
-현재 세 profile의 Engine context와 LibreChat `maxContextTokens`는 모두 153,600 tokens입니다. 초기 구성의 163,840은 이전 값입니다.
+현재 Engine context와 LibreChat `maxContextTokens`는 Strata QFN 262,144 tokens, PolyStrata Qwen3.6 두 profile 153,600 tokens입니다. Strata QFN의 153,600과 초기 구성의 163,840은 이전 값입니다.
 LibreChat은 여기에서 여유 공간을 빼므로 UI의 실제 context budget은 더 작습니다.
 
 ## 모델 선택과 실행 profile

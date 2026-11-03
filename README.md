@@ -10,7 +10,7 @@ LibreChat + MongoDB는 Docker, Strata·PolyStrata는 Windows native로 실행합
 상세한 운영 의도와 구조 개선 제안은 [운영 의도와 관리 서버 구성 계획](docs/ManagementServer/OPERATING_PLAN.md)에 정리합니다.
 
 공식 clone을 수정하지 않고 Windows / PowerShell에서 기동합니다.
-현재 지원 profile은 다음과 같으며 context는 모두 **153,600 tokens (150 Ki tokens)**입니다.
+현재 Strata QFN의 context는 **262,144 tokens (256 Ki tokens)**이며, PolyStrata Qwen3.6 두 profile은 **153,600 tokens (150 Ki tokens)**입니다.
 
 | Engine | Model | 관리 profile |
 |---|---|---|
@@ -204,9 +204,11 @@ Python을 사용한다면 `.venv/<시스템 이름>/`으로 분리합니다.
 template 변경은 이미 생성한 로컬 설정에 자동 적용되지 않습니다.
 repo를 옮기면 절대경로가 포함된 `.venv/Strata`, 로컬 설정, saved profile은 새 경로에서 다시 준비해야 합니다.
 
-Strata QFN의 현재 기본값은 최대 context 153600, GPU resident KV 32768, KV int8,
+Strata QFN의 현재 기본값은 최대 context 262144, GPU resident KV 32768, KV int8,
 VRAM reserve 8192 MiB (8 GiB), parallel 1, MTP spec 4입니다.
 초기 shared reasoning effort는 기존 파일의 `medium`을 보존했습니다. 별도 출력 token limit은 추가하지 않았습니다.
+버전 변경과 후속 최적화의 측정 기준은 [262K API baseline](docs/Strata/API_BASELINE_2026-11-03.md),
+이전 환경 복원은 [업데이트 전 복구 기준](docs/Strata/ROLLBACK_BASELINE_2026-11-03.md)을 따릅니다.
 VRAM reserve는 다른 프로그램의 사용 가능 VRAM을 항상 보장하지 않습니다.
 PolyStrata Qwen3.6은 KV Q8_0 whole, CPU Vision과 같은 reserve를 사용합니다.
 대용량 assets는 공통 `C:\Strata-data` 아래에 있으며, profile별 상세 경로는 [PolyStrata 모델 저장 위치](docs/PolyStrata/README.md#모델-저장-위치)에 있습니다.

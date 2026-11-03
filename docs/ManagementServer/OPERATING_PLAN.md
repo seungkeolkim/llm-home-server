@@ -103,9 +103,11 @@ RAM·VRAM의 주요 수치는 `사용량 / 전체 용량 GiB`이며 사용률과
 
 2026-11-03에 후속 Strata 버전 변경 테스트·IQ3_XXS 최적화에 앞서 기존 source commit과 Engine 0.1.45.3, 실행 설정·Python 환경을 로컬 snapshot으로 보존했습니다. 복구 tag·백업 위치·복원 순서는 [업데이트 전 복구 기준](../Strata/ROLLBACK_BASELINE_2026-11-03.md)에 기록합니다. 이번 단계는 백업과 작업 branch 준비이며 source pull, Engine 업데이트 또는 서비스 기동·추론 테스트는 포함하지 않습니다.
 
+이후 같은 날 사용자가 업데이트와 API 테스트를 요청하여 공식 release v0.2.10 / Engine 0.1.56으로 갱신하고 Strata QFN의 Context를 262,144로 확대했습니다. 기존 IQ3_XXS·MTP·KV INT8·resident 32K·reserve 8 GiB를 유지했으며 관리 경로 재기동과 LibreChat 설정 반영을 확인했습니다. 짧은 입력·약 8K/32K/128K/260K 검색·대화 복원 및 공개 이슈 재현 검사의 결과와 제한은 [262K API baseline](../Strata/API_BASELINE_2026-11-03.md)에 기록합니다. 이는 후속 최적화의 기준 측정이며 설정 조합 탐색이나 구버전 대비 향상률 측정은 아닙니다.
+
 ### LibreChat의 고정 model 목록과 context
 
-- 지원할 model과 model별 context를 정적으로 등록합니다. 현재 세 profile의 정확한 context는 모두 153,600 tokens이며 LibreChat과 Engine 양쪽에 반영했습니다. 앞서 작성한 32K 검토 초안은 현재 실행 설정이 아닙니다.
+- 지원할 model과 model별 context를 정적으로 등록합니다. 현재 Strata QFN은 262,144 tokens, PolyStrata Qwen3.6 두 profile은 153,600 tokens이며 LibreChat과 Engine 양쪽 설정에 반영합니다. 앞서 작성한 32K 검토 초안은 현재 실행 설정이 아닙니다.
 - model 목록과 context를 현재 실행 중인 Engine의 응답으로 자동 변경하지 않습니다. 지원 조합이 추가되거나 model별 context 정책이 바뀔 때 고정 설정을 명시적으로 갱신합니다.
 - LibreChat의 model 목록뿐 아니라 token/context 설정, 제목 생성과 요약에 쓰는 model 참조도 등록한 고정 model 목록 안에서 정의합니다. model별 context를 다르게 잡아야 할 경우에도 고정 설정에서 관리합니다.
 - LibreChat에 model이 등록돼 있다는 사실과 해당 model이 현재 실행 중이라는 사실을 구분합니다. 미실행 조합으로 요청이 들어왔다는 이유로 관리 화면의 명시적 조작 없이 다른 Engine·model을 자동 기동하거나 교체하지 않습니다.

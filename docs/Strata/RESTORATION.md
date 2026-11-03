@@ -6,7 +6,8 @@
 [업데이트 전 복구 기준](ROLLBACK_BASELINE_2026-11-03.md)을 따릅니다.
 
 > 이 문서는 초기 복원과 후속 변경의 날짜별 기록입니다. 초기의 context 163,840·reserve 7,168·Vision off는 현재 값이 아닙니다.
-> 현재 QFN은 context 153,600, reserve 8,192 MiB, KV INT8 / GPU resident 32,768, CPU Vision과 loop 중단을 사용합니다.
+> 현재 QFN은 context 262,144, reserve 8,192 MiB, KV INT8 / GPU resident 32,768, CPU Vision과 loop 중단을 사용합니다.
+> 2026-11-03의 업데이트 버전과 API 측정은 [262K API baseline](API_BASELINE_2026-11-03.md)에 기록합니다.
 > 현재 지원 profile 전체와 운영 절차는 [프로젝트 README](../../README.md), 마지막 model ID 정책 검증은 아래 [후속 기록](#후속-변경-model-id-검증과-thinking-loop-중단)을 따릅니다.
 
 ## 동작을 확인한 조합
