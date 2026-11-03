@@ -101,6 +101,8 @@ RAM·VRAM의 주요 수치는 `사용량 / 전체 용량 GiB`이며 사용률과
 
 2026-11-03에 사용자가 기본 Sampling 설정에서도 답변 반복을 확인하고 QFN Q2_0의 사용 중단을 결정했습니다. 추가했던 Q2 전용 모델·Pack·준비 worker·native profile·관리 catalog·LibreChat 등록과 실행 지원을 제거했습니다. 기존 IQ3_XXS와 PolyStrata 두 profile, 공유 MTP·CPU Vision·Engine은 유지합니다. 이 결정은 사용자 환경의 사용 결과에 따른 것이며 반복의 기술적 원인을 확정한 것은 아닙니다.
 
+2026-11-03에 후속 Strata 버전 변경 테스트·IQ3_XXS 최적화에 앞서 기존 source commit과 Engine 0.1.45.3, 실행 설정·Python 환경을 로컬 snapshot으로 보존했습니다. 복구 tag·백업 위치·복원 순서는 [업데이트 전 복구 기준](../Strata/ROLLBACK_BASELINE_2026-11-03.md)에 기록합니다. 이번 단계는 백업과 작업 branch 준비이며 source pull, Engine 업데이트 또는 서비스 기동·추론 테스트는 포함하지 않습니다.
+
 ### LibreChat의 고정 model 목록과 context
 
 - 지원할 model과 model별 context를 정적으로 등록합니다. 현재 세 profile의 정확한 context는 모두 153,600 tokens이며 LibreChat과 Engine 양쪽에 반영했습니다. 앞서 작성한 32K 검토 초안은 현재 실행 설정이 아닙니다.
