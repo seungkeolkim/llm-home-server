@@ -3,6 +3,7 @@
 완료: 3회 A/B/A를 통과하여 20:12에 운영 설정을 반영했고, 20:19에 실제 운영 API 회귀 검증과 최종 상태 확인을 완료했습니다.
 진행 이력은 [checkpoint 문서](OPTIMIZATION_PROGRESS_2026-11-03.md), 전체 수치는
 [Engine 측정 JSON](benchmarks/2026-11-03-optimization-engine-screen.json)에 보존합니다.
+사용자가 웹 관리 화면으로 재기동한 뒤의 성능 재현은 [재기동 재검증](WEB_RESTART_REVALIDATION_2026-11-03.md)에 기록합니다.
 
 ## 유지한 조건과 변경 후보
 

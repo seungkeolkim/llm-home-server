@@ -1,0 +1,2737 @@
+{
+  "recorded_at": "2026-11-03T21:49:35.977643+09:00",
+  "purpose": "Reproduce optimization after user web-server restart without configuration or lifecycle changes",
+  "environment": {
+    "started_at": "2026-11-03T21:44:11.096313+09:00",
+    "configuration": {
+      "exe": "component:strata-engine",
+      "backend": "cuda",
+      "arch": "qwen4exp",
+      "args": [
+        "--pack",
+        "C:/Strata-data/packs/sc117_iq3_xxs",
+        "--native",
+        "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00001-of-00002.gguf",
+        "--ple-gguf",
+        "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00002-of-00002.gguf",
+        "--expert-profile",
+        "C:/Users/azzib/Desktop/workspace_local/llm-home-server/external_repo/Strata/data/expert-profile.bin",
+        "--expert-cache",
+        "auto",
+        "--prefill",
+        "auto",
+        "--spec",
+        "4",
+        "--spec-min-p",
+        "0.5",
+        "--mtp",
+        "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/strata/rt",
+        "--max-context",
+        "262144",
+        "--kv",
+        "int8",
+        "--kv-resident",
+        "32768",
+        "--vram-reserve-mib",
+        "8192",
+        "--vision"
+      ],
+      "cwd": "C:/Users/azzib/Desktop/workspace_local/llm-home-server/runtime/Strata/working",
+      "tokenizer": "C:/Strata-data/packs/sc117_iq3_xxs/tokenizer",
+      "model_name": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+      "log": "C:/Users/azzib/Desktop/workspace_local/llm-home-server/runtime/Strata/logs/strata-engine.log",
+      "lib_dirs": [
+        "C:/Users/azzib/Desktop/workspace_local/llm-home-server/.venv/Strata/Lib/site-packages/nvidia/cu13/bin/x86_64"
+      ],
+      "host": "0.0.0.0",
+      "port": 8488,
+      "parallel": 1,
+      "vision": {
+        "exe": "C:/Strata-data/components/engine/0.1.56-windows-x86_64-cuda-cuda13/strata-vision.exe",
+        "mmproj": "C:/Strata-data/models/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF/mmproj-Qwen3.8-Flash-Next-BF16.gguf",
+        "model": "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00001-of-00002.gguf",
+        "gpu": false,
+        "threads": 8,
+        "max_tokens": 300
+      },
+      "reasoning_loop_recovery": "stop",
+      "repeat_stop_tokens": 256,
+      "drafting": "mtp",
+      "env": {
+        "STRATA_PREFILL_LAYER_MAJOR": "1",
+        "STRATA_PREFILL_LM_R": "host",
+        "STRATA_PREFILL_LM_TOKENS": "16384"
+      }
+    },
+    "source_commit": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+    "outer_commit": "71ba24324d12df3bc718d1562578479f4d78f2ab",
+    "gpu": "NVIDIA GeForce RTX 5080, 610.88, 16303 MiB",
+    "ram_total_gib": 93.5560188293457,
+    "cpu_logical_count": 16,
+    "cpu_physical_count": 8,
+    "harness_sha256": "1849f89a96172660b8ef3e87ad2c41e00e9c5281e073d6d917206e1b5a59937c",
+    "health": {
+      "status": "ok",
+      "max_context": 262144,
+      "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+      "images": true,
+      "api_key": true,
+      "image_generation": false,
+      "loaded": true,
+      "service": "strata"
+    },
+    "method": "Sequential API requests; deterministic synthetic prompts; 2-second whole-system resource samples; no cache flush or OS page-cache flush."
+  },
+  "runtime_before": {
+    "recorded_at": "2026-11-03T21:44:11.069113+09:00",
+    "native": {
+      "name": "strata.exe",
+      "cmdline": [
+        "C:\\Strata-data\\components\\engine\\0.1.56-windows-x86_64-cuda-cuda13\\strata.exe",
+        "--serve",
+        "--pack",
+        "C:/Strata-data/packs/sc117_iq3_xxs",
+        "--native",
+        "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00001-of-00002.gguf",
+        "--ple-gguf",
+        "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00002-of-00002.gguf",
+        "--expert-profile",
+        "C:/Users/azzib/Desktop/workspace_local/llm-home-server/external_repo/Strata/data/expert-profile.bin",
+        "--expert-cache",
+        "auto",
+        "--prefill",
+        "auto",
+        "--spec",
+        "4",
+        "--spec-min-p",
+        "0.5",
+        "--mtp",
+        "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/strata/rt",
+        "--max-context",
+        "262144",
+        "--kv",
+        "int8",
+        "--kv-resident",
+        "32768",
+        "--vram-reserve-mib",
+        "8192",
+        "--vision"
+      ],
+      "create_time": 1793709720.5402007,
+      "pid": 9212,
+      "environment": {
+        "STRATA_PREFILL_LAYER_MAJOR": "1",
+        "STRATA_PREFILL_LM_R": "host",
+        "STRATA_PREFILL_LM_TOKENS": "16384"
+      }
+    },
+    "build": {
+      "version": "0.1.56",
+      "source": "f-0291-rc1",
+      "commit": "06698c674673",
+      "archs": [
+        75,
+        86,
+        89,
+        120
+      ],
+      "ptx": true,
+      "cuda": "13.0",
+      "vision": "gpu-cuda13",
+      "portable": true,
+      "vision_archs": "75;86;89;120"
+    },
+    "management": {
+      "state": "ready",
+      "in_flight": 0,
+      "instance_id": "1727f3a9465d466d9efd86658ae4682f",
+      "port": 8488,
+      "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs"
+    }
+  },
+  "runtime_after": {
+    "recorded_at": "2026-11-03T21:49:21.596782+09:00",
+    "native": {
+      "pid": 9212,
+      "cmdline": [
+        "C:\\Strata-data\\components\\engine\\0.1.56-windows-x86_64-cuda-cuda13\\strata.exe",
+        "--serve",
+        "--pack",
+        "C:/Strata-data/packs/sc117_iq3_xxs",
+        "--native",
+        "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00001-of-00002.gguf",
+        "--ple-gguf",
+        "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00002-of-00002.gguf",
+        "--expert-profile",
+        "C:/Users/azzib/Desktop/workspace_local/llm-home-server/external_repo/Strata/data/expert-profile.bin",
+        "--expert-cache",
+        "auto",
+        "--prefill",
+        "auto",
+        "--spec",
+        "4",
+        "--spec-min-p",
+        "0.5",
+        "--mtp",
+        "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/strata/rt",
+        "--max-context",
+        "262144",
+        "--kv",
+        "int8",
+        "--kv-resident",
+        "32768",
+        "--vram-reserve-mib",
+        "8192",
+        "--vision"
+      ],
+      "create_time": 1793709720.5402007,
+      "name": "strata.exe",
+      "environment": {
+        "STRATA_PREFILL_LAYER_MAJOR": "1",
+        "STRATA_PREFILL_LM_R": "host",
+        "STRATA_PREFILL_LM_TOKENS": "16384"
+      }
+    },
+    "build": {
+      "version": "0.1.56",
+      "source": "f-0291-rc1",
+      "commit": "06698c674673",
+      "archs": [
+        75,
+        86,
+        89,
+        120
+      ],
+      "ptx": true,
+      "cuda": "13.0",
+      "vision": "gpu-cuda13",
+      "portable": true,
+      "vision_archs": "75;86;89;120"
+    },
+    "management": {
+      "state": "ready",
+      "in_flight": 0,
+      "instance_id": "1727f3a9465d466d9efd86658ae4682f",
+      "port": 8488,
+      "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs"
+    }
+  },
+  "state": {
+    "status": "completed",
+    "passed": true,
+    "completed_requests": 46,
+    "quality_passed": 12,
+    "quality_total": 12,
+    "updated_at": "2026-11-03T21:48:52.166606+09:00"
+  },
+  "comparison": [
+    {
+      "case": "retrieval-8192",
+      "previous_ttft_seconds": 3.7915064000117127,
+      "current_ttft_seconds": 3.8714742999873124,
+      "ttft_change_percent": 2.1091326649310904,
+      "previous_prompt_tokens_per_second": 2272.0,
+      "current_prompt_tokens_per_second": 2212.8,
+      "cached_tokens": 0,
+      "passed": true
+    },
+    {
+      "case": "retrieval-32768",
+      "previous_ttft_seconds": 12.215380899986485,
+      "current_ttft_seconds": 12.198510400019586,
+      "ttft_change_percent": -0.138108668939807,
+      "previous_prompt_tokens_per_second": 2727.7,
+      "current_prompt_tokens_per_second": 2730.2,
+      "cached_tokens": 0,
+      "passed": true
+    },
+    {
+      "case": "retrieval-131072",
+      "previous_ttft_seconds": 50.792675600008806,
+      "current_ttft_seconds": 50.85160100000212,
+      "ttft_change_percent": 0.11601160855818637,
+      "previous_prompt_tokens_per_second": 2593.5,
+      "current_prompt_tokens_per_second": 2589.6,
+      "cached_tokens": 0,
+      "passed": true
+    },
+    {
+      "case": "retrieval-260000",
+      "previous_ttft_seconds": 109.39320160000352,
+      "current_ttft_seconds": 109.50684369998635,
+      "ttft_change_percent": 0.10388406072834311,
+      "previous_prompt_tokens_per_second": 2383.6,
+      "current_prompt_tokens_per_second": 2381.1,
+      "cached_tokens": 0,
+      "passed": true
+    }
+  ],
+  "managed_api": {
+    "finished_at": "2026-11-03T21:48:52.133425+09:00",
+    "results": [
+      {
+        "case": "decode-korean",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "length",
+        "first_token_seconds": 0.8265153999964241,
+        "first_content_seconds": 0.8265164000040386,
+        "elapsed_seconds": 5.089296799997101,
+        "usage": {
+          "prompt_tokens": 55,
+          "completion_tokens": 384,
+          "total_tokens": 439,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 55,
+          "prompt_ms": 617.5,
+          "prompt_per_token_ms": 11.227,
+          "prompt_per_second": 89.1,
+          "predicted_n": 384,
+          "predicted_ms": 4244.4,
+          "predicted_per_token_ms": 11.053,
+          "predicted_per_second": 90.5,
+          "draft_n": 264,
+          "draft_n_accepted": 185
+        },
+        "content": "1. 방화벽 설정을 확인하여 불필요한 포트가 열려 있지 않은지 점검한다.\n2. 서버의 운영체제 버전을 확인하고 최신 보안 패치가 적용되었는지 검증한다.\n3. 디스크 사용량을 모니터링하여 저장 공간이 80%를 초과하지 않도록 관리한다.\n4. CPU 사용률이 정상 범위 내에 있는지 실시간으로 추적하고 이상 징후를 포착한다.\n5. 메모리 사용량이 과도하게 증가하여 스왑 영역을 사용하지 않는지 확인한다.\n6. 네트워크 대역폭 사용량이 정상적인 트래픽 패턴을 따르는지 분석한다.\n7. 시스템 로그 파일을 검토하여 에러나 경고 메시지가 반복적으로 발생하지 않는지 살핀다.\n8. 애플리케이션 로그를 분석하여 서비스 오류나 비정상적인 요청을 조기에 발견한다.\n9. 데이터베이스 연결 상태가 안정적으로 유지되고 있는지 정기적으로 테스트한다.\n10. 데이터베이스 쿼리 성능을 모니터링하여 느린 쿼리가 시스템 부하를 유발하지 않는지 확인한다.\n11. 웹 서버의 응답 시간을 측정하여 사용자 경험에 영향을 미치는 지연을 파악한다.\n12. SSL/TLS 인증서의 유효 기간을 확인하고 만료 시점에 대비하여 갱신 계획을 세운다.\n13. 인증서 체인이 올바르게 구성되었는지 검증하여 브라우저 경고가 발생하지 않도록 한다.\n14. DNS 설정이 정확히 구성되어 있어 도메인 이름이 올바른 IP로 해석되는지 테스트한다.\n15. DHCP 설정이 고정 IP와 충돌하지 않도록 네트워크 구성을 점검한다.\n16. 서버의 시간 동기화 상태를 확인하여 NTP 서버와 정확히 일치하는지 검증한다.\n17. 시스템 재부팅 후 모든 서비스가 자동으로 시작되는",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "38ba6e3d77e7bc5d167fad3a0d600355888d071a2e2da630e7492859c4744b3e",
+        "resources": {
+          "ram_min_available_gib": 19.195964813232422,
+          "ram_peak_used_gib": 74.36005401611328,
+          "strata_peak_working_set_sum_gib": 47.39653778076172,
+          "gpu_peak_used_mib": 9944.0,
+          "gpu_min_free_mib": 6034.0
+        }
+      },
+      {
+        "case": "decode-code",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "length",
+        "first_token_seconds": 0.5998218999884557,
+        "first_content_seconds": 0.5998222999915015,
+        "elapsed_seconds": 4.556529299996328,
+        "usage": {
+          "prompt_tokens": 51,
+          "completion_tokens": 384,
+          "total_tokens": 435,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 51,
+          "prompt_ms": 407.0,
+          "prompt_per_token_ms": 7.98,
+          "prompt_per_second": 125.3,
+          "predicted_n": 384,
+          "predicted_ms": 3973.3,
+          "predicted_per_token_ms": 10.347,
+          "predicted_per_second": 96.6,
+          "draft_n": 331,
+          "draft_n_accepted": 252
+        },
+        "content": "```python\n\"\"\"\nPersistent job queue with SQLite backend.\n\nFeatures:\n- Persistent storage using SQLite\n- Job lifecycle: pending -> running -> completed/failed\n- Lease-based execution with configurable timeout\n- Automatic retry with exponential backoff\n- Transactional guarantees\n- Thread-safe operations\n\"\"\"\n\nimport sqlite3\nimport threading\nimport time\nimport uuid\nimport json\nimport logging\nfrom contextlib import contextmanager\nfrom dataclasses import dataclass, field\nfrom enum import Enum\nfrom typing import Any, Callable, Dict, List, Optional, Tuple\n\nlogger = logging.getLogger(__name__)\n\n\nclass JobStatus(Enum):\n    \"\"\"Enumeration of possible job states.\"\"\"\n    PENDING = \"pending\"\n    RUNNING = \"running\"\n    COMPLETED = \"completed\"\n    FAILED = \"failed\"\n    CANCELLED = \"cancelled\"\n\n\n@dataclass\nclass Job:\n    \"\"\"\n    Represents a job in the queue.\n\n    Attributes:\n        id: Unique identifier for the job.\n        name: Human-readable name of the job.\n        payload: JSON-serializable data passed to the job handler.\n        status: Current status of the job.\n        attempts: Number of times this job has been attempted.\n        max_attempts: Maximum number of attempts before permanent failure.\n        created_at: Timestamp when the job was created.\n        updated_at: Timestamp when the job was last updated.\n        started_at: Timestamp when the job started running (if applicable).\n        completed_at: Timestamp when the job completed (if applicable).\n        lease_expires_at: Timestamp when the current lease expires (if running).\n        error: Error message if the job failed.\n        result: JSON-serializable result if the job succeeded.\n        priority: Integer priority (lower = higher priority).\n       ",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "ea08eb3b644a2478f8bacfdf7dffd9f6cbbb25cefc6ebcea7702dca455f3dd88",
+        "resources": {
+          "ram_min_available_gib": 19.214439392089844,
+          "ram_peak_used_gib": 74.34157943725586,
+          "strata_peak_working_set_sum_gib": 47.397438049316406,
+          "gpu_peak_used_mib": 9944.0,
+          "gpu_min_free_mib": 6034.0
+        }
+      },
+      {
+        "case": "decode-english",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "length",
+        "first_token_seconds": 0.6710397999850102,
+        "first_content_seconds": 0.6710399999865331,
+        "elapsed_seconds": 5.927685999980895,
+        "usage": {
+          "prompt_tokens": 58,
+          "completion_tokens": 384,
+          "total_tokens": 442,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 58,
+          "prompt_ms": 496.2,
+          "prompt_per_token_ms": 8.555,
+          "prompt_per_second": 116.9,
+          "predicted_n": 384,
+          "predicted_ms": 5272.9,
+          "predicted_per_token_ms": 13.732,
+          "predicted_per_second": 72.8,
+          "draft_n": 352,
+          "draft_n_accepted": 191
+        },
+        "content": "1. The user initiates a request by typing a URL into the browser address bar or clicking a link, triggering the browser's internal event listener to capture the input. This action signals the browser to begin the complex process of resolving the domain name and establishing a connection to the remote server.\n\n2. The browser first checks its local cache for any previously resolved IP addresses associated with the requested domain name to avoid unnecessary network lookups. If a valid entry exists in the browser's DNS cache, it retrieves the IP address immediately, significantly speeding up the initial connection phase.\n\n3. If the browser cache is empty or expired, the operating system’s DNS resolver is invoked to check its own system-level cache for the domain’s IP address. This step ensures that if another application on the same machine recently resolved the domain, the current request can reuse that information without hitting the network.\n\n4. The operating system then consults the local hosts file, a static text file that maps hostnames to IP addresses, to see if a manual override exists for the requested domain. This file is checked before any network queries are made, allowing developers or system administrators to force specific IP resolutions for testing or blocking purposes.\n\n5. If no local resolution is found, the operating system sends a DNS query to the configured recursive resolver, typically provided by the Internet Service Provider or a public DNS service like Google or Cloudflare. This query is sent via UDP port 53, asking the resolver to find the authoritative answer for the domain name.\n\n6. The recursive resolver checks its own cache for the requested domain record, and if it finds a valid entry, it returns the IP address directly to the operating system. This caching mechanism reduces the load on root and top-level domain servers by serving frequently requested domains from memory.\n\n7. If the recursive resolver’s cache is empty, it begins the iterative resolution process by querying one of",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "b1fee41248a4cca68c983fc330d61ce11858994ab53fc9029031f5f49aa45f76",
+        "resources": {
+          "ram_min_available_gib": 19.203941345214844,
+          "ram_peak_used_gib": 74.35207748413086,
+          "strata_peak_working_set_sum_gib": 47.47099685668945,
+          "gpu_peak_used_mib": 9944.0,
+          "gpu_min_free_mib": 6034.0
+        }
+      },
+      {
+        "case": "warmup",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.36141280000447296,
+        "first_content_seconds": 0.3614131000067573,
+        "elapsed_seconds": 0.40292190000764094,
+        "usage": {
+          "prompt_tokens": 17,
+          "completion_tokens": 2,
+          "total_tokens": 19,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 17,
+          "prompt_ms": 150.0,
+          "prompt_per_token_ms": 8.824,
+          "prompt_per_second": 113.3,
+          "predicted_n": 2,
+          "predicted_ms": 60.5,
+          "predicted_per_token_ms": 30.25,
+          "predicted_per_second": 33.1,
+          "draft_n": 3,
+          "draft_n_accepted": 3
+        },
+        "content": "READY",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "READY"
+        ],
+        "expected_present": true,
+        "request_sha256": "bb1c9981deb2761075be30b9de6aff7f612d40090bab9dfed26466707f9df18e",
+        "resources": {
+          "ram_min_available_gib": 19.170116424560547,
+          "ram_peak_used_gib": 74.38590240478516,
+          "strata_peak_working_set_sum_gib": 47.39745330810547,
+          "gpu_peak_used_mib": 9944.0,
+          "gpu_min_free_mib": 6034.0
+        }
+      },
+      {
+        "case": "short-arithmetic",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.5219647999911103,
+        "first_content_seconds": 0.5219649999926332,
+        "elapsed_seconds": 0.7720414999930654,
+        "usage": {
+          "prompt_tokens": 40,
+          "completion_tokens": 23,
+          "total_tokens": 63,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 40,
+          "prompt_ms": 327.5,
+          "prompt_per_token_ms": 8.188,
+          "prompt_per_second": 122.1,
+          "predicted_n": 23,
+          "predicted_ms": 265.1,
+          "predicted_per_token_ms": 11.526,
+          "predicted_per_second": 86.8,
+          "draft_n": 19,
+          "draft_n_accepted": 17
+        },
+        "content": "{\n  \"answer\": 410,\n  \"label\": \"BASELINE\"\n}",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "410",
+          "BASELINE"
+        ],
+        "expected_present": true,
+        "request_sha256": "0b9f055d8b7cbb4c7968003ec2dc1829d09a3b924b965e167a19dc1d08972d90",
+        "resources": {
+          "ram_min_available_gib": 19.11336898803711,
+          "ram_peak_used_gib": 74.4426498413086,
+          "strata_peak_working_set_sum_gib": 47.50740051269531,
+          "gpu_peak_used_mib": 9944.0,
+          "gpu_min_free_mib": 6034.0
+        }
+      },
+      {
+        "case": "short-generation-01",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.6344851999892853,
+        "first_content_seconds": 0.6344856999930926,
+        "elapsed_seconds": 5.1092256999982055,
+        "usage": {
+          "prompt_tokens": 63,
+          "completion_tokens": 371,
+          "total_tokens": 434,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 63,
+          "prompt_ms": 443.8,
+          "prompt_per_token_ms": 7.044,
+          "prompt_per_second": 142.0,
+          "predicted_n": 371,
+          "predicted_ms": 4488.5,
+          "predicted_per_token_ms": 12.098,
+          "predicted_per_second": 82.7,
+          "draft_n": 260,
+          "draft_n_accepted": 174
+        },
+        "content": "1. 로컬 LLM 서버의 안정성을 위해 최소 16GB 이상의 RAM을 확보하여 시스템 메모리 부족으로 인한 크래시를 방지하세요.\n2. GPU 가속을 활용하려면 최소 8GB 이상의 VRAM을 장착하여 모델 가중치를 효율적으로 로드하고 추론 속도를 최적화하세요.\n3. 컨텍스트 윈도우(Context) 길이는 하드웨어 사양에 맞춰 설정하여 토큰 초과로 인한 메모리 누수를 예방하세요.\n4. 외부 애플리케이션과 연동하기 위해 OpenAI 호환 API 엔드포인트를 구성하고 필요한 인증 토큰을 발급하세요.\n5. API 요청과 응답의 모든 트래픽을 상세하게 기록하는 로그(Log) 시스템을 구축하여 문제 발생 시 원인 분석을 용이하게 하세요.\n6. 정기적인 시스템 로그 백업(Backup)을 수행하여 서버 장애 시 이전 상태로 빠르게 복구할 수 있는 기반을 마련하세요.\n7. 모델 파일과 설정 파일의 변경 사항을 추적하기 위해 버전 관리 시스템을 도입하여 롤백이 가능한 환경을 조성하세요.\n8. 보안 강화를 위해 방화벽 규칙을 설정하고 불필요한 포트 접근을 차단하여 외부 공격으로부터 서버를 보호하세요.\n9. 성능 모니터링을 위해 CPU 및 GPU 사용률, 메모리 점유율 등을 실시간으로 확인할 수 있는 대시보드를 설치하세요.\n10. 컨테이너 기반 배포를 고려한다면 Docker 이미지를 최신 상태로 유지하여 의존성 충돌을 최소화하세요.\n11. 정기적인 소프트웨어 업데이트를 통해 보안 취약점을 패치하고 새로운 기능 및 성능 개선 사항을 적용하세요.\n12. 모든 운영 지침을 문서화하고 팀원들과 공유하여 일관된 서버 관리 프로세스를 유지하고 지식 손실을 방지하세요.",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "51a24d13f865c39b9f80d7253004b6c6f0cfe839a6b5e39f819459ecc446bf6d",
+        "resources": {
+          "ram_min_available_gib": 18.653656005859375,
+          "ram_peak_used_gib": 74.90236282348633,
+          "strata_peak_working_set_sum_gib": 47.96754455566406,
+          "gpu_peak_used_mib": 9944.0,
+          "gpu_min_free_mib": 6034.0
+        }
+      },
+      {
+        "case": "short-generation-02",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.26124049999634735,
+        "first_content_seconds": 0.2612407999986317,
+        "elapsed_seconds": 4.288250999990851,
+        "usage": {
+          "prompt_tokens": 63,
+          "completion_tokens": 353,
+          "total_tokens": 416,
+          "prompt_tokens_details": {
+            "cached_tokens": 56
+          }
+        },
+        "timings": {
+          "cache_n": 56,
+          "prompt_n": 7,
+          "prompt_ms": 87.1,
+          "prompt_per_token_ms": 12.443,
+          "prompt_per_second": 80.4,
+          "predicted_n": 353,
+          "predicted_ms": 4041.9,
+          "predicted_per_token_ms": 11.45,
+          "predicted_per_second": 87.3,
+          "draft_n": 227,
+          "draft_n_accepted": 161
+        },
+        "content": "1. 로컬 LLM 서버의 안정성을 위해 최소 16GB 이상의 RAM을 확보하여 시스템 메모리 부족으로 인한 오류를 방지하세요.\n2. GPU 가속을 활용하려면 최소 8GB 이상의 VRAM을 장착하여 모델 추론 속도와 처리량을 극대화하세요.\n3. 긴 대화나 문서 분석을 위해 Context Window를 4k 이상으로 설정하여 모델이 더 많은 정보를 기억하도록 구성하세요.\n4. 외부 애플리케이션과 연동하기 위해 OpenAI 호환 API 엔드포인트를 설정하고 보안 토큰을 발급하여 접근을 통제하세요.\n5. 모든 추론 요청과 응답을 상세히 기록하는 로그 시스템을 구축하여 문제 발생 시 원인 분석을 용이하게 하세요.\n6. 모델 가중치와 설정 파일을 정기적으로 외부 저장소에 백업하여 데이터 손실 위험을 최소화하세요.\n7. 서버 재시작 시 모델이 자동으로 로드되도록 systemd 서비스 스크립트를 작성하여 운영 편의성을 높이세요.\n8. 동시 접속자 수에 따라 배치 크기를 조정하여 GPU 메모리 사용량을 효율적으로 관리하고 OOM을 예방하세요.\n9. 모델 파일의 무결성을 검증하기 위해 체크섬을 계산하고 다운로드 시 네트워크 오류 여부를 확인하세요.\n10. API 응답 지연을 모니터링하기 위해 Prometheus와 Grafana를 연동하여 실시간 성능 지표를 시각화하세요.\n11. 보안 취약점을 방지하기 위해 서버 소프트웨어와 드라이버를 정기적으로 업데이트하고 불필요한 포트를 차단하세요.\n12. 정기적인 백업 복원 테스트를 수행하여 데이터 복구 절차가 정상적으로 작동하는지 최종 확인하세요.",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "51a24d13f865c39b9f80d7253004b6c6f0cfe839a6b5e39f819459ecc446bf6d",
+        "resources": {
+          "ram_min_available_gib": 18.435440063476562,
+          "ram_peak_used_gib": 75.12057876586914,
+          "strata_peak_working_set_sum_gib": 48.22612380981445,
+          "gpu_peak_used_mib": 9944.0,
+          "gpu_min_free_mib": 6034.0
+        }
+      },
+      {
+        "case": "short-generation-03",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.298454399977345,
+        "first_content_seconds": 0.29845469997962937,
+        "elapsed_seconds": 4.6429032999731135,
+        "usage": {
+          "prompt_tokens": 63,
+          "completion_tokens": 386,
+          "total_tokens": 449,
+          "prompt_tokens_details": {
+            "cached_tokens": 56
+          }
+        },
+        "timings": {
+          "cache_n": 56,
+          "prompt_n": 7,
+          "prompt_ms": 90.1,
+          "prompt_per_token_ms": 12.871,
+          "prompt_per_second": 77.7,
+          "predicted_n": 386,
+          "predicted_ms": 4358.0,
+          "predicted_per_token_ms": 11.29,
+          "predicted_per_second": 88.6,
+          "draft_n": 251,
+          "draft_n_accepted": 182
+        },
+        "content": "1. 로컬 LLM 서버의 안정성을 위해 최소 16GB 이상의 RAM을 확보하여 시스템 메모리 부족으로 인한 오류를 방지하세요.\n2. GPU 가속을 활용하려면 모델 크기에 맞춰 충분한 VRAM을 준비하고, VRAM 부족 시 CPU 추론으로 전환하는 전략을 수립하세요.\n3. 컨텍스트 윈도우(Context) 길이는 사용자의 요청 패턴에 맞게 설정하여 토큰 초과로 인한 응답 잘림 현상을 최소화하세요.\n4. 외부 애플리케이션과 연동하기 위해 OpenAI 호환 API 엔드포인트를 구성하고, API 키 인증을 통해 보안 접근을 통제하세요.\n5. 모든 추론 요청과 시스템 상태를 상세히 기록하는 로그(Log) 시스템을 구축하여 문제 발생 시 원인 분석을 용이하게 하세요.\n6. 모델 가중치와 설정 파일을 정기적으로 백업(Backup)하여 데이터 손실 위험을 줄이고 빠른 복구를 가능하게 하세요.\n7. 서버 재시작 시 모델이 자동으로 로드되도록 systemd 또는 유사한 서비스 매니저를 사용하여 자동화하세요.\n8. 동시 접속자 수에 따라 배치 처리(Batching) 옵션을 조정하여 GPU 활용률을 극대화하고 지연 시간을 단축하세요.\n9. 양자화(Quantization) 기법을 적용하여 VRAM 사용량을 줄이고, 추론 속도와 정확도 간의 균형점을 찾도록 노력하세요.\n10. 방화벽 설정을 통해 로컬 네트워크 내에서만 API 접근을 허용하고, 불필요한 외부 포트 노출을 차단하세요.\n11. 디스크 용량을 주기적으로 모니터링하여 로그 파일이나 캐시 데이터로 인한 저장 공간 부족 문제를 사전에 예방하세요.\n12. 정기적으로 소프트웨어 의존성을 업데이트하고 테스트 환경을 통해 새로운 버전의 호환성을 검증하여 운영 안정성을 유지하세요.",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "51a24d13f865c39b9f80d7253004b6c6f0cfe839a6b5e39f819459ecc446bf6d",
+        "resources": {
+          "ram_min_available_gib": 18.425708770751953,
+          "ram_peak_used_gib": 75.13031005859375,
+          "strata_peak_working_set_sum_gib": 48.244781494140625,
+          "gpu_peak_used_mib": 9944.0,
+          "gpu_min_free_mib": 6034.0
+        }
+      },
+      {
+        "case": "retrieval-8192",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 3.8714742999873124,
+        "first_content_seconds": 3.871474899991881,
+        "elapsed_seconds": 4.278401299990946,
+        "usage": {
+          "prompt_tokens": 8171,
+          "completion_tokens": 32,
+          "total_tokens": 8203,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 8171,
+          "prompt_ms": 3692.6,
+          "prompt_per_token_ms": 0.452,
+          "prompt_per_second": 2212.8,
+          "predicted_n": 32,
+          "predicted_ms": 421.7,
+          "predicted_per_token_ms": 13.178,
+          "predicted_per_second": 75.9,
+          "draft_n": 32,
+          "draft_n_accepted": 23
+        },
+        "content": "SECRET-4BBCA5F77F\nSECRET-EAAFDE43AA\nSECRET-70B819C1E2",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "SECRET-4BBCA5F77F",
+          "SECRET-EAAFDE43AA",
+          "SECRET-70B819C1E2"
+        ],
+        "expected_present": true,
+        "request_sha256": "026d192654ae4fe229a1bef3e0cc60fc9369e6d9e2c5c5c39bdb3cea711cf0e3",
+        "resources": {
+          "ram_min_available_gib": 17.989551544189453,
+          "ram_peak_used_gib": 75.56646728515625,
+          "strata_peak_working_set_sum_gib": 48.675357818603516,
+          "gpu_peak_used_mib": 10236.0,
+          "gpu_min_free_mib": 5742.0
+        }
+      },
+      {
+        "case": "retrieval-32768",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 12.198510400019586,
+        "first_content_seconds": 12.19851089999429,
+        "elapsed_seconds": 12.651810200011823,
+        "usage": {
+          "prompt_tokens": 32768,
+          "completion_tokens": 34,
+          "total_tokens": 32802,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 32768,
+          "prompt_ms": 12001.9,
+          "prompt_per_token_ms": 0.366,
+          "prompt_per_second": 2730.2,
+          "predicted_n": 34,
+          "predicted_ms": 475.8,
+          "predicted_per_token_ms": 13.994,
+          "predicted_per_second": 71.5,
+          "draft_n": 28,
+          "draft_n_accepted": 21
+        },
+        "content": "SECRET-F996CB8BEE\nSECRET-BB66A29A5B\nSECRET-CE31A6660D",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "SECRET-F996CB8BEE",
+          "SECRET-BB66A29A5B",
+          "SECRET-CE31A6660D"
+        ],
+        "expected_present": true,
+        "request_sha256": "2214440dd2bc192387866612d1379dccc2be0209780f0ad66e5b99c651388cdf",
+        "resources": {
+          "ram_min_available_gib": 17.379756927490234,
+          "ram_peak_used_gib": 76.17626190185547,
+          "strata_peak_working_set_sum_gib": 49.1820182800293,
+          "gpu_peak_used_mib": 10442.0,
+          "gpu_min_free_mib": 5536.0
+        }
+      },
+      {
+        "case": "retrieval-131072",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 50.85160100000212,
+        "first_content_seconds": 50.851601300004404,
+        "elapsed_seconds": 51.222215599991614,
+        "usage": {
+          "prompt_tokens": 131051,
+          "completion_tokens": 35,
+          "total_tokens": 131086,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 131051,
+          "prompt_ms": 50607.2,
+          "prompt_per_token_ms": 0.386,
+          "prompt_per_second": 2589.6,
+          "predicted_n": 35,
+          "predicted_ms": 383.1,
+          "predicted_per_token_ms": 10.946,
+          "predicted_per_second": 91.4,
+          "draft_n": 32,
+          "draft_n_accepted": 24
+        },
+        "content": "SECRET-2DAF4C50B6\nSECRET-29AA791BC6\nSECRET-9C52DB3A76",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "SECRET-2DAF4C50B6",
+          "SECRET-29AA791BC6",
+          "SECRET-9C52DB3A76"
+        ],
+        "expected_present": true,
+        "request_sha256": "b077fda7589aca598946a5fa74c67a424fe0fdf7cb4b35dc62ba50f0c1d5956c",
+        "resources": {
+          "ram_min_available_gib": 16.022533416748047,
+          "ram_peak_used_gib": 77.53348541259766,
+          "strata_peak_working_set_sum_gib": 50.32303237915039,
+          "gpu_peak_used_mib": 10442.0,
+          "gpu_min_free_mib": 5536.0
+        }
+      },
+      {
+        "case": "retrieval-260000",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 109.50684369998635,
+        "first_content_seconds": 109.50684389998787,
+        "elapsed_seconds": 109.92449499998474,
+        "usage": {
+          "prompt_tokens": 259997,
+          "completion_tokens": 36,
+          "total_tokens": 260033,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 259997,
+          "prompt_ms": 109189.7,
+          "prompt_per_token_ms": 0.42,
+          "prompt_per_second": 2381.1,
+          "predicted_n": 36,
+          "predicted_ms": 431.2,
+          "predicted_per_token_ms": 11.978,
+          "predicted_per_second": 83.5,
+          "draft_n": 37,
+          "draft_n_accepted": 23
+        },
+        "content": "SECRET-E351405F65\nSECRET-77CD716383\nSECRET-AD34C94626",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "SECRET-E351405F65",
+          "SECRET-77CD716383",
+          "SECRET-AD34C94626"
+        ],
+        "expected_present": true,
+        "request_sha256": "cfdaede95c1bf69bb09eea453b6776f91148ff8fa71150ddaa0073ca33bc6de4",
+        "resources": {
+          "ram_min_available_gib": 13.535354614257812,
+          "ram_peak_used_gib": 80.02066421508789,
+          "strata_peak_working_set_sum_gib": 52.83428955078125,
+          "gpu_peak_used_mib": 10442.0,
+          "gpu_min_free_mib": 5536.0
+        }
+      },
+      {
+        "case": "long-followup",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.507910999993328,
+        "first_content_seconds": 0.5079113999963738,
+        "elapsed_seconds": 0.6265943000034895,
+        "usage": {
+          "prompt_tokens": 260067,
+          "completion_tokens": 11,
+          "total_tokens": 260078,
+          "prompt_tokens_details": {
+            "cached_tokens": 260032
+          }
+        },
+        "timings": {
+          "cache_n": 260032,
+          "prompt_n": 35,
+          "prompt_ms": 245.5,
+          "prompt_per_token_ms": 7.014,
+          "prompt_per_second": 142.6,
+          "predicted_n": 11,
+          "predicted_ms": 131.5,
+          "predicted_per_token_ms": 11.955,
+          "predicted_per_second": 83.7,
+          "draft_n": 9,
+          "draft_n_accepted": 6
+        },
+        "content": "eb49d3aa28a4",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "eb49d3aa28a4"
+        ],
+        "expected_present": true,
+        "request_sha256": "dd34c5ba00a3353d21cf09fc91f6a01cd7bfb19887f454d592baae29a9e69dda",
+        "resources": {
+          "ram_min_available_gib": 13.807308197021484,
+          "ram_peak_used_gib": 79.74871063232422,
+          "strata_peak_working_set_sum_gib": 52.76158905029297,
+          "gpu_peak_used_mib": 9996.0,
+          "gpu_min_free_mib": 5982.0
+        }
+      },
+      {
+        "case": "long-cache-interleave",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 3.015138399990974,
+        "first_content_seconds": 3.0151386999932583,
+        "elapsed_seconds": 3.131551699974807,
+        "usage": {
+          "prompt_tokens": 1434,
+          "completion_tokens": 9,
+          "total_tokens": 1443,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 1434,
+          "prompt_ms": 2826.3,
+          "prompt_per_token_ms": 1.971,
+          "prompt_per_second": 507.4,
+          "predicted_n": 9,
+          "predicted_ms": 129.1,
+          "predicted_per_token_ms": 14.344,
+          "predicted_per_second": 69.7,
+          "draft_n": 11,
+          "draft_n_accepted": 7
+        },
+        "content": "UNRELATED-52648",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "UNRELATED-52648"
+        ],
+        "expected_present": true,
+        "request_sha256": "20d487df956d0a80aee98a06f2548fffd4e515d87401ca93da5d4c8000130f04",
+        "resources": {
+          "ram_min_available_gib": 13.808223724365234,
+          "ram_peak_used_gib": 79.74779510498047,
+          "strata_peak_working_set_sum_gib": 52.76436233520508,
+          "gpu_peak_used_mib": 10088.0,
+          "gpu_min_free_mib": 5890.0
+        }
+      },
+      {
+        "case": "long-cache-restore",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.5180481999996118,
+        "first_content_seconds": 0.5180486999743152,
+        "elapsed_seconds": 0.6616823999793269,
+        "usage": {
+          "prompt_tokens": 260067,
+          "completion_tokens": 11,
+          "total_tokens": 260078,
+          "prompt_tokens_details": {
+            "cached_tokens": 260060
+          }
+        },
+        "timings": {
+          "cache_n": 260060,
+          "prompt_n": 7,
+          "prompt_ms": 285.4,
+          "prompt_per_token_ms": 40.771,
+          "prompt_per_second": 24.5,
+          "predicted_n": 11,
+          "predicted_ms": 156.6,
+          "predicted_per_token_ms": 14.236,
+          "predicted_per_second": 70.2,
+          "draft_n": 12,
+          "draft_n_accepted": 7
+        },
+        "content": "eb49d3aa28a4",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "eb49d3aa28a4"
+        ],
+        "expected_present": true,
+        "request_sha256": "dd34c5ba00a3353d21cf09fc91f6a01cd7bfb19887f454d592baae29a9e69dda",
+        "resources": {
+          "ram_min_available_gib": 13.896018981933594,
+          "ram_peak_used_gib": 79.65999984741211,
+          "strata_peak_working_set_sum_gib": 52.71952438354492,
+          "gpu_peak_used_mib": 9996.0,
+          "gpu_min_free_mib": 5982.0
+        }
+      },
+      {
+        "case": "long-generation-260k",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "length",
+        "first_token_seconds": 0.8225572000083048,
+        "first_content_seconds": 0.8225578000128735,
+        "elapsed_seconds": 6.933970699989004,
+        "usage": {
+          "prompt_tokens": 260099,
+          "completion_tokens": 512,
+          "total_tokens": 260611,
+          "prompt_tokens_details": {
+            "cached_tokens": 259990
+          }
+        },
+        "timings": {
+          "cache_n": 259990,
+          "prompt_n": 109,
+          "prompt_ms": 600.7,
+          "prompt_per_token_ms": 5.511,
+          "prompt_per_second": 181.5,
+          "predicted_n": 512,
+          "predicted_ms": 6124.0,
+          "predicted_per_token_ms": 11.961,
+          "predicted_per_second": 83.6,
+          "draft_n": 314,
+          "draft_n_accepted": 239
+        },
+        "content": "383b9788cf5c\n\n1. GPU 드라이버가 최신 버전인지 확인하고 호환성 문제를 점검하세요.\n2. VRAM 용량이 모델 크기에 충분한지 측정하고 부족할 경우 양자화를 고려하세요.\n3. CUDA 툴킷과 cuDNN 라이브러리의 버전이 일치하는지 검증하세요.\n4. GPU 온도 모니터링 스크립트를 실행하여 과열을 방지하세요.\n5. 팬 속도 제어 설정이 자동 모드인지 수동 모드인지 확인하세요.\n6. 전원 공급 장치가 GPU 부하 시에도 안정적으로 작동하는지 테스트하세요.\n7. CPU 코어 수가 추론 요청을 처리하기에 충분한지 평가하세요.\n8. RAM 용량이 모델 로딩과 컨텍스트 윈도우를 감당하는지 확인하세요.\n9. NVMe SSD의 읽기/쓰기 속도가 모델 로딩 시간을 단축하는지 측정하세요.\n10. 시스템 스왑 공간이 메모리 부족 시 성능 저하를 최소화하도록 설정하세요.\n11. Python 가상 환경이 프로젝트 의존성과 충돌하지 않는지 격리하세요.\n12. PyTorch 또는 TensorFlow 프레임워크 버전을 모델 요구사항에 맞추세요.\n13. Transformers 라이브러리의 최신 패치가 적용되었는지 확인하세요.\n14. Accelerate 라이브러리를 사용하여 멀티 GPU 분배를 최적화하세요.\n15. vLLM이나 TGI 같은 추론 엔진의 설치 여부를 결정하세요.\n16. API 서버 프레임워크인 FastAPI나 Flask의 안정성을 점검하세요.\n17. Uvicorn 또는 Gunicorn 워커 수를 CPU 코어 수에 맞게 조정하세요.\n18. Docker 컨테이너가 GPU 자원을 올바르게 할당받는지 확인하세요.\n19. 컨테이너 이미지 크기를 줄여 배포 속도를 높이고 저장 공간을 절약하세요.\n20. 환경 변수로 API 키와 모델 경로를 안전하게 관리하세요.\n21. 방화벽 설정을 통해 외부 접근을 제한하고 내부 통신만 허용하세요.\n22. SSL 인증서를 적용하여 API 통신을 암호화하세요.\n23. 레이트 리미터를 설정하여 과도한 요청으로 인한 서버 과부하를 방지하세요.\n24. 로그 레벨을 설정하여 디버깅 정보와 보안 정보를 적절히 분리하세요.\n25. 정기적인 백업 ",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": [
+          "383b9788cf5c"
+        ],
+        "expected_present": true,
+        "request_sha256": "7b2850b8c4c905958454c4b47a7ab101265046ad2bee8188d2b7104216e00403",
+        "resources": {
+          "ram_min_available_gib": 13.032783508300781,
+          "ram_peak_used_gib": 80.52323532104492,
+          "strata_peak_working_set_sum_gib": 53.502323150634766,
+          "gpu_peak_used_mib": 9996.0,
+          "gpu_min_free_mib": 5982.0
+        }
+      },
+      {
+        "case": "issue-5055-hello",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 1.8198453999939375,
+        "first_content_seconds": 1.8198458999977447,
+        "elapsed_seconds": 1.9515394999762066,
+        "usage": {
+          "prompt_tokens": 15,
+          "completion_tokens": 12,
+          "total_tokens": 27,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 15,
+          "prompt_ms": 1613.4,
+          "prompt_per_token_ms": 107.56,
+          "prompt_per_second": 9.3,
+          "predicted_n": 12,
+          "predicted_ms": 147.8,
+          "predicted_per_token_ms": 12.317,
+          "predicted_per_second": 81.2,
+          "draft_n": 10,
+          "draft_n_accepted": 9
+        },
+        "content": "Hello! 👋 How can I help you today?",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "8242e727e2235a7bf439e8a0ef31f1238a9faf7c96a0a199f03022b2130e4b5f",
+        "resources": {
+          "ram_min_available_gib": 13.05377197265625,
+          "ram_peak_used_gib": 80.50224685668945,
+          "strata_peak_working_set_sum_gib": 53.49660110473633,
+          "gpu_peak_used_mib": 9996.0,
+          "gpu_min_free_mib": 5982.0
+        }
+      },
+      {
+        "case": "issue-5055-nonstream-defaults",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": false,
+        "done_received": false,
+        "finish_reason": "length",
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 1.2806459999992512,
+        "usage": {
+          "prompt_tokens": 13,
+          "completion_tokens": 64,
+          "total_tokens": 77,
+          "prompt_tokens_details": {
+            "cached_tokens": 8
+          }
+        },
+        "timings": {
+          "cache_n": 8,
+          "prompt_n": 5,
+          "prompt_ms": 85.1,
+          "prompt_per_token_ms": 17.02,
+          "prompt_per_second": 58.8,
+          "predicted_n": 64,
+          "predicted_ms": 1016.7,
+          "predicted_per_token_ms": 15.886,
+          "predicted_per_second": 62.9,
+          "draft_n": 68,
+          "draft_n_accepted": 33
+        },
+        "content": "",
+        "reasoning_content": "The user is greeting me, addressing me as a \"local AI.\" This is a simple, friendly greeting. They're probably running me locally (perhaps via Ollama, LM Studio, llama.cpp, or similar local LLM runner). I should respond warmly and naturally, acknowledging the greeting without overthinking it. A",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "fb3e7364fdcf1ae65fd61d50e2723e298d8a0b4c89924c55b1772e9643809973",
+        "resources": {
+          "ram_min_available_gib": 13.88747787475586,
+          "ram_peak_used_gib": 79.66854095458984,
+          "strata_peak_working_set_sum_gib": 52.735595703125,
+          "gpu_peak_used_mib": 9996.0,
+          "gpu_min_free_mib": 5982.0
+        }
+      },
+      {
+        "case": "issue-3465-percent-urls",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "length",
+        "first_token_seconds": 1.7880710000172257,
+        "first_content_seconds": 1.78807130001951,
+        "elapsed_seconds": 1.9053222000075039,
+        "usage": {
+          "prompt_tokens": 1677,
+          "completion_tokens": 8,
+          "total_tokens": 1685,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 1677,
+          "prompt_ms": 1610.9,
+          "prompt_per_token_ms": 0.961,
+          "prompt_per_second": 1041.0,
+          "predicted_n": 8,
+          "predicted_ms": 132.6,
+          "predicted_per_token_ms": 16.575,
+          "predicted_per_second": 60.3,
+          "draft_n": 8,
+          "draft_n_accepted": 3
+        },
+        "content": "This is a **raw data output from",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "7838a65dd6f129ae2cb661c318d06f2bcfab5fb4707fbf0a067905e8eb4f653d",
+        "resources": {
+          "ram_min_available_gib": 13.690261840820312,
+          "ram_peak_used_gib": 79.86575698852539,
+          "strata_peak_working_set_sum_gib": 52.74201583862305,
+          "gpu_peak_used_mib": 10088.0,
+          "gpu_min_free_mib": 5890.0
+        }
+      },
+      {
+        "case": "issue-3465-nonstream-defaults",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": false,
+        "done_received": false,
+        "finish_reason": "length",
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 0.3241845999727957,
+        "usage": {
+          "prompt_tokens": 1675,
+          "completion_tokens": 8,
+          "total_tokens": 1683,
+          "prompt_tokens_details": {
+            "cached_tokens": 1670
+          }
+        },
+        "timings": {
+          "cache_n": 1670,
+          "prompt_n": 5,
+          "prompt_ms": 82.2,
+          "prompt_per_token_ms": 16.44,
+          "prompt_per_second": 60.8,
+          "predicted_n": 8,
+          "predicted_ms": 83.1,
+          "predicted_per_token_ms": 10.387,
+          "predicted_per_second": 96.3,
+          "draft_n": 6,
+          "draft_n_accepted": 6
+        },
+        "content": "",
+        "reasoning_content": "The user is asking \"What is this",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "446583b7f9fbe577e74898fe1e39a754a56a564357f859c1601afc5587c77af2",
+        "resources": {
+          "ram_min_available_gib": 13.590595245361328,
+          "ram_peak_used_gib": 79.96542358398438,
+          "strata_peak_working_set_sum_gib": 52.95515823364258,
+          "gpu_peak_used_mib": 9996.0,
+          "gpu_min_free_mib": 5982.0
+        }
+      },
+      {
+        "case": "cache-isolation-a-first",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 2.5315199999895412,
+        "first_content_seconds": 2.531520399992587,
+        "elapsed_seconds": 2.6482056999811903,
+        "usage": {
+          "prompt_tokens": 4530,
+          "completion_tokens": 9,
+          "total_tokens": 4539,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 4530,
+          "prompt_ms": 2337.9,
+          "prompt_per_token_ms": 0.516,
+          "prompt_per_second": 1937.6,
+          "predicted_n": 9,
+          "predicted_ms": 132.5,
+          "predicted_per_token_ms": 14.722,
+          "predicted_per_second": 67.9,
+          "draft_n": 10,
+          "draft_n_accepted": 7
+        },
+        "content": "ORANGE-74519",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "ORANGE-74519"
+        ],
+        "expected_present": true,
+        "request_sha256": "77c93c1874d997d91f23bd1203b8c5cc76748893d2b1b2d68d42f46de00dbb60",
+        "resources": {
+          "ram_min_available_gib": 13.373584747314453,
+          "ram_peak_used_gib": 80.18243408203125,
+          "strata_peak_working_set_sum_gib": 53.17157745361328,
+          "gpu_peak_used_mib": 10164.0,
+          "gpu_min_free_mib": 5814.0
+        }
+      },
+      {
+        "case": "cache-isolation-b",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 2.5368457000004128,
+        "first_content_seconds": 2.536846000002697,
+        "elapsed_seconds": 2.646061400009785,
+        "usage": {
+          "prompt_tokens": 4531,
+          "completion_tokens": 10,
+          "total_tokens": 4541,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 4531,
+          "prompt_ms": 2340.7,
+          "prompt_per_token_ms": 0.517,
+          "prompt_per_second": 1935.7,
+          "predicted_n": 10,
+          "predicted_ms": 127.4,
+          "predicted_per_token_ms": 12.74,
+          "predicted_per_second": 78.5,
+          "draft_n": 10,
+          "draft_n_accepted": 8
+        },
+        "content": "VIOLET-28643",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "VIOLET-28643"
+        ],
+        "expected_present": true,
+        "request_sha256": "a6d368d7bee14eb8235a95f7a64f914130eecdabfce9b0685c3a99aec655e2f8",
+        "resources": {
+          "ram_min_available_gib": 13.233661651611328,
+          "ram_peak_used_gib": 80.32235717773438,
+          "strata_peak_working_set_sum_gib": 53.34146499633789,
+          "gpu_peak_used_mib": 10164.0,
+          "gpu_min_free_mib": 5814.0
+        }
+      },
+      {
+        "case": "cache-isolation-a-return",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.49520569999003783,
+        "first_content_seconds": 0.4952061999938451,
+        "elapsed_seconds": 0.5981796999985818,
+        "usage": {
+          "prompt_tokens": 4530,
+          "completion_tokens": 9,
+          "total_tokens": 4539,
+          "prompt_tokens_details": {
+            "cached_tokens": 4523
+          }
+        },
+        "timings": {
+          "cache_n": 4523,
+          "prompt_n": 7,
+          "prompt_ms": 289.0,
+          "prompt_per_token_ms": 41.286,
+          "prompt_per_second": 24.2,
+          "predicted_n": 9,
+          "predicted_ms": 115.2,
+          "predicted_per_token_ms": 12.8,
+          "predicted_per_second": 78.1,
+          "draft_n": 10,
+          "draft_n_accepted": 7
+        },
+        "content": "ORANGE-74519",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "ORANGE-74519"
+        ],
+        "expected_present": true,
+        "request_sha256": "77c93c1874d997d91f23bd1203b8c5cc76748893d2b1b2d68d42f46de00dbb60",
+        "resources": {
+          "ram_min_available_gib": 13.126945495605469,
+          "ram_peak_used_gib": 80.42907333374023,
+          "strata_peak_working_set_sum_gib": 53.4510498046875,
+          "gpu_peak_used_mib": 9996.0,
+          "gpu_min_free_mib": 5982.0
+        }
+      },
+      {
+        "case": "tool-call",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "tool_calls",
+        "first_token_seconds": 0.22176280000712723,
+        "first_content_seconds": null,
+        "elapsed_seconds": 1.1980507000116631,
+        "usage": {
+          "prompt_tokens": 286,
+          "completion_tokens": 24,
+          "total_tokens": 310,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 286,
+          "prompt_ms": 739.0,
+          "prompt_per_token_ms": 2.584,
+          "prompt_per_second": 387.0,
+          "predicted_n": 24,
+          "predicted_ms": 283.0,
+          "predicted_per_token_ms": 11.792,
+          "predicted_per_second": 84.8,
+          "draft_n": 23,
+          "draft_n_accepted": 16
+        },
+        "content": "",
+        "reasoning_content": "",
+        "tool_deltas": [
+          {
+            "index": 0,
+            "id": "call_6e330f768f7a4ca7aedfd163",
+            "type": "function",
+            "function": {
+              "name": "lookup_code",
+              "arguments": ""
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "{"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "\"code\":"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "\""
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "BASE"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "LINE"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "-"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "2"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "6"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "2"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "K"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "\""
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "}"
+            }
+          }
+        ],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "93a9f379c5aa8913ab6b549bdda3fc974e67a4db590f6324423838eef6c14889",
+        "resources": {
+          "ram_min_available_gib": 17.545780181884766,
+          "ram_peak_used_gib": 76.01023864746094,
+          "strata_peak_working_set_sum_gib": 49.0362548828125,
+          "gpu_peak_used_mib": 9996.0,
+          "gpu_min_free_mib": 5982.0
+        }
+      },
+      {
+        "case": "tool-literal-without-tools",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.5954506999987643,
+        "first_content_seconds": 0.5954509000002872,
+        "elapsed_seconds": 0.7925336999760475,
+        "usage": {
+          "prompt_tokens": 48,
+          "completion_tokens": 25,
+          "total_tokens": 73,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 48,
+          "prompt_ms": 391.7,
+          "prompt_per_token_ms": 8.16,
+          "prompt_per_second": 122.5,
+          "predicted_n": 25,
+          "predicted_ms": 207.8,
+          "predicted_per_token_ms": 8.312,
+          "predicted_per_second": 120.3,
+          "draft_n": 19,
+          "draft_n_accepted": 19
+        },
+        "content": "```xml\n<tool_call>{\"name\":\"lookup_code\",\"arguments\":{\"code\":\"EXAMPLE\"}}</tool_call>\n```",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "lookup_code"
+        ],
+        "expected_present": true,
+        "request_sha256": "b57cf975d3b4f7096cb40d61e6be6ea8627994726673be2ff845ecfb28866b98",
+        "resources": {
+          "ram_min_available_gib": 17.261032104492188,
+          "ram_peak_used_gib": 76.29498672485352,
+          "strata_peak_working_set_sum_gib": 49.3400764465332,
+          "gpu_peak_used_mib": 9996.0,
+          "gpu_min_free_mib": 5982.0
+        }
+      },
+      {
+        "case": "tool-literal-with-tools",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.8646164999809116,
+        "first_content_seconds": 0.8646170999854803,
+        "elapsed_seconds": 1.169706699991366,
+        "usage": {
+          "prompt_tokens": 295,
+          "completion_tokens": 25,
+          "total_tokens": 320,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 295,
+          "prompt_ms": 677.1,
+          "prompt_per_token_ms": 2.295,
+          "prompt_per_second": 435.7,
+          "predicted_n": 25,
+          "predicted_ms": 315.2,
+          "predicted_per_token_ms": 12.608,
+          "predicted_per_second": 79.3,
+          "draft_n": 25,
+          "draft_n_accepted": 21
+        },
+        "content": "```xml\n<tool_call>{\"name\":\"lookup_code\",\"arguments\":{\"code\":\"EXAMPLE\"}}</tool_call>\n```",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "lookup_code"
+        ],
+        "expected_present": true,
+        "request_sha256": "d2fd6386965546ee767d5b107e7d594346ee4f19e9236a19e0f5e326b0597c24",
+        "resources": {
+          "ram_min_available_gib": 17.28443145751953,
+          "ram_peak_used_gib": 76.27158737182617,
+          "strata_peak_working_set_sum_gib": 49.27891159057617,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "done-disconnect",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.414780699997209,
+        "first_content_seconds": 0.41478099999949336,
+        "elapsed_seconds": 0.4817987999995239,
+        "usage": {
+          "prompt_tokens": 21,
+          "completion_tokens": 6,
+          "total_tokens": 27,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 21,
+          "prompt_ms": 211.7,
+          "prompt_per_token_ms": 10.081,
+          "prompt_per_second": 99.2,
+          "predicted_n": 6,
+          "predicted_ms": 80.1,
+          "predicted_per_token_ms": 13.35,
+          "predicted_per_second": 74.9,
+          "draft_n": 6,
+          "draft_n_accepted": 5
+        },
+        "content": "DONE-CLOSE-OK",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "DONE-CLOSE-OK"
+        ],
+        "expected_present": true,
+        "request_sha256": "2e96a597d081925fd47bf221dc60a6beb7317445b953881f15baa73094348323",
+        "resources": {
+          "ram_min_available_gib": 17.261871337890625,
+          "ram_peak_used_gib": 76.29414749145508,
+          "strata_peak_working_set_sum_gib": 49.281005859375,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "after-done-disconnect",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.3796370000054594,
+        "first_content_seconds": 0.37963730000774376,
+        "elapsed_seconds": 0.41673560001072474,
+        "usage": {
+          "prompt_tokens": 19,
+          "completion_tokens": 5,
+          "total_tokens": 24,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 19,
+          "prompt_ms": 174.9,
+          "prompt_per_token_ms": 9.205,
+          "prompt_per_second": 108.6,
+          "predicted_n": 5,
+          "predicted_ms": 49.3,
+          "predicted_per_token_ms": 9.86,
+          "predicted_per_second": 101.4,
+          "draft_n": 3,
+          "draft_n_accepted": 3
+        },
+        "content": "STILL-READY",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "STILL-READY"
+        ],
+        "expected_present": true,
+        "request_sha256": "9e35e430bbbb290a5f0abec8d84abde9ff25cc54df46bf202ab1a6de9487b398",
+        "resources": {
+          "ram_min_available_gib": 17.316925048828125,
+          "ram_peak_used_gib": 76.23909378051758,
+          "strata_peak_working_set_sum_gib": 49.224578857421875,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "cpu-vision-red",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 1.139849300001515,
+        "first_content_seconds": 1.1398495999746956,
+        "elapsed_seconds": 1.181949199992232,
+        "usage": {
+          "prompt_tokens": 76,
+          "completion_tokens": 2,
+          "total_tokens": 78,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 76,
+          "prompt_ms": 442.7,
+          "prompt_per_token_ms": 5.825,
+          "prompt_per_second": 171.7,
+          "predicted_n": 2,
+          "predicted_ms": 57.2,
+          "predicted_per_token_ms": 28.6,
+          "predicted_per_second": 35.0,
+          "draft_n": 3,
+          "draft_n_accepted": 2
+        },
+        "content": "Red",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "34fb942f689fe1ac939aaf290d213c4cfb8a8f0dc9fc00ab460a4bdb2d502455",
+        "resources": {
+          "ram_min_available_gib": 17.353111267089844,
+          "ram_peak_used_gib": 76.20290756225586,
+          "strata_peak_working_set_sum_gib": 49.16800308227539,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "context-overflow-rejected",
+        "http_status": 400,
+        "passed": true,
+        "error": "{\"error\": {\"type\": \"invalid_request_error\", \"message\": \"request exceeds the context window: prompt (420012 tokens) leaves no room to answer in the context (262144); requests are never truncated\"}}",
+        "streaming": true,
+        "done_received": false,
+        "finish_reason": null,
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 0.3030352999921888,
+        "usage": {},
+        "timings": {},
+        "content": "",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "39037d01edf67b3322d934b4ea6762ca88a20c343cfc093922cea1fea6d4b6ed",
+        "resources": {
+          "ram_min_available_gib": 17.365337371826172,
+          "ram_peak_used_gib": 76.19068145751953,
+          "strata_peak_working_set_sum_gib": 49.25840759277344,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "wrong-model-rejected",
+        "http_status": 400,
+        "passed": true,
+        "error": "{\"error\": {\"type\": \"invalid_request_error\", \"message\": \"요청한 model이 실행 중이 아닙니다. LLM Home Server에서 선택해 주세요.\"}}",
+        "streaming": true,
+        "done_received": false,
+        "finish_reason": null,
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 0.22326820000307634,
+        "usage": {},
+        "timings": {},
+        "content": "",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "a388e934e5f52c4ead3852b1663a590bfe11ac1845b8c16feaa64c8e358e75d9",
+        "resources": {
+          "ram_min_available_gib": 17.340282440185547,
+          "ram_peak_used_gib": 76.21573638916016,
+          "strata_peak_working_set_sum_gib": 49.25251770019531,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "reasoning-medium",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.4470543999923393,
+        "first_content_seconds": 2.3077717999985907,
+        "elapsed_seconds": 3.803278000006685,
+        "usage": {
+          "prompt_tokens": 29,
+          "completion_tokens": 361,
+          "total_tokens": 390,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 29,
+          "prompt_ms": 241.6,
+          "prompt_per_token_ms": 8.331,
+          "prompt_per_second": 120.0,
+          "predicted_n": 361,
+          "predicted_ms": 3368.1,
+          "predicted_per_token_ms": 9.33,
+          "predicted_per_second": 107.2,
+          "draft_n": 294,
+          "draft_n_accepted": 263
+        },
+        "content": "## 계산 과정\n\n**23 × 17 + 19**\n\n1. **23 × 17**\n   - 23 × 10 = 230\n   - 23 × 7 = 161\n   - 230 + 161 = **391**\n\n2. **391 + 19 = 410**\n\n## 검산\n\n- 391 + 19 = 410 → 410 − 19 = 391 ✓\n- 391 ÷ 17 = 23 ✓\n- 391 ÷ 23 = 17 ✓\n\n## 답: **410**",
+        "reasoning_content": "The user is asking me to calculate 23*17+19 and verify the answer.\n\nLet me calculate step by step:\n23 * 17 = 391\n391 + 19 = 410\n\nLet me verify:\n23 * 17:\n23 * 10 = 230\n23 * 7 = 161\n230 + 161 = 391\n\n391 + 19 = 410\n\nLet me double-check 23 * 17 another way:\n20 * 17 = 340\n3 * 17 = 51\n340 + 51 = 391 ✓\n\n391 + 19 = 410 ✓\n\nThe answer is 410.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "410"
+        ],
+        "expected_present": true,
+        "request_sha256": "32b2fdb1753605b8a41cff21da920e1d54929e57973360f2f904fbdf24eace5a",
+        "resources": {
+          "ram_min_available_gib": 17.348529815673828,
+          "ram_peak_used_gib": 76.20748901367188,
+          "strata_peak_working_set_sum_gib": 49.165367126464844,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-arithmetic-order",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.4220377999881748,
+        "first_content_seconds": 0.9879018999927212,
+        "elapsed_seconds": 1.0326611999771558,
+        "usage": {
+          "prompt_tokens": 29,
+          "completion_tokens": 61,
+          "total_tokens": 90,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 29,
+          "prompt_ms": 230.7,
+          "prompt_per_token_ms": 7.955,
+          "prompt_per_second": 125.7,
+          "predicted_n": 61,
+          "predicted_ms": 625.5,
+          "predicted_per_token_ms": 10.254,
+          "predicted_per_second": 97.5,
+          "draft_n": 48,
+          "draft_n_accepted": 45
+        },
+        "content": "410",
+        "reasoning_content": "The user asks me to calculate 17*23+19 and output only the number.\n\n17*23 = 391\n391 + 19 = 410\n\nThe answer is 410.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "23d414553b3dde81b3d49bc95a0cdb896c95be601b15ad4c41e687a906f4d072",
+        "resources": {
+          "ram_min_available_gib": 17.364158630371094,
+          "ram_peak_used_gib": 76.19186019897461,
+          "strata_peak_working_set_sum_gib": 49.2178955078125,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-arithmetic-subtract",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.3771611000120174,
+        "first_content_seconds": 0.9160695000027772,
+        "elapsed_seconds": 0.9553602999949362,
+        "usage": {
+          "prompt_tokens": 28,
+          "completion_tokens": 59,
+          "total_tokens": 87,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 28,
+          "prompt_ms": 171.8,
+          "prompt_per_token_ms": 6.136,
+          "prompt_per_second": 163.0,
+          "predicted_n": 59,
+          "predicted_ms": 595.6,
+          "predicted_per_token_ms": 10.095,
+          "predicted_per_second": 99.1,
+          "draft_n": 50,
+          "draft_n_accepted": 44
+        },
+        "content": "105",
+        "reasoning_content": "The user asks me to calculate 7*19-28 and output only the number.\n\n7*19 = 133\n133 - 28 = 105\n\nThe answer is 105.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "609763cb5f92b6b6d37717fa9da730edf052987d6938b636a13175f5928f7ee6",
+        "resources": {
+          "ram_min_available_gib": 17.501033782958984,
+          "ram_peak_used_gib": 76.05498504638672,
+          "strata_peak_working_set_sum_gib": 49.05341720581055,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-arithmetic-divide",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.3636736999906134,
+        "first_content_seconds": 0.9326528999954462,
+        "elapsed_seconds": 0.9350689999992028,
+        "usage": {
+          "prompt_tokens": 30,
+          "completion_tokens": 58,
+          "total_tokens": 88,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 30,
+          "prompt_ms": 172.4,
+          "prompt_per_token_ms": 5.747,
+          "prompt_per_second": 174.0,
+          "predicted_n": 58,
+          "predicted_ms": 584.7,
+          "predicted_per_token_ms": 10.081,
+          "predicted_per_second": 99.2,
+          "draft_n": 49,
+          "draft_n_accepted": 40
+        },
+        "content": "49",
+        "reasoning_content": "The user asks me to calculate 144/12+37 and output only the number.\n\n144/12 = 12\n12 + 37 = 49\n\nThe answer is 49.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "888eb008d9f5762f601c91b0eeb62c89cca56c29d9cfafee2f8e428bc73e13ed",
+        "resources": {
+          "ram_min_available_gib": 17.543987274169922,
+          "ram_peak_used_gib": 76.01203155517578,
+          "strata_peak_working_set_sum_gib": 49.05341720581055,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-arithmetic-modulo",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.49399970000376925,
+        "first_content_seconds": 2.1873043999949005,
+        "elapsed_seconds": 2.226721599989105,
+        "usage": {
+          "prompt_tokens": 35,
+          "completion_tokens": 153,
+          "total_tokens": 188,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 35,
+          "prompt_ms": 302.9,
+          "prompt_per_token_ms": 8.654,
+          "prompt_per_second": 115.5,
+          "predicted_n": 153,
+          "predicted_ms": 1746.1,
+          "predicted_per_token_ms": 11.412,
+          "predicted_per_second": 87.6,
+          "draft_n": 135,
+          "draft_n_accepted": 104
+        },
+        "content": "34",
+        "reasoning_content": "The user wants me to calculate the value of the Python expression `17 % 5 + 8 * 4` and output only the number.\n\nLet me calculate step by step following Python's operator precedence:\n- `*` has higher precedence than `+`\n- `%` has the same precedence as `*` (both are multiplicative operators), so they are evaluated left to right\n\nSo:\n1. `17 % 5` = 2 (17 divided by 5 is 3 remainder 2)\n2. `8 * 4` = 32\n3. `2 + 32` = 34\n\nThe answer is 34.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "6401a8596885f068ea35ff0c4ae7c0833e4906ed38212b9f4a719a5e76d22f36",
+        "resources": {
+          "ram_min_available_gib": 17.564453125,
+          "ram_peak_used_gib": 75.9915657043457,
+          "strata_peak_working_set_sum_gib": 49.05342483520508,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-logic-order",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.535933200008003,
+        "first_content_seconds": 1.9963933000108227,
+        "elapsed_seconds": 2.035434699995676,
+        "usage": {
+          "prompt_tokens": 46,
+          "completion_tokens": 147,
+          "total_tokens": 193,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 46,
+          "prompt_ms": 389.1,
+          "prompt_per_token_ms": 8.459,
+          "prompt_per_second": 118.2,
+          "predicted_n": 147,
+          "predicted_ms": 1515.8,
+          "predicted_per_token_ms": 10.312,
+          "predicted_per_second": 97.0,
+          "draft_n": 126,
+          "draft_n_accepted": 104
+        },
+        "content": "C,A,B,D",
+        "reasoning_content": "The user is asking me to determine the order of letters A, B, C, D based on the given constraints, and output only the letters in order from front to back, separated by commas.\n\nLet me parse the constraints:\n1. A는 B보다 먼저 → A is before B (A < B)\n2. C는 A보다 먼저 → C is before A (C < A)\n3. D는 B보다 나중 → D is after B (B < D)\n\nSo the order is: C < A < B < D\n\nFrom front to back: C, A, B, D\n\nThe user wants only the letters separated by commas.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "8d0d9a6ab4a929227869993193b9f3e3fe5f588b1158498709c7de13d0520c65",
+        "resources": {
+          "ram_min_available_gib": 17.458221435546875,
+          "ram_peak_used_gib": 76.09779739379883,
+          "strata_peak_working_set_sum_gib": 49.05341339111328,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-logic-machines",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.5524638000060804,
+        "first_content_seconds": 1.9599342999863438,
+        "elapsed_seconds": 1.9619633000111207,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 130,
+          "total_tokens": 186,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 56,
+          "prompt_ms": 361.7,
+          "prompt_per_token_ms": 6.459,
+          "prompt_per_second": 154.8,
+          "predicted_n": 130,
+          "predicted_ms": 1423.8,
+          "predicted_per_token_ms": 10.952,
+          "predicted_per_second": 91.3,
+          "draft_n": 115,
+          "draft_n_accepted": 89
+        },
+        "content": "5",
+        "reasoning_content": "The user is asking a classic trick question about machines and products.\n\nLet me analyze: 5 machines make 5 products in 5 minutes.\n\nThis means each machine makes 1 product in 5 minutes (since 5 machines working simultaneously each make 1 product in 5 minutes).\n\nNow, 100 machines making 100 products: each machine still makes 1 product in 5 minutes. Since all 100 machines work simultaneously, they make 100 products in 5 minutes.\n\nThe answer is 5.\n\nThe user wants just the number output.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "3ebcc3d32a54c2ec4a057eeb2ddf613c446d879280f7141f2531eaeea4eba8d9",
+        "resources": {
+          "ram_min_available_gib": 17.564529418945312,
+          "ram_peak_used_gib": 75.99148941040039,
+          "strata_peak_working_set_sum_gib": 49.053409576416016,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-logic-conditional",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.6020244999963325,
+        "first_content_seconds": 2.791586500010453,
+        "elapsed_seconds": 2.820108200015966,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 213,
+          "total_tokens": 263,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 50,
+          "prompt_ms": 410.6,
+          "prompt_per_token_ms": 8.212,
+          "prompt_per_second": 121.8,
+          "predicted_n": 213,
+          "predicted_ms": 2233.5,
+          "predicted_per_token_ms": 10.486,
+          "predicted_per_second": 95.4,
+          "draft_n": 187,
+          "draft_n_accepted": 143
+        },
+        "content": "아니오",
+        "reasoning_content": "The user is asking a logic question in Korean. Let me analyze it:\n\nRules given:\n1. All pine are tree. (모든 pine은 tree입니다)\n2. Some tree are red. (어떤 tree는 red입니다)\n\nQuestion: Is \"All pine are red\" necessarily true? (모든 pine은 red다'가 반드시 참입니까?)\n\nLet me think about this logically:\n- All pine are tree (pine ⊆ tree)\n- Some tree are red (there exists at least one tree that is red)\n\nFrom these two premises, can we conclude that all pine are red?\n\nNo. \"Some tree are red\" means at least one tree is red, but it doesn't mean ALL trees are red. The pine trees could be among the trees that are NOT red. So \"all pine are red\" is not necessarily true.\n\nThe answer is: 아니오 (No)\n\nThe user asks to output only \"예\" or \"아니오\".\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "ff3a823b41728defb8f56c98350201c476c1fb21406d6153f4efae8b24690603",
+        "resources": {
+          "ram_min_available_gib": 17.530620574951172,
+          "ram_peak_used_gib": 76.02539825439453,
+          "strata_peak_working_set_sum_gib": 49.1093864440918,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-json-sort",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.480138499988243,
+        "first_content_seconds": 2.0703264999901876,
+        "elapsed_seconds": 2.2788461999734864,
+        "usage": {
+          "prompt_tokens": 50,
+          "completion_tokens": 158,
+          "total_tokens": 208,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 50,
+          "prompt_ms": 319.2,
+          "prompt_per_token_ms": 6.384,
+          "prompt_per_second": 156.6,
+          "predicted_n": 158,
+          "predicted_ms": 1812.6,
+          "predicted_per_token_ms": 11.472,
+          "predicted_per_second": 87.2,
+          "draft_n": 149,
+          "draft_n_accepted": 113
+        },
+        "content": "{\"values\": [2, 5, 7, 9]}",
+        "reasoning_content": "The user wants me to:\n1. Take the values [7, 2, 9, 2, 5]\n2. Remove duplicates\n3. Sort in ascending order\n4. Output as JSON with key \"values\"\n\nLet me process:\n- Original: [7, 2, 9, 2, 5]\n- Remove duplicates: [7, 2, 9, 5] (removed the duplicate 2)\n- Sort ascending: [2, 5, 7, 9]\n\nJSON output with key \"values\":\n{\"values\": [2, 5, 7, 9]}\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "e25a5858a45b6f98b25982c6529998867c5b5f7bea8dfdb369f6bb9ef9fe1e09",
+        "resources": {
+          "ram_min_available_gib": 17.57204818725586,
+          "ram_peak_used_gib": 75.98397064208984,
+          "strata_peak_working_set_sum_gib": 49.05344772338867,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-json-filter",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.6020050999941304,
+        "first_content_seconds": 2.006646900001215,
+        "elapsed_seconds": 2.120337500004098,
+        "usage": {
+          "prompt_tokens": 56,
+          "completion_tokens": 127,
+          "total_tokens": 183,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 56,
+          "prompt_ms": 396.8,
+          "prompt_per_token_ms": 7.086,
+          "prompt_per_second": 141.1,
+          "predicted_n": 127,
+          "predicted_ms": 1532.7,
+          "predicted_per_token_ms": 12.069,
+          "predicted_per_second": 82.9,
+          "draft_n": 119,
+          "draft_n_accepted": 87
+        },
+        "content": "{\"available\": [\"B\", \"C\"]}",
+        "reasoning_content": "The user wants me to filter items with positive inventory (quantity > 0) and return only their names in input order, as JSON with key \"available\".\n\nInventory: A=0, B=4, C=2, D=0\n\nItems with positive inventory (quantity > 0):\n- A=0 → not positive\n- B=4 → positive ✓\n- C=2 → positive ✓\n- D=0 → not positive\n\nSo the names in input order are: B, C\n\nOutput as JSON with key \"available\".\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "1ed2f3d3d9ff98386a4721c33184231561526f936dd01bbc9e50d5826d6c1bdd",
+        "resources": {
+          "ram_min_available_gib": 17.475013732910156,
+          "ram_peak_used_gib": 76.08100509643555,
+          "strata_peak_working_set_sum_gib": 49.12066650390625,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-json-extract",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.6133259999915026,
+        "first_content_seconds": 1.9989115000062156,
+        "elapsed_seconds": 2.186408499983372,
+        "usage": {
+          "prompt_tokens": 61,
+          "completion_tokens": 144,
+          "total_tokens": 205,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 61,
+          "prompt_ms": 406.6,
+          "prompt_per_token_ms": 6.666,
+          "prompt_per_second": 150.0,
+          "predicted_n": 144,
+          "predicted_ms": 1587.1,
+          "predicted_per_token_ms": 11.022,
+          "predicted_per_second": 90.7,
+          "draft_n": 122,
+          "draft_n_accepted": 96
+        },
+        "content": "{\"port\": 8488, \"context\": 262144}",
+        "reasoning_content": "The user wants me to extract only the port and context values as integers from the given document, and output them as a JSON object only.\n\nFrom the document:\n- 서버 이름 (server name): atlas\n- port: 8488\n- reserve_mib: 8192\n- context: 262144\n\nThey want only port and context as integers in a JSON object.\n\nport = 8488\ncontext = 262144\n\nOutput should be a JSON object with only these two fields as integers.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "991bf8e539d0e8c62c657777a213ee5576b7911079617bb42e1f0857cd58745b",
+        "resources": {
+          "ram_min_available_gib": 17.542652130126953,
+          "ram_peak_used_gib": 76.01336669921875,
+          "strata_peak_working_set_sum_gib": 49.05348587036133,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-copy-ascii",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.4857975000049919,
+        "first_content_seconds": 2.0663519999943674,
+        "elapsed_seconds": 2.2454874999821186,
+        "usage": {
+          "prompt_tokens": 46,
+          "completion_tokens": 173,
+          "total_tokens": 219,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 46,
+          "prompt_ms": 294.8,
+          "prompt_per_token_ms": 6.409,
+          "prompt_per_second": 156.0,
+          "predicted_n": 173,
+          "predicted_ms": 1775.7,
+          "predicted_per_token_ms": 10.264,
+          "predicted_per_second": 97.4,
+          "draft_n": 153,
+          "draft_n_accepted": 121
+        },
+        "content": "KEEP-0O1l-7f29-262144",
+        "reasoning_content": "The user wants me to output the exact string \"KEEP-0O1l-7f29-262144\" without changing it and without writing anything else. Let me make sure I reproduce it exactly as given.\n\nThe string is: KEEP-0O1l-7f29-262144\n\nLet me verify character by character:\n- KEEP\n- -\n- 0 (zero)\n- O (capital letter O)\n- 1 (one)\n- l (lowercase L)\n- -\n- 7f29\n- -\n- 262144\n\nYes, I'll output exactly that string with nothing else.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "4d5f23ddf89f582805b98344d8955701618058119458df62654101552ee26508",
+        "resources": {
+          "ram_min_available_gib": 17.49850845336914,
+          "ram_peak_used_gib": 76.05751037597656,
+          "strata_peak_working_set_sum_gib": 49.11732482910156,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "quality-suite-korean-extract",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.46584960000473075,
+        "first_content_seconds": 1.4767265999980737,
+        "elapsed_seconds": 1.479229699994903,
+        "usage": {
+          "prompt_tokens": 40,
+          "completion_tokens": 93,
+          "total_tokens": 133,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 40,
+          "prompt_ms": 290.9,
+          "prompt_per_token_ms": 7.272,
+          "prompt_per_second": 137.5,
+          "predicted_n": 93,
+          "predicted_ms": 1027.9,
+          "predicted_per_token_ms": 11.053,
+          "predicted_per_second": 90.5,
+          "draft_n": 83,
+          "draft_n_accepted": 62
+        },
+        "content": "지연",
+        "reasoning_content": "The user is asking me to output only the name of today's person in charge. Let me parse the record:\n\n- Yesterday's person in charge: 민수 (Minsu)\n- Today's person in charge: 지연 (Jiyeon)\n- Tomorrow's person in charge: 수빈 (Subin)\n\nThe user asks me to output only today's person in charge name. That would be 지연.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "8b29f923dd8548c78daa65e23a842057d58bc3d53a5b3ef3813bf24725745016",
+        "resources": {
+          "ram_min_available_gib": 17.52227783203125,
+          "ram_peak_used_gib": 76.03374099731445,
+          "strata_peak_working_set_sum_gib": 49.0534553527832,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "style-korean-story",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "length",
+        "first_token_seconds": 0.5060987999895588,
+        "first_content_seconds": 0.5060991999926046,
+        "elapsed_seconds": 6.679656199994497,
+        "usage": {
+          "prompt_tokens": 80,
+          "completion_tokens": 512,
+          "total_tokens": 592,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 80,
+          "prompt_ms": 312.8,
+          "prompt_per_token_ms": 3.91,
+          "prompt_per_second": 255.8,
+          "predicted_n": 512,
+          "predicted_ms": 6188.6,
+          "predicted_per_token_ms": 12.087,
+          "predicted_per_second": 82.7,
+          "draft_n": 306,
+          "draft_n_accepted": 170
+        },
+        "content": "창밖으로 쏟아지는 늦가을의 비는 공연장 유리벽을 타고 흐르며 희미한 물줄기를 만들어냈고, 그 소란스러운 빗소리는 무대 위를 채우는 정적과 묘하게 어우러져 공기를 무겁게 가라앉혔다. 조명은 아직 완전히 켜지지 않은 채, 무대 중앙의 한 지점에만 차갑고 푸른빛의 스포트라이트가 가늘게 떨어지고 있었으며, 그 빛의 원 안에 서 있는 두 배우의 그림자가 바닥에 길게 늘어져 마치 서로를 삼키려는 듯이 겹쳐지고 있었다. 여배우 수진은 손끝이 미세하게 떨리고 있었지만, 그 떨림을 숨기려는 듯 무대 의상의 주름을 매만지며 시선을 아래로 내리깔고 있었다. 그녀의 눈동자 속에는 마지막 리허설이라는 사실보다도, 이 무대가 끝난 후 다시는 이 남자와 같은 공간에서 같은 대사를 주고받지 못할 것이라는 막연한 공포가 서려 있었다. 남배우 준혁은 그런 수진의 모습을 바라보며 천천히 한 발짝 앞으로 나아갔다. 그의 구두가 나무 바닥을 밟을 때마다 나는 묵직한 소리가 빗소리와 섞여 공연장 전체를 울리는 저음의 진동으로 변했다. 그는 수진의 어깨 너머로 비가 내리는 창밖을 잠시 응시하다가, 이내 시선을 수진의 얼굴로 돌리며 부드럽지만 단호한 목소리로 첫 대사를 뱉어냈다. \"기억해, 우리는 여기서 시작했어.\" 그 한마디에 수진의 고개가 천천히 들렸다. 그녀의 눈가에는 이미 눈물이 차오르고 있었지만, 배우로서의 본능은 그 눈물이 볼을 타고 흘러내리기 전에 멈추게 했다. 대신 그녀는 입술을 살짝 깨물며 준혁의 눈을 똑바로 마주 보았다. 그 순간 무대 위의 공기는 마치 얼음처럼 얼어붙은 듯 정지했고, 빗소리마저도 일순간 사라진 것처럼 느껴졌다. 준혁은 수진의 얼굴로 한 발짝 더 다가서며 손을 뻗어 그녀의 뺨을 감싸 쥐었다. 그의 손바닥은 차갑고 거칠었지만, 수진의 피부에 닿는 순간 묘한 온기가 전해졌다. 수진은 준혁의 손길에 몸을 살짝 경직시켰다가, 이내 그",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "2d5f658bc6d7666bd79c733a7226ace38bcc2ee9f3e4328e895edeca3557e5d8",
+        "resources": {
+          "ram_min_available_gib": 17.48935317993164,
+          "ram_peak_used_gib": 76.06666564941406,
+          "strata_peak_working_set_sum_gib": 49.05368423461914,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      },
+      {
+        "case": "style-korean-dialogue",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "length",
+        "first_token_seconds": 0.48772550001740456,
+        "first_content_seconds": 0.48772590002045035,
+        "elapsed_seconds": 6.629136800009292,
+        "usage": {
+          "prompt_tokens": 75,
+          "completion_tokens": 512,
+          "total_tokens": 587,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 75,
+          "prompt_ms": 294.8,
+          "prompt_per_token_ms": 3.931,
+          "prompt_per_second": 254.4,
+          "predicted_n": 512,
+          "predicted_ms": 6153.3,
+          "predicted_per_token_ms": 12.018,
+          "predicted_per_second": 83.2,
+          "draft_n": 336,
+          "draft_n_accepted": 199
+        },
+        "content": "**장소:** 서울 종로구, 좁고 낡은 골목길에 위치한 '고서점'. 오후 3시경. 창밖으로 비가 내리고 있다. 서점 안은 먼지 냄새와 오래된 종이의 향기가 뒤섞여 있다.\n\n**등장인물:**\n*   **민준 (30대 중반):** 과거 연극배우 지망생이었으나, 현재는 대기업 마케팅 팀장. 깔끔한 정장 차림이지만, 서점 안에서는 넥타이를 풀어헤치고 있다. 말투는 간결하고 논리적이며, 감정을 드러내기보다 분석하려는 습관이 있다.\n*   **수진 (30대 중반):** 과거 극작가 지망생이었으나, 현재는 초등학교 교사. 편한 니트와 청바지 차림. 말투는 부드럽고 유머러스하며, 과거의 기억을 회상할 때면 목소리가 떨리거나 눈가가 붉어진다.\n\n---\n\n**(민준이 서점 입구에서 우산을 털며 들어선다. 수진은 카운터 뒤에서 낡은 책 한 권을 정리하다 고개를 든다. 두 사람의 시선이 마주친 순간, 시간이 멈춘 듯 정적이 흐른다.)**\n\n**수진:** (손에 들고 있던 책이 바닥으로 떨어지는 것도 모른 채, 눈을 크게 뜨며) ...민준?\n\n**민준:** (우산을 접으며, 어색하게 웃어 보인다) 수진아. 오랜만이야.\n\n**수진:** (카운터를 우회해 민준에게 다가오며, 손을 뻗었다가 멈칫한다) 진짜... 민준이 맞지? 십 년 전 그날 이후로 처음 보는 거잖아. 너, 왜 이렇게... (민준의 정장을 훑어보며) 정장을 입고 있어?\n\n**민준:** (넥타이를 더 느슨하게 풀며) 회사에서 바로 왔어. 회의가 길어져서. 너는? 교복 입은 아이들 데리고 온 거야?\n\n**수진:** (웃으며) 아니, 그냥 비 피하려고 들어왔어. 근데... 너 진짜 변했네. 예전엔 항상 후드티에 슬리퍼 신고 다녔잖아.\n\n**민준:** (서점 안의 낡은 책장 사이로 걸어가며) 후드티는 이제",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "fa699789a67482c806f63765f5a18533e05f20bbfae704d1ce14e36848db6e75",
+        "resources": {
+          "ram_min_available_gib": 17.51049041748047,
+          "ram_peak_used_gib": 76.04552841186523,
+          "strata_peak_working_set_sum_gib": 49.05385971069336,
+          "gpu_peak_used_mib": 9998.0,
+          "gpu_min_free_mib": 5980.0
+        }
+      }
+    ],
+    "short_generation_median_tokens_per_second": 87.3,
+    "passed": 46,
+    "total": 46,
+    "health_after": {
+      "status": "ok",
+      "max_context": 262144,
+      "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+      "images": true,
+      "api_key": true,
+      "image_generation": false,
+      "loaded": true,
+      "service": "strata"
+    }
+  },
+  "same_protocol_passed": 28,
+  "same_protocol_total": 28,
+  "quality_validation": [
+    {
+      "case": "quality-suite-arithmetic-order",
+      "passed": true,
+      "expected": "410",
+      "actual": "410",
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 1.0326611999771558
+    },
+    {
+      "case": "quality-suite-arithmetic-subtract",
+      "passed": true,
+      "expected": "105",
+      "actual": "105",
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 0.9553602999949362
+    },
+    {
+      "case": "quality-suite-arithmetic-divide",
+      "passed": true,
+      "expected": "49",
+      "actual": "49",
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 0.9350689999992028
+    },
+    {
+      "case": "quality-suite-arithmetic-modulo",
+      "passed": true,
+      "expected": "34",
+      "actual": "34",
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 2.226721599989105
+    },
+    {
+      "case": "quality-suite-logic-order",
+      "passed": true,
+      "expected": "C,A,B,D",
+      "actual": "C,A,B,D",
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 2.035434699995676
+    },
+    {
+      "case": "quality-suite-logic-machines",
+      "passed": true,
+      "expected": "5",
+      "actual": "5",
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 1.9619633000111207
+    },
+    {
+      "case": "quality-suite-logic-conditional",
+      "passed": true,
+      "expected": "아니오",
+      "actual": "아니오",
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 2.820108200015966
+    },
+    {
+      "case": "quality-suite-json-sort",
+      "passed": true,
+      "expected": {
+        "values": [
+          2,
+          5,
+          7,
+          9
+        ]
+      },
+      "actual": {
+        "values": [
+          2,
+          5,
+          7,
+          9
+        ]
+      },
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 2.2788461999734864
+    },
+    {
+      "case": "quality-suite-json-filter",
+      "passed": true,
+      "expected": {
+        "available": [
+          "B",
+          "C"
+        ]
+      },
+      "actual": {
+        "available": [
+          "B",
+          "C"
+        ]
+      },
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 2.120337500004098
+    },
+    {
+      "case": "quality-suite-json-extract",
+      "passed": true,
+      "expected": {
+        "port": 8488,
+        "context": 262144
+      },
+      "actual": {
+        "port": 8488,
+        "context": 262144
+      },
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 2.186408499983372
+    },
+    {
+      "case": "quality-suite-copy-ascii",
+      "passed": true,
+      "expected": "KEEP-0O1l-7f29-262144",
+      "actual": "KEEP-0O1l-7f29-262144",
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 2.2454874999821186
+    },
+    {
+      "case": "quality-suite-korean-extract",
+      "passed": true,
+      "expected": "지연",
+      "actual": "지연",
+      "parse_error": null,
+      "transport_passed": true,
+      "truncated": false,
+      "elapsed_seconds": 1.479229699994903
+    }
+  ],
+  "doctor": {
+    "ok": true,
+    "issues": [],
+    "components_directory": "C:/Strata-data/components"
+  },
+  "doctor_initial_attempt": {
+    "ok": false,
+    "issues": [
+      {
+        "code": "COMPONENT_MISSING",
+        "severity": "error",
+        "component": "engine",
+        "message": "required component unavailable"
+      }
+    ],
+    "note": "Initial standalone diagnostic omitted STRATA_COMPONENTS_DIR and checked AppData. Repeated read-only diagnostic with the operational components directory; no runtime or configuration changes."
+  },
+  "management_immediately_after_generation": {
+    "state": "generating",
+    "in_flight": 1,
+    "instance_id": "1727f3a9465d466d9efd86658ae4682f",
+    "port": 8488,
+    "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs"
+  },
+  "engine_log": {
+    "critical_matches": [],
+    "layer_major_lines": [
+      "strata prefill: layer-major (layers 0..48): 8164 tokens in 1 super-chunk(s) of up to 8192 (R in pinned RAM, 6929 MiB VRAM free before), 21346 expert blobs streamed (37328.6 MB), 287 resident, 1380 expert groups (0 on the FP16 path); 3574 ms (host: enqueueing the attention halves 908, the experts 2666: waiting for the attention halves 2442, the routing tables 33)",
+      "strata prefill: layer-major (layers 0..48): 32761 tokens in 2 super-chunk(s) of up to 16384 (R in pinned RAM, 6877 MiB VRAM free before), 44463 expert blobs streamed (77681.8 MB), 668 resident, 2974 expert groups (0 on the FP16 path); 11814 ms (host: enqueueing the attention halves 3666, the experts 8147: waiting for the attention halves 7734, the routing tables 81)",
+      "strata prefill: layer-major (layers 0..48): 131044 tokens in 8 super-chunk(s) of up to 16384 (R in pinned RAM, 6877 MiB VRAM free before), 178075 expert blobs streamed (311243.9 MB), 2719 resident, 11817 expert groups (0 on the FP16 path); 50340 ms (host: enqueueing the attention halves 16675, the experts 33664: waiting for the attention halves 31919, the routing tables 360)",
+      "strata prefill: layer-major (layers 0..48): 259990 tokens in 16 super-chunk(s) of up to 16384 (R in pinned RAM, 6877 MiB VRAM free before), 356845 expert blobs streamed (623443.3 MB), 5411 resident, 23642 expert groups (0 on the FP16 path); 108305 ms (host: enqueueing the attention halves 38707, the experts 69595: waiting for the attention halves 66185, the routing tables 707)",
+      "strata prefill: layer-major (layers 0..48): 1427 tokens in 1 super-chunk(s) of up to 2048 (R in pinned RAM, 6877 MiB VRAM free before), 13712 expert blobs streamed (24413.7 MB), 299 resident, 898 expert groups (0 on the FP16 path); 1225 ms (host: enqueueing the attention halves 52, the experts 1173: waiting for the attention halves 1027, the routing tables 5)",
+      "strata prefill: layer-major (layers 0..48): 1670 tokens in 1 super-chunk(s) of up to 2048 (R in pinned RAM, 6877 MiB VRAM free before), 18100 expert blobs streamed (31588.6 MB), 275 resident, 1172 expert groups (0 on the FP16 path); 1509 ms (host: enqueueing the attention halves 70, the experts 1439: waiting for the attention halves 1257, the routing tables 5)",
+      "strata prefill: layer-major (layers 0..48): 4523 tokens in 1 super-chunk(s) of up to 5120 (R in pinned RAM, 6877 MiB VRAM free before), 16492 expert blobs streamed (29141.8 MB), 296 resident, 1071 expert groups (0 on the FP16 path); 2222 ms (host: enqueueing the attention halves 401, the experts 1821: waiting for the attention halves 1669, the routing tables 11)",
+      "strata prefill: layer-major (layers 0..48): 4524 tokens in 1 super-chunk(s) of up to 5120 (R in pinned RAM, 6877 MiB VRAM free before), 16606 expert blobs streamed (29334.0 MB), 307 resident, 1083 expert groups (0 on the FP16 path); 2227 ms (host: enqueueing the attention halves 402, the experts 1825: waiting for the attention halves 1672, the routing tables 11)"
+    ]
+  },
+  "source_status": "",
+  "protocol_manifest": {
+    "measure_api_baseline.py": "1849f89a96172660b8ef3e87ad2c41e00e9c5281e073d6d917206e1b5a59937c",
+    "measure_optimization_quality.py": "c82f345d324a1d60e13ed4c2c6b10076c1e056c7b1622fae77b4b700ff0a0e91",
+    "optimize_api_profile.py": "c0f1c6b2b6dc83e14408a5c7ec3984f74c3f820d379ebffc54c3bcf8dd26c897"
+  },
+  "resource_note": "2-second samples of the whole system/GPU; not isolated Strata memory or an instantaneous peak.",
+  "limitations": "One repeated managed-instance run, no new A/B/A comparison. Request order differs for the additional decode and quality probes. No simultaneous ComfyUI generation."
+}
