@@ -224,6 +224,19 @@ cached prefix 260033 tokens, TTFT 0.675초였습니다. 최소 여유 RAM은 약
 한국어 서술·대화의 512-token throughput도 3 rounds에서 함께 비교합니다.
 정답 12문제와 긴 입력은 현재 네 가지 설정 각각에서 한 번 이상 검증합니다.
 
+19:52 `r07-prefill-layer-major-host-16k` 완료:
+
+- medium 정답 12/12, 128K·260K 검색 3/3씩, 새 record 확인 후 512-token 생성 통과.
+- 짧은 세 작업 decode 기하평균 83.4422 tok/s (원본 83.4417).
+- cold 32K PP 2742.8 tok/s (원본 1250.9).
+- 128K prompt 50.422초 (원본 112.411), 260K prompt 108.928초 (원본 232.918).
+- 260K 이후 512-token decode 87.5 tok/s (원본 84.5), prefix 260032 재사용.
+- 전체 GPU peak 10427MiB (원본 9996), 최소 여유 RAM 10.41GiB (원본 11.05).
+
+Context 262144 / reserve 8192 / KV resident 32768 / MTP on을 유지한 결과입니다.
+추가 GPU 약 431MiB와 RAM 약 0.64GiB의 비용이 있으므로 자원 사용량도 함께 보고합니다.
+현재 같은 prefill을 적용한 MTP off를 측정 중입니다. 다음 단계는 위 on 후보의 3회 A/B/A와 한국어 두 작업 비교입니다.
+
 ## 중단 후 이어가기
 
 - 로컬 작업 폴더: `runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144/`.
