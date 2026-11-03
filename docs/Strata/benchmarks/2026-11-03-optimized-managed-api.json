@@ -1,0 +1,1770 @@
+{
+  "recorded_at": "2026-11-03T20:19:00.073617+09:00",
+  "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+  "source_release": "v0.2.10",
+  "engine_version": "0.1.56",
+  "baseline_commit": "565803dc0f79c3b99df05348722177918808e1a8",
+  "context_tokens": 262144,
+  "reserve_mib": 8192,
+  "selected_environment": {
+    "STRATA_PREFILL_LAYER_MAJOR": "1",
+    "STRATA_PREFILL_LM_R": "host",
+    "STRATA_PREFILL_LM_TOKENS": "16384"
+  },
+  "mtp": "on",
+  "configuration": {
+    "exe": "component:strata-engine",
+    "backend": "cuda",
+    "arch": "qwen4exp",
+    "args": [
+      "--pack",
+      "C:/Strata-data/packs/sc117_iq3_xxs",
+      "--native",
+      "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00001-of-00002.gguf",
+      "--ple-gguf",
+      "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00002-of-00002.gguf",
+      "--expert-profile",
+      "C:/Users/azzib/Desktop/workspace_local/llm-home-server/external_repo/Strata/data/expert-profile.bin",
+      "--expert-cache",
+      "auto",
+      "--prefill",
+      "auto",
+      "--spec",
+      "4",
+      "--spec-min-p",
+      "0.5",
+      "--mtp",
+      "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/strata/rt",
+      "--max-context",
+      "262144",
+      "--kv",
+      "int8",
+      "--kv-resident",
+      "32768",
+      "--vram-reserve-mib",
+      "8192",
+      "--vision"
+    ],
+    "cwd": "C:/Users/azzib/Desktop/workspace_local/llm-home-server/runtime/Strata/working",
+    "tokenizer": "C:/Strata-data/packs/sc117_iq3_xxs/tokenizer",
+    "model_name": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+    "log": "C:/Users/azzib/Desktop/workspace_local/llm-home-server/runtime/Strata/logs/strata-engine.log",
+    "lib_dirs": [
+      "C:/Users/azzib/Desktop/workspace_local/llm-home-server/.venv/Strata/Lib/site-packages/nvidia/cu13/bin/x86_64"
+    ],
+    "host": "0.0.0.0",
+    "port": 8488,
+    "parallel": 1,
+    "vision": {
+      "exe": "C:/Strata-data/components/engine/0.1.56-windows-x86_64-cuda-cuda13/strata-vision.exe",
+      "mmproj": "C:/Strata-data/models/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF/mmproj-Qwen3.8-Flash-Next-BF16.gguf",
+      "model": "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00001-of-00002.gguf",
+      "gpu": false,
+      "threads": 8,
+      "max_tokens": 300
+    },
+    "reasoning_loop_recovery": "stop",
+    "repeat_stop_tokens": 256,
+    "drafting": "mtp",
+    "env": {
+      "STRATA_PREFILL_LAYER_MAJOR": "1",
+      "STRATA_PREFILL_LM_R": "host",
+      "STRATA_PREFILL_LM_TOKENS": "16384"
+    }
+  },
+  "paired_comparisons": [
+    {
+      "round": "r10",
+      "arm": "prefill-layer-major-host-16k",
+      "control_trials": [
+        "r10-baseline",
+        "r10-baseline-tail"
+      ],
+      "baseline_decode_absolute_drift": 0.009277011127809764,
+      "baseline_prefill_absolute_drift": 0.0008016032064128709,
+      "decode_ratio": 1.00211761610591,
+      "prefill_ratio": 2.2063353818479086,
+      "task_ratios": {
+        "decode-korean": 1.0107280413951267,
+        "decode-code": 1.0036462204104621,
+        "decode-english": 0.9920672695460171,
+        "style-korean-story": 1.0100026733834213,
+        "style-korean-dialogue": 0.9985109736332516
+      }
+    },
+    {
+      "round": "r11",
+      "arm": "prefill-layer-major-host-16k",
+      "control_trials": [
+        "r11-baseline",
+        "r11-baseline-tail"
+      ],
+      "baseline_decode_absolute_drift": 0.01918847664894363,
+      "baseline_prefill_absolute_drift": 0.0037769206043072323,
+      "decode_ratio": 0.989080332789626,
+      "prefill_ratio": 2.2039742380386858,
+      "task_ratios": {
+        "decode-korean": 0.9893840272944459,
+        "decode-code": 0.9792359963107583,
+        "decode-english": 0.9987169817448432,
+        "style-korean-story": 1.0447368290178143,
+        "style-korean-dialogue": 0.9917408225777699
+      }
+    },
+    {
+      "round": "r12",
+      "arm": "prefill-layer-major-host-16k",
+      "control_trials": [
+        "r12-baseline",
+        "r12-baseline-tail"
+      ],
+      "baseline_decode_absolute_drift": 0.008996019733886751,
+      "baseline_prefill_absolute_drift": 0.003058103975535298,
+      "decode_ratio": 0.987440303772023,
+      "prefill_ratio": 2.209564648223345,
+      "task_ratios": {
+        "decode-korean": 0.9883993277566332,
+        "decode-code": 1.0063068217110438,
+        "decode-english": 0.9679873696543563,
+        "style-korean-story": 1.0298743093266458,
+        "style-korean-dialogue": 0.9977562525270424
+      }
+    }
+  ],
+  "median_decode_ratio": 0.989080332789626,
+  "median_prefill_ratio": 2.2063353818479086,
+  "baseline_comparisons": [
+    {
+      "case": "retrieval-8192",
+      "old_ttft_seconds": 6.705054700025357,
+      "optimized_ttft_seconds": 3.7915064000117127,
+      "old_prefill_tokens_per_second": 1255.2,
+      "optimized_prefill_tokens_per_second": 2272.0,
+      "optimized_cached_tokens": 0,
+      "passed": true
+    },
+    {
+      "case": "retrieval-32768",
+      "old_ttft_seconds": 26.584855900000548,
+      "optimized_ttft_seconds": 12.215380899986485,
+      "old_prefill_tokens_per_second": 1242.1,
+      "optimized_prefill_tokens_per_second": 2727.7,
+      "optimized_cached_tokens": 0,
+      "passed": true
+    },
+    {
+      "case": "retrieval-131072",
+      "old_ttft_seconds": 112.17923010000959,
+      "optimized_ttft_seconds": 50.792675600008806,
+      "old_prefill_tokens_per_second": 1170.5,
+      "optimized_prefill_tokens_per_second": 2593.5,
+      "optimized_cached_tokens": 0,
+      "passed": true
+    },
+    {
+      "case": "retrieval-260000",
+      "old_ttft_seconds": 235.12254720000783,
+      "optimized_ttft_seconds": 109.39320160000352,
+      "old_prefill_tokens_per_second": 1107.4,
+      "optimized_prefill_tokens_per_second": 2383.6,
+      "optimized_cached_tokens": 0,
+      "passed": true
+    }
+  ],
+  "managed_api": {
+    "finished_at": "2026-11-03T20:16:37.668952+09:00",
+    "results": [
+      {
+        "case": "warmup",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.5750992999819573,
+        "first_content_seconds": 0.5751002999895718,
+        "elapsed_seconds": 0.6140747999888845,
+        "usage": {
+          "prompt_tokens": 17,
+          "completion_tokens": 2,
+          "total_tokens": 19,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 17,
+          "prompt_ms": 351.2,
+          "prompt_per_token_ms": 20.659,
+          "prompt_per_second": 48.4,
+          "predicted_n": 2,
+          "predicted_ms": 55.0,
+          "predicted_per_token_ms": 27.5,
+          "predicted_per_second": 36.4,
+          "draft_n": 3,
+          "draft_n_accepted": 2
+        },
+        "content": "READY",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "READY"
+        ],
+        "expected_present": true,
+        "request_sha256": "bb1c9981deb2761075be30b9de6aff7f612d40090bab9dfed26466707f9df18e",
+        "resources": {
+          "ram_min_available_gib": 14.210479736328125,
+          "ram_peak_used_gib": 79.34553909301758,
+          "strata_peak_working_set_sum_gib": 48.19889450073242,
+          "gpu_peak_used_mib": 9975.0,
+          "gpu_min_free_mib": 6003.0
+        }
+      },
+      {
+        "case": "short-arithmetic",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.5275532999949064,
+        "first_content_seconds": 0.5275537999987137,
+        "elapsed_seconds": 0.7664381999929901,
+        "usage": {
+          "prompt_tokens": 40,
+          "completion_tokens": 23,
+          "total_tokens": 63,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 40,
+          "prompt_ms": 339.5,
+          "prompt_per_token_ms": 8.488,
+          "prompt_per_second": 117.8,
+          "predicted_n": 23,
+          "predicted_ms": 252.8,
+          "predicted_per_token_ms": 10.991,
+          "predicted_per_second": 91.0,
+          "draft_n": 19,
+          "draft_n_accepted": 17
+        },
+        "content": "{\n  \"answer\": 410,\n  \"label\": \"BASELINE\"\n}",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "410",
+          "BASELINE"
+        ],
+        "expected_present": true,
+        "request_sha256": "0b9f055d8b7cbb4c7968003ec2dc1829d09a3b924b965e167a19dc1d08972d90",
+        "resources": {
+          "ram_min_available_gib": 13.986873626708984,
+          "ram_peak_used_gib": 79.56914520263672,
+          "strata_peak_working_set_sum_gib": 48.388206481933594,
+          "gpu_peak_used_mib": 9987.0,
+          "gpu_min_free_mib": 5991.0
+        }
+      },
+      {
+        "case": "short-generation-01",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.6490384000062477,
+        "first_content_seconds": 0.6490389000100549,
+        "elapsed_seconds": 5.1609267000167165,
+        "usage": {
+          "prompt_tokens": 63,
+          "completion_tokens": 407,
+          "total_tokens": 470,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 63,
+          "prompt_ms": 459.0,
+          "prompt_per_token_ms": 7.286,
+          "prompt_per_second": 137.3,
+          "predicted_n": 407,
+          "predicted_ms": 4521.0,
+          "predicted_per_token_ms": 11.108,
+          "predicted_per_second": 90.0,
+          "draft_n": 264,
+          "draft_n_accepted": 193
+        },
+        "content": "1. 로컬 LLM 서버의 안정성을 위해 최소 16GB 이상의 RAM을 확보하여 시스템 메모리 부족으로 인한 오류를 방지하세요.\n2. GPU 가속을 활용하려면 최소 8GB 이상의 VRAM을 장착하여 모델 추론 속도와 처리량을 극대화하세요.\n3. 컨텍스트 윈도우 길이는 사용자의 요청 패턴에 맞춰 4k에서 32k 사이로 설정하여 메모리 사용량과 응답 품질의 균형을 맞추세요.\n4. 외부 애플리케이션과의 연동을 위해 OpenAI 호환 API 엔드포인트를 활성화하고 포트 방화벽 설정을 엄격하게 관리하세요.\n5. 모든 추론 요청과 시스템 이벤트를 기록하기 위해 상세한 로그 로테이션 정책을 적용하여 디스크 용량 문제를 예방하세요.\n6. 모델 가중치와 설정 파일의 손실을 방지하기 위해 정기적으로 자동화된 백업 스크립트를 실행하여 외부 저장소에 보관하세요.\n7. 서버 재시작 시 모델 로딩 시간을 단축하기 위해 캐시된 가중치 파일을 최적화된 형식으로 저장하고 관리하세요.\n8. 동시 접속자 수에 따라 배치 크기를 동적으로 조정하여 GPU 메모리 누수나 과부하로 인한 다운타임을 최소화하세요.\n9. 보안 취약점을 차단하기 위해 API 키 인증을 필수로 적용하고 불필요한 외부 IP 접근을 제한하는 방화벽 규칙을 설정하세요.\n10. 성능 모니터링을 위해 CPU, GPU, 메모리 사용량을 실시간으로 추적하는 대시보드를 구축하여 병목 현상을 조기에 발견하세요.\n11. 소프트웨어 업데이트 시 호환성 문제를 피하기 위해 테스트 환경에서 먼저 검증한 후 프로덕션 서버에 적용하는 절차를 따르세요.\n12. 장애 발생 시 빠른 복구를 위해 백업 데이터의 무결성을 정기적으로 검증하고 복구 절차에 대한 문서화된 가이드를 유지하세요.",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "51a24d13f865c39b9f80d7253004b6c6f0cfe839a6b5e39f819459ecc446bf6d",
+        "resources": {
+          "ram_min_available_gib": 13.769935607910156,
+          "ram_peak_used_gib": 79.78608322143555,
+          "strata_peak_working_set_sum_gib": 48.510047912597656,
+          "gpu_peak_used_mib": 9987.0,
+          "gpu_min_free_mib": 5991.0
+        }
+      },
+      {
+        "case": "short-generation-02",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.2705801000120118,
+        "first_content_seconds": 0.2705804000142962,
+        "elapsed_seconds": 4.367447500000708,
+        "usage": {
+          "prompt_tokens": 63,
+          "completion_tokens": 366,
+          "total_tokens": 429,
+          "prompt_tokens_details": {
+            "cached_tokens": 56
+          }
+        },
+        "timings": {
+          "cache_n": 56,
+          "prompt_n": 7,
+          "prompt_ms": 94.4,
+          "prompt_per_token_ms": 13.486,
+          "prompt_per_second": 74.2,
+          "predicted_n": 366,
+          "predicted_ms": 4111.2,
+          "predicted_per_token_ms": 11.233,
+          "predicted_per_second": 89.0,
+          "draft_n": 224,
+          "draft_n_accepted": 169
+        },
+        "content": "1. 로컬 LLM 서버의 안정성을 위해 최소 16GB 이상의 RAM을 확보하여 시스템 메모리 부족으로 인한 오류를 방지하세요.\n2. GPU 가속을 활용하려면 최소 8GB 이상의 VRAM을 장착하여 모델 추론 속도와 처리량을 최적화하세요.\n3. 컨텍스트 윈도우(Context) 길이는 하드웨어 사양에 맞춰 설정하여 장문 입력 시 메모리 누수를 예방하세요.\n4. 외부 애플리케이션과 연동하기 위해 OpenAI 호환 API 엔드포인트를 구성하고 보안 토큰을 발급하세요.\n5. API 요청과 응답의 모든 트래픽을 상세히 기록하는 로그(Log) 시스템을 구축하여 문제 발생 시 원인 분석을 용이하게 하세요.\n6. 모델 가중치와 설정 파일을 정기적으로 백업(Backup)하여 데이터 손실 위험을 최소화하고 복구 시간을 단축하세요.\n7. 서버 재시작 시 모델이 자동으로 로드되도록 systemd 서비스 스크립트를 작성하여 운영 편의성을 높이세요.\n8. 동시 접속자 수를 제한하는 큐잉 메커니즘을 적용하여 서버 과부하로 인한 다운타임을 방지하세요.\n9. 보안 취약점을 방지하기 위해 방화벽 규칙을 설정하고 불필요한 포트 접근을 차단하세요.\n10. 디스크 용량 모니터링 스크립트를 실행하여 로그 및 캐시 파일로 인한 저장소 부족을 사전에 감지하세요.\n11. 모델 업데이트 시 이전 버전과의 호환성을 테스트하고 롤백 절차를 문서화하여 서비스 중단을 최소화하세요.\n12. 정기적인 성능 벤치마크와 보안 패치 적용을 통해 서버의 안정성과 최신성을 유지하세요.",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "51a24d13f865c39b9f80d7253004b6c6f0cfe839a6b5e39f819459ecc446bf6d",
+        "resources": {
+          "ram_min_available_gib": 13.6766357421875,
+          "ram_peak_used_gib": 79.8793830871582,
+          "strata_peak_working_set_sum_gib": 48.590370178222656,
+          "gpu_peak_used_mib": 9987.0,
+          "gpu_min_free_mib": 5991.0
+        }
+      },
+      {
+        "case": "short-generation-03",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.27222539999638684,
+        "first_content_seconds": 0.2722256999986712,
+        "elapsed_seconds": 4.91761159998714,
+        "usage": {
+          "prompt_tokens": 63,
+          "completion_tokens": 403,
+          "total_tokens": 466,
+          "prompt_tokens_details": {
+            "cached_tokens": 56
+          }
+        },
+        "timings": {
+          "cache_n": 56,
+          "prompt_n": 7,
+          "prompt_ms": 93.2,
+          "prompt_per_token_ms": 13.314,
+          "prompt_per_second": 75.1,
+          "predicted_n": 403,
+          "predicted_ms": 4593.0,
+          "predicted_per_token_ms": 11.397,
+          "predicted_per_second": 87.7,
+          "draft_n": 256,
+          "draft_n_accepted": 184
+        },
+        "content": "1. 로컬 LLM 서버의 안정성을 위해 최소 16GB 이상의 RAM을 확보하여 시스템 메모리 부족으로 인한 오류를 방지하세요.\n2. GPU 가속을 활용하려면 모델 크기에 맞춰 충분한 VRAM을 준비하고, 메모리 누수를 주기적으로 점검하여 성능 저하를 예방하세요.\n3. 컨텍스트 윈도우(Context) 길이는 하드웨어 사양과 사용자 요구사항에 따라 적절히 설정하여 처리 속도와 응답 품질의 균형을 맞추세요.\n4. API 엔드포인트는 내부 네트워크에서만 접근 가능하도록 제한하고, 인증 토큰을 사용하여 무단 접근을 차단하는 보안 정책을 적용하세요.\n5. 모든 추론 요청과 시스템 상태를 상세히 기록하는 로그(Log) 시스템을 구축하여 문제 발생 시 원인 분석을 용이하게 하세요.\n6. 로그 파일의 용량 증가를 방지하기 위해 자동 로테이션 기능을 설정하고, 중요한 이벤트는 별도 저장소에 보관하여 관리 효율성을 높이세요.\n7. 모델 가중치와 설정 파일의 정기적인 백업(Backup)을 수행하여 하드웨어 고장이나 데이터 손실 시 신속한 복구가 가능하도록 하세요.\n8. 백업 데이터는 오프라인 저장소나 클라우드에 이중으로 보관하여 단일 장애점(SPOF)을 제거하고 데이터 무결성을 보장하세요.\n9. 서버 업데이트 전에는 반드시 전체 시스템 스냅샷을 생성하여 변경 사항으로 인한 예상치 못한 오류에 대비하세요.\n10. 모니터링 대시보드를 통해 CPU, GPU 사용률 및 응답 시간을 실시간으로 추적하여 병목 현상을 조기에 발견하세요.\n11. 정기적인 보안 패치 적용과 취약점 스캔을 통해 서버 환경을 최신 상태로 유지하고 외부 위협으로부터 보호하세요.\n12. 문서화된 운영 절차와 비상 대응 매뉴얼을 팀원들과 공유하여 일관된 관리와 신속한 장애 처리를 실현하세요.",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "51a24d13f865c39b9f80d7253004b6c6f0cfe839a6b5e39f819459ecc446bf6d",
+        "resources": {
+          "ram_min_available_gib": 13.738334655761719,
+          "ram_peak_used_gib": 79.81768417358398,
+          "strata_peak_working_set_sum_gib": 48.56410217285156,
+          "gpu_peak_used_mib": 9987.0,
+          "gpu_min_free_mib": 5991.0
+        }
+      },
+      {
+        "case": "retrieval-8192",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 3.7915064000117127,
+        "first_content_seconds": 3.791506700013997,
+        "elapsed_seconds": 4.194767500011949,
+        "usage": {
+          "prompt_tokens": 8171,
+          "completion_tokens": 32,
+          "total_tokens": 8203,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 8171,
+          "prompt_ms": 3596.4,
+          "prompt_per_token_ms": 0.44,
+          "prompt_per_second": 2272.0,
+          "predicted_n": 32,
+          "predicted_ms": 418.3,
+          "predicted_per_token_ms": 13.072,
+          "predicted_per_second": 76.5,
+          "draft_n": 31,
+          "draft_n_accepted": 23
+        },
+        "content": "SECRET-4BBCA5F77F\nSECRET-EAAFDE43AA\nSECRET-70B819C1E2",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "SECRET-4BBCA5F77F",
+          "SECRET-EAAFDE43AA",
+          "SECRET-70B819C1E2"
+        ],
+        "expected_present": true,
+        "request_sha256": "026d192654ae4fe229a1bef3e0cc60fc9369e6d9e2c5c5c39bdb3cea711cf0e3",
+        "resources": {
+          "ram_min_available_gib": 13.572242736816406,
+          "ram_peak_used_gib": 79.9837760925293,
+          "strata_peak_working_set_sum_gib": 48.64408874511719,
+          "gpu_peak_used_mib": 10231.0,
+          "gpu_min_free_mib": 5747.0
+        }
+      },
+      {
+        "case": "retrieval-32768",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 12.215380899986485,
+        "first_content_seconds": 12.215381599991815,
+        "elapsed_seconds": 12.503398799977731,
+        "usage": {
+          "prompt_tokens": 32768,
+          "completion_tokens": 34,
+          "total_tokens": 32802,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 32768,
+          "prompt_ms": 12012.9,
+          "prompt_per_token_ms": 0.367,
+          "prompt_per_second": 2727.7,
+          "predicted_n": 34,
+          "predicted_ms": 301.3,
+          "predicted_per_token_ms": 8.862,
+          "predicted_per_second": 112.8,
+          "draft_n": 26,
+          "draft_n_accepted": 25
+        },
+        "content": "SECRET-F996CB8BEE, SECRET-BB66A29A5B, SECRET-CE31A6660D",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "SECRET-F996CB8BEE",
+          "SECRET-BB66A29A5B",
+          "SECRET-CE31A6660D"
+        ],
+        "expected_present": true,
+        "request_sha256": "2214440dd2bc192387866612d1379dccc2be0209780f0ad66e5b99c651388cdf",
+        "resources": {
+          "ram_min_available_gib": 13.043754577636719,
+          "ram_peak_used_gib": 80.51226425170898,
+          "strata_peak_working_set_sum_gib": 49.19871520996094,
+          "gpu_peak_used_mib": 10437.0,
+          "gpu_min_free_mib": 5541.0
+        }
+      },
+      {
+        "case": "retrieval-131072",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 50.792675600008806,
+        "first_content_seconds": 50.79267610001261,
+        "elapsed_seconds": 51.155033399991225,
+        "usage": {
+          "prompt_tokens": 131051,
+          "completion_tokens": 35,
+          "total_tokens": 131086,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 131051,
+          "prompt_ms": 50530.9,
+          "prompt_per_token_ms": 0.386,
+          "prompt_per_second": 2593.5,
+          "predicted_n": 35,
+          "predicted_ms": 376.6,
+          "predicted_per_token_ms": 10.76,
+          "predicted_per_second": 92.9,
+          "draft_n": 30,
+          "draft_n_accepted": 24
+        },
+        "content": "SECRET-2DAF4C50B6\nSECRET-29AA791BC6\nSECRET-9C52DB3A76",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "SECRET-2DAF4C50B6",
+          "SECRET-29AA791BC6",
+          "SECRET-9C52DB3A76"
+        ],
+        "expected_present": true,
+        "request_sha256": "b077fda7589aca598946a5fa74c67a424fe0fdf7cb4b35dc62ba50f0c1d5956c",
+        "resources": {
+          "ram_min_available_gib": 11.907024383544922,
+          "ram_peak_used_gib": 81.64899444580078,
+          "strata_peak_working_set_sum_gib": 50.3253059387207,
+          "gpu_peak_used_mib": 10437.0,
+          "gpu_min_free_mib": 5541.0
+        }
+      },
+      {
+        "case": "retrieval-260000",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 109.39320160000352,
+        "first_content_seconds": 109.39320200000657,
+        "elapsed_seconds": 109.79274000000441,
+        "usage": {
+          "prompt_tokens": 259997,
+          "completion_tokens": 36,
+          "total_tokens": 260033,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 259997,
+          "prompt_ms": 109076.3,
+          "prompt_per_token_ms": 0.42,
+          "prompt_per_second": 2383.6,
+          "predicted_n": 36,
+          "predicted_ms": 413.1,
+          "predicted_per_token_ms": 11.475,
+          "predicted_per_second": 87.1,
+          "draft_n": 33,
+          "draft_n_accepted": 23
+        },
+        "content": "SECRET-E351405F65\nSECRET-77CD716383\nSECRET-AD34C94626",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "SECRET-E351405F65",
+          "SECRET-77CD716383",
+          "SECRET-AD34C94626"
+        ],
+        "expected_present": true,
+        "request_sha256": "cfdaede95c1bf69bb09eea453b6776f91148ff8fa71150ddaa0073ca33bc6de4",
+        "resources": {
+          "ram_min_available_gib": 9.52071762084961,
+          "ram_peak_used_gib": 84.0353012084961,
+          "strata_peak_working_set_sum_gib": 52.83064651489258,
+          "gpu_peak_used_mib": 10437.0,
+          "gpu_min_free_mib": 5541.0
+        }
+      },
+      {
+        "case": "long-followup",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.5177852000051644,
+        "first_content_seconds": 0.5177855999791063,
+        "elapsed_seconds": 0.6661385000043083,
+        "usage": {
+          "prompt_tokens": 260067,
+          "completion_tokens": 11,
+          "total_tokens": 260078,
+          "prompt_tokens_details": {
+            "cached_tokens": 260033
+          }
+        },
+        "timings": {
+          "cache_n": 260033,
+          "prompt_n": 34,
+          "prompt_ms": 266.4,
+          "prompt_per_token_ms": 7.835,
+          "prompt_per_second": 127.6,
+          "predicted_n": 11,
+          "predicted_ms": 163.3,
+          "predicted_per_token_ms": 14.845,
+          "predicted_per_second": 67.4,
+          "draft_n": 11,
+          "draft_n_accepted": 7
+        },
+        "content": "eb49d3aa28a4",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "eb49d3aa28a4"
+        ],
+        "expected_present": true,
+        "request_sha256": "dd34c5ba00a3353d21cf09fc91f6a01cd7bfb19887f454d592baae29a9e69dda",
+        "resources": {
+          "ram_min_available_gib": 13.632282257080078,
+          "ram_peak_used_gib": 79.92373657226562,
+          "strata_peak_working_set_sum_gib": 52.760135650634766,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "long-cache-interleave",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 3.005200199986575,
+        "first_content_seconds": 3.0052004999888595,
+        "elapsed_seconds": 3.112773600005312,
+        "usage": {
+          "prompt_tokens": 1434,
+          "completion_tokens": 9,
+          "total_tokens": 1443,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 1434,
+          "prompt_ms": 2815.3,
+          "prompt_per_token_ms": 1.963,
+          "prompt_per_second": 509.4,
+          "predicted_n": 9,
+          "predicted_ms": 120.4,
+          "predicted_per_token_ms": 13.378,
+          "predicted_per_second": 74.8,
+          "draft_n": 9,
+          "draft_n_accepted": 6
+        },
+        "content": "UNRELATED-52648",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "UNRELATED-52648"
+        ],
+        "expected_present": true,
+        "request_sha256": "20d487df956d0a80aee98a06f2548fffd4e515d87401ca93da5d4c8000130f04",
+        "resources": {
+          "ram_min_available_gib": 13.61275863647461,
+          "ram_peak_used_gib": 79.9432601928711,
+          "strata_peak_working_set_sum_gib": 52.60612106323242,
+          "gpu_peak_used_mib": 10083.0,
+          "gpu_min_free_mib": 5895.0
+        }
+      },
+      {
+        "case": "long-cache-restore",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.5318628000095487,
+        "first_content_seconds": 0.5318634000141174,
+        "elapsed_seconds": 0.6669737000192981,
+        "usage": {
+          "prompt_tokens": 260067,
+          "completion_tokens": 11,
+          "total_tokens": 260078,
+          "prompt_tokens_details": {
+            "cached_tokens": 260060
+          }
+        },
+        "timings": {
+          "cache_n": 260060,
+          "prompt_n": 7,
+          "prompt_ms": 282.0,
+          "prompt_per_token_ms": 40.286,
+          "prompt_per_second": 24.8,
+          "predicted_n": 11,
+          "predicted_ms": 148.2,
+          "predicted_per_token_ms": 13.473,
+          "predicted_per_second": 74.2,
+          "draft_n": 10,
+          "draft_n_accepted": 7
+        },
+        "content": "eb49d3aa28a4",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "eb49d3aa28a4"
+        ],
+        "expected_present": true,
+        "request_sha256": "dd34c5ba00a3353d21cf09fc91f6a01cd7bfb19887f454d592baae29a9e69dda",
+        "resources": {
+          "ram_min_available_gib": 13.671710968017578,
+          "ram_peak_used_gib": 79.88430786132812,
+          "strata_peak_working_set_sum_gib": 52.71629333496094,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "issue-5055-hello",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.4462393999856431,
+        "first_content_seconds": 0.44623969998792745,
+        "elapsed_seconds": 0.5394021999964025,
+        "usage": {
+          "prompt_tokens": 15,
+          "completion_tokens": 10,
+          "total_tokens": 25,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 15,
+          "prompt_ms": 267.0,
+          "prompt_per_token_ms": 17.8,
+          "prompt_per_second": 56.2,
+          "predicted_n": 10,
+          "predicted_ms": 106.7,
+          "predicted_per_token_ms": 10.67,
+          "predicted_per_second": 93.7,
+          "draft_n": 7,
+          "draft_n_accepted": 7
+        },
+        "content": "Hello! How can I help you today?",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "8242e727e2235a7bf439e8a0ef31f1238a9faf7c96a0a199f03022b2130e4b5f",
+        "resources": {
+          "ram_min_available_gib": 13.678009033203125,
+          "ram_peak_used_gib": 79.87800979614258,
+          "strata_peak_working_set_sum_gib": 53.06178665161133,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "issue-5055-nonstream-defaults",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": false,
+        "done_received": false,
+        "finish_reason": "length",
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 1.1828631999960635,
+        "usage": {
+          "prompt_tokens": 13,
+          "completion_tokens": 64,
+          "total_tokens": 77,
+          "prompt_tokens_details": {
+            "cached_tokens": 8
+          }
+        },
+        "timings": {
+          "cache_n": 8,
+          "prompt_n": 5,
+          "prompt_ms": 84.6,
+          "prompt_per_token_ms": 16.92,
+          "prompt_per_second": 59.1,
+          "predicted_n": 64,
+          "predicted_ms": 921.6,
+          "predicted_per_token_ms": 14.4,
+          "predicted_per_second": 69.4,
+          "draft_n": 64,
+          "draft_n_accepted": 36
+        },
+        "content": "",
+        "reasoning_content": "The user said \"Hello local AI\" - this is a simple greeting. They're addressing me as a \"local AI,\" which could mean they're running me locally or just acknowledging me as their AI assistant. I should respond warmly and naturally, greeting them back. There's no complex task here, just a friendly hello",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "fb3e7364fdcf1ae65fd61d50e2723e298d8a0b4c89924c55b1772e9643809973",
+        "resources": {
+          "ram_min_available_gib": 13.420799255371094,
+          "ram_peak_used_gib": 80.13521957397461,
+          "strata_peak_working_set_sum_gib": 52.83639144897461,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "issue-3465-percent-urls",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "length",
+        "first_token_seconds": 1.7697643999999855,
+        "first_content_seconds": 1.7697649000037927,
+        "elapsed_seconds": 1.8894504000199959,
+        "usage": {
+          "prompt_tokens": 1677,
+          "completion_tokens": 8,
+          "total_tokens": 1685,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 1677,
+          "prompt_ms": 1593.4,
+          "prompt_per_token_ms": 0.95,
+          "prompt_per_second": 1052.5,
+          "predicted_n": 8,
+          "predicted_ms": 133.7,
+          "predicted_per_token_ms": 16.712,
+          "predicted_per_second": 59.8,
+          "draft_n": 8,
+          "draft_n_accepted": 3
+        },
+        "content": "This is a **raw data output from",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "7838a65dd6f129ae2cb661c318d06f2bcfab5fb4707fbf0a067905e8eb4f653d",
+        "resources": {
+          "ram_min_available_gib": 13.456192016601562,
+          "ram_peak_used_gib": 80.09982681274414,
+          "strata_peak_working_set_sum_gib": 52.9333610534668,
+          "gpu_peak_used_mib": 10083.0,
+          "gpu_min_free_mib": 5895.0
+        }
+      },
+      {
+        "case": "issue-3465-nonstream-defaults",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": false,
+        "done_received": false,
+        "finish_reason": "length",
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 0.501507999986643,
+        "usage": {
+          "prompt_tokens": 1675,
+          "completion_tokens": 8,
+          "total_tokens": 1683,
+          "prompt_tokens_details": {
+            "cached_tokens": 1670
+          }
+        },
+        "timings": {
+          "cache_n": 1670,
+          "prompt_n": 5,
+          "prompt_ms": 258.7,
+          "prompt_per_token_ms": 51.74,
+          "prompt_per_second": 19.3,
+          "predicted_n": 8,
+          "predicted_ms": 83.4,
+          "predicted_per_token_ms": 10.425,
+          "predicted_per_second": 95.9,
+          "draft_n": 6,
+          "draft_n_accepted": 6
+        },
+        "content": "",
+        "reasoning_content": "The user is asking \"What is this",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "446583b7f9fbe577e74898fe1e39a754a56a564357f859c1601afc5587c77af2",
+        "resources": {
+          "ram_min_available_gib": 13.433975219726562,
+          "ram_peak_used_gib": 80.12204360961914,
+          "strata_peak_working_set_sum_gib": 51.130149841308594,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "cache-isolation-a-first",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 2.521602699998766,
+        "first_content_seconds": 2.5216030000010505,
+        "elapsed_seconds": 2.6002487000077963,
+        "usage": {
+          "prompt_tokens": 4530,
+          "completion_tokens": 9,
+          "total_tokens": 4539,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 4530,
+          "prompt_ms": 2326.3,
+          "prompt_per_token_ms": 0.514,
+          "prompt_per_second": 1947.3,
+          "predicted_n": 9,
+          "predicted_ms": 91.1,
+          "predicted_per_token_ms": 10.122,
+          "predicted_per_second": 98.8,
+          "draft_n": 6,
+          "draft_n_accepted": 6
+        },
+        "content": "ORANGE-74519",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "ORANGE-74519"
+        ],
+        "expected_present": true,
+        "request_sha256": "77c93c1874d997d91f23bd1203b8c5cc76748893d2b1b2d68d42f46de00dbb60",
+        "resources": {
+          "ram_min_available_gib": 17.675888061523438,
+          "ram_peak_used_gib": 75.88013076782227,
+          "strata_peak_working_set_sum_gib": 48.68426513671875,
+          "gpu_peak_used_mib": 10159.0,
+          "gpu_min_free_mib": 5819.0
+        }
+      },
+      {
+        "case": "cache-isolation-b",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 2.552410800009966,
+        "first_content_seconds": 2.552411000011489,
+        "elapsed_seconds": 2.667807299993001,
+        "usage": {
+          "prompt_tokens": 4531,
+          "completion_tokens": 10,
+          "total_tokens": 4541,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 4531,
+          "prompt_ms": 2359.3,
+          "prompt_per_token_ms": 0.521,
+          "prompt_per_second": 1920.5,
+          "predicted_n": 10,
+          "predicted_ms": 128.9,
+          "predicted_per_token_ms": 12.89,
+          "predicted_per_second": 77.6,
+          "draft_n": 9,
+          "draft_n_accepted": 9
+        },
+        "content": "VIOLET-28643",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "VIOLET-28643"
+        ],
+        "expected_present": true,
+        "request_sha256": "a6d368d7bee14eb8235a95f7a64f914130eecdabfce9b0685c3a99aec655e2f8",
+        "resources": {
+          "ram_min_available_gib": 17.463584899902344,
+          "ram_peak_used_gib": 76.09243392944336,
+          "strata_peak_working_set_sum_gib": 49.01631546020508,
+          "gpu_peak_used_mib": 10159.0,
+          "gpu_min_free_mib": 5819.0
+        }
+      },
+      {
+        "case": "cache-isolation-a-return",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.31348420001449995,
+        "first_content_seconds": 0.31348440001602285,
+        "elapsed_seconds": 0.39091459999326617,
+        "usage": {
+          "prompt_tokens": 4530,
+          "completion_tokens": 9,
+          "total_tokens": 4539,
+          "prompt_tokens_details": {
+            "cached_tokens": 4523
+          }
+        },
+        "timings": {
+          "cache_n": 4523,
+          "prompt_n": 7,
+          "prompt_ms": 121.7,
+          "prompt_per_token_ms": 17.386,
+          "prompt_per_second": 57.5,
+          "predicted_n": 9,
+          "predicted_ms": 88.6,
+          "predicted_per_token_ms": 9.844,
+          "predicted_per_second": 101.6,
+          "draft_n": 6,
+          "draft_n_accepted": 6
+        },
+        "content": "ORANGE-74519",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "ORANGE-74519"
+        ],
+        "expected_present": true,
+        "request_sha256": "77c93c1874d997d91f23bd1203b8c5cc76748893d2b1b2d68d42f46de00dbb60",
+        "resources": {
+          "ram_min_available_gib": 17.40289306640625,
+          "ram_peak_used_gib": 76.15312576293945,
+          "strata_peak_working_set_sum_gib": 49.1789665222168,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "tool-call",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "tool_calls",
+        "first_token_seconds": 0.214089100016281,
+        "first_content_seconds": null,
+        "elapsed_seconds": 1.2408830000204034,
+        "usage": {
+          "prompt_tokens": 286,
+          "completion_tokens": 24,
+          "total_tokens": 310,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 286,
+          "prompt_ms": 806.3,
+          "prompt_per_token_ms": 2.819,
+          "prompt_per_second": 354.7,
+          "predicted_n": 24,
+          "predicted_ms": 242.3,
+          "predicted_per_token_ms": 10.096,
+          "predicted_per_second": 99.1,
+          "draft_n": 18,
+          "draft_n_accepted": 18
+        },
+        "content": "",
+        "reasoning_content": "",
+        "tool_deltas": [
+          {
+            "index": 0,
+            "id": "call_2066b1b060864fd095666330",
+            "type": "function",
+            "function": {
+              "name": "lookup_code",
+              "arguments": ""
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "{"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "\"code\":"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "\""
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "BASE"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "LINE"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "-"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "2"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "6"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "2"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "K"
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "\""
+            }
+          },
+          {
+            "index": 0,
+            "function": {
+              "arguments": "}"
+            }
+          }
+        ],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "93a9f379c5aa8913ab6b549bdda3fc974e67a4db590f6324423838eef6c14889",
+        "resources": {
+          "ram_min_available_gib": 17.346965789794922,
+          "ram_peak_used_gib": 76.20905303955078,
+          "strata_peak_working_set_sum_gib": 49.0681266784668,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "tool-literal-without-tools",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.5319509000109974,
+        "first_content_seconds": 0.5319511000125203,
+        "elapsed_seconds": 0.7282949000073131,
+        "usage": {
+          "prompt_tokens": 48,
+          "completion_tokens": 25,
+          "total_tokens": 73,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 48,
+          "prompt_ms": 361.1,
+          "prompt_per_token_ms": 7.523,
+          "prompt_per_second": 132.9,
+          "predicted_n": 25,
+          "predicted_ms": 206.4,
+          "predicted_per_token_ms": 8.256,
+          "predicted_per_second": 121.1,
+          "draft_n": 19,
+          "draft_n_accepted": 19
+        },
+        "content": "```xml\n<tool_call>{\"name\":\"lookup_code\",\"arguments\":{\"code\":\"EXAMPLE\"}}</tool_call>\n```",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "lookup_code"
+        ],
+        "expected_present": true,
+        "request_sha256": "b57cf975d3b4f7096cb40d61e6be6ea8627994726673be2ff845ecfb28866b98",
+        "resources": {
+          "ram_min_available_gib": 17.10448455810547,
+          "ram_peak_used_gib": 76.45153427124023,
+          "strata_peak_working_set_sum_gib": 49.159358978271484,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "tool-literal-with-tools",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.9183011999994051,
+        "first_content_seconds": 0.9183016000024509,
+        "elapsed_seconds": 1.1039538999903016,
+        "usage": {
+          "prompt_tokens": 295,
+          "completion_tokens": 25,
+          "total_tokens": 320,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 295,
+          "prompt_ms": 744.4,
+          "prompt_per_token_ms": 2.523,
+          "prompt_per_second": 396.3,
+          "predicted_n": 25,
+          "predicted_ms": 194.9,
+          "predicted_per_token_ms": 7.796,
+          "predicted_per_second": 128.3,
+          "draft_n": 19,
+          "draft_n_accepted": 19
+        },
+        "content": "```xml\n<tool_call>{\"name\":\"lookup_code\",\"arguments\":{\"code\":\"EXAMPLE\"}}</tool_call>\n```",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "lookup_code"
+        ],
+        "expected_present": true,
+        "request_sha256": "d2fd6386965546ee767d5b107e7d594346ee4f19e9236a19e0f5e326b0597c24",
+        "resources": {
+          "ram_min_available_gib": 17.109577178955078,
+          "ram_peak_used_gib": 76.44644165039062,
+          "strata_peak_working_set_sum_gib": 49.268985748291016,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "done-disconnect",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.39539249998051673,
+        "first_content_seconds": 0.39539269998203963,
+        "elapsed_seconds": 0.46379999999771826,
+        "usage": {
+          "prompt_tokens": 21,
+          "completion_tokens": 6,
+          "total_tokens": 27,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 21,
+          "prompt_ms": 205.8,
+          "prompt_per_token_ms": 9.8,
+          "prompt_per_second": 102.0,
+          "predicted_n": 6,
+          "predicted_ms": 81.2,
+          "predicted_per_token_ms": 13.533,
+          "predicted_per_second": 73.9,
+          "draft_n": 6,
+          "draft_n_accepted": 6
+        },
+        "content": "DONE-CLOSE-OK",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "DONE-CLOSE-OK"
+        ],
+        "expected_present": true,
+        "request_sha256": "2e96a597d081925fd47bf221dc60a6beb7317445b953881f15baa73094348323",
+        "resources": {
+          "ram_min_available_gib": 17.108684539794922,
+          "ram_peak_used_gib": 76.44733428955078,
+          "strata_peak_working_set_sum_gib": 49.20458984375,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "after-done-disconnect",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.4079304000188131,
+        "first_content_seconds": 0.40793070002109744,
+        "elapsed_seconds": 0.4441438000067137,
+        "usage": {
+          "prompt_tokens": 19,
+          "completion_tokens": 5,
+          "total_tokens": 24,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 19,
+          "prompt_ms": 200.8,
+          "prompt_per_token_ms": 10.568,
+          "prompt_per_second": 94.6,
+          "predicted_n": 5,
+          "predicted_ms": 50.2,
+          "predicted_per_token_ms": 10.04,
+          "predicted_per_second": 99.6,
+          "draft_n": 3,
+          "draft_n_accepted": 3
+        },
+        "content": "STILL-READY",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "STILL-READY"
+        ],
+        "expected_present": true,
+        "request_sha256": "9e35e430bbbb290a5f0abec8d84abde9ff25cc54df46bf202ab1a6de9487b398",
+        "resources": {
+          "ram_min_available_gib": 17.138458251953125,
+          "ram_peak_used_gib": 76.41756057739258,
+          "strata_peak_working_set_sum_gib": 49.27046585083008,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "cpu-vision-red",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 1.1106771000195295,
+        "first_content_seconds": 1.1106775000225753,
+        "elapsed_seconds": 1.1504217000037897,
+        "usage": {
+          "prompt_tokens": 76,
+          "completion_tokens": 2,
+          "total_tokens": 78,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 76,
+          "prompt_ms": 411.6,
+          "prompt_per_token_ms": 5.416,
+          "prompt_per_second": 184.6,
+          "predicted_n": 2,
+          "predicted_ms": 52.4,
+          "predicted_per_token_ms": 26.2,
+          "predicted_per_second": 38.2,
+          "draft_n": 3,
+          "draft_n_accepted": 3
+        },
+        "content": "Red",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "34fb942f689fe1ac939aaf290d213c4cfb8a8f0dc9fc00ab460a4bdb2d502455",
+        "resources": {
+          "ram_min_available_gib": 17.176143646240234,
+          "ram_peak_used_gib": 76.37987518310547,
+          "strata_peak_working_set_sum_gib": 49.16902160644531,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "context-overflow-rejected",
+        "http_status": 400,
+        "passed": true,
+        "error": "{\"error\": {\"type\": \"invalid_request_error\", \"message\": \"request exceeds the context window: prompt (420012 tokens) leaves no room to answer in the context (262144); requests are never truncated\"}}",
+        "streaming": true,
+        "done_received": false,
+        "finish_reason": null,
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 0.316775699990103,
+        "usage": {},
+        "timings": {},
+        "content": "",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "39037d01edf67b3322d934b4ea6762ca88a20c343cfc093922cea1fea6d4b6ed",
+        "resources": {
+          "ram_min_available_gib": 17.277408599853516,
+          "ram_peak_used_gib": 76.27861022949219,
+          "strata_peak_working_set_sum_gib": 49.176063537597656,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "wrong-model-rejected",
+        "http_status": 400,
+        "passed": true,
+        "error": "{\"error\": {\"type\": \"invalid_request_error\", \"message\": \"요청한 model이 실행 중이 아닙니다. LLM Home Server에서 선택해 주세요.\"}}",
+        "streaming": true,
+        "done_received": false,
+        "finish_reason": null,
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 0.24015319999307394,
+        "usage": {},
+        "timings": {},
+        "content": "",
+        "reasoning_content": "",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "a388e934e5f52c4ead3852b1663a590bfe11ac1845b8c16feaa64c8e358e75d9",
+        "resources": {
+          "ram_min_available_gib": 17.543087005615234,
+          "ram_peak_used_gib": 76.01293182373047,
+          "strata_peak_working_set_sum_gib": 49.174957275390625,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      },
+      {
+        "case": "reasoning-medium",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": true,
+        "done_received": true,
+        "finish_reason": "stop",
+        "first_token_seconds": 0.4320593000156805,
+        "first_content_seconds": 2.3635254000255372,
+        "elapsed_seconds": 3.725892400019802,
+        "usage": {
+          "prompt_tokens": 29,
+          "completion_tokens": 347,
+          "total_tokens": 376,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 29,
+          "prompt_ms": 226.3,
+          "prompt_per_token_ms": 7.803,
+          "prompt_per_second": 128.1,
+          "predicted_n": 347,
+          "predicted_ms": 3306.6,
+          "predicted_per_token_ms": 9.529,
+          "predicted_per_second": 104.9,
+          "draft_n": 277,
+          "draft_n_accepted": 253
+        },
+        "content": "## 계산 과정\n\n**23 × 17 + 19**\n\n1. **23 × 17**\n   - 23 × 10 = 230\n   - 23 × 7 = 161\n   - 230 + 161 = **391**\n\n2. **391 + 19 = 410**\n\n## 검산\n\n- 391 ÷ 17 = 23 ✓\n- 410 − 19 = 391 ✓\n- 391 ÷ 23 = 17 ✓\n\n## 답: **410**",
+        "reasoning_content": "The user is asking me to calculate 23*17+19 and verify the answer.\n\nLet me calculate step by step:\n23 * 17 = 391\n391 + 19 = 410\n\nLet me verify:\n23 * 17:\n23 * 10 = 230\n23 * 7 = 161\n230 + 161 = 391\n\n391 + 19 = 410\n\nLet me double-check 23 * 17 another way:\n20 * 17 = 340\n3 * 17 = 51\n340 + 51 = 391 ✓\n\n391 + 19 = 410 ✓\n\nThe answer is 410.\n",
+        "tool_deltas": [],
+        "completion_truncated": false,
+        "expected_fragments": [
+          "410"
+        ],
+        "expected_present": true,
+        "request_sha256": "32b2fdb1753605b8a41cff21da920e1d54929e57973360f2f904fbdf24eace5a",
+        "resources": {
+          "ram_min_available_gib": 17.696624755859375,
+          "ram_peak_used_gib": 75.85939407348633,
+          "strata_peak_working_set_sum_gib": 49.24131774902344,
+          "gpu_peak_used_mib": 9991.0,
+          "gpu_min_free_mib": 5987.0
+        }
+      }
+    ],
+    "short_generation_median_tokens_per_second": 89.0,
+    "passed": 28,
+    "total": 28,
+    "health_after": {
+      "status": "ok",
+      "max_context": 262144,
+      "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+      "images": true,
+      "api_key": true,
+      "image_generation": false,
+      "loaded": true,
+      "service": "strata"
+    }
+  },
+  "cold_nonstream": {
+    "finished_at": "2026-11-03T20:12:50.873075+09:00",
+    "results": [
+      {
+        "case": "cold-5055-nonstream-defaults",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": false,
+        "done_received": false,
+        "finish_reason": "length",
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 1.488043799996376,
+        "usage": {
+          "prompt_tokens": 13,
+          "completion_tokens": 64,
+          "total_tokens": 77,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 13,
+          "prompt_ms": 418.1,
+          "prompt_per_token_ms": 32.162,
+          "prompt_per_second": 31.1,
+          "predicted_n": 64,
+          "predicted_ms": 894.1,
+          "predicted_per_token_ms": 13.97,
+          "predicted_per_second": 71.6,
+          "draft_n": 58,
+          "draft_n_accepted": 37
+        },
+        "content": "",
+        "reasoning_content": "The user is greeting me as \"Hello local AI.\" This is a simple, friendly greeting. They seem to be acknowledging that I'm running as a local AI (perhaps they're interacting with a locally-hosted model rather than a cloud-based one). I should respond warmly and naturally, acknowledging their greeting and their framing of",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "fb3e7364fdcf1ae65fd61d50e2723e298d8a0b4c89924c55b1772e9643809973",
+        "resources": {
+          "ram_min_available_gib": 15.067291259765625,
+          "ram_peak_used_gib": 78.48872756958008,
+          "strata_peak_working_set_sum_gib": 47.44648742675781,
+          "gpu_peak_used_mib": 9909.0,
+          "gpu_min_free_mib": 6069.0
+        }
+      },
+      {
+        "case": "cold-3465-nonstream-defaults",
+        "http_status": 200,
+        "passed": true,
+        "error": null,
+        "streaming": false,
+        "done_received": false,
+        "finish_reason": "length",
+        "first_token_seconds": null,
+        "first_content_seconds": null,
+        "elapsed_seconds": 1.9404077999934088,
+        "usage": {
+          "prompt_tokens": 1675,
+          "completion_tokens": 8,
+          "total_tokens": 1683,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 1675,
+          "prompt_ms": 1664.8,
+          "prompt_per_token_ms": 0.994,
+          "prompt_per_second": 1006.1,
+          "predicted_n": 8,
+          "predicted_ms": 84.3,
+          "predicted_per_token_ms": 10.537,
+          "predicted_per_second": 94.9,
+          "draft_n": 6,
+          "draft_n_accepted": 6
+        },
+        "content": "",
+        "reasoning_content": "The user is asking \"What is this",
+        "tool_deltas": [],
+        "completion_truncated": true,
+        "expected_fragments": null,
+        "expected_present": true,
+        "request_sha256": "446583b7f9fbe577e74898fe1e39a754a56a564357f859c1601afc5587c77af2",
+        "resources": {
+          "ram_min_available_gib": 14.790328979492188,
+          "ram_peak_used_gib": 78.76568984985352,
+          "strata_peak_working_set_sum_gib": 47.55225372314453,
+          "gpu_peak_used_mib": 10023.0,
+          "gpu_min_free_mib": 5955.0
+        }
+      }
+    ],
+    "short_generation_median_tokens_per_second": null,
+    "passed": 2,
+    "total": 2,
+    "health_after": {
+      "status": "ok",
+      "max_context": 262144,
+      "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+      "images": true,
+      "api_key": true,
+      "image_generation": false,
+      "loaded": true,
+      "service": "strata"
+    }
+  },
+  "doctor": {
+    "ok": true,
+    "issues": []
+  },
+  "engine_log_findings": {
+    "critical_matches": [],
+    "scope": "Latest managed start only; saved under local tuning directory."
+  },
+  "source_status": "",
+  "final_service": {
+    "adapter": "strata",
+    "name": "Strata",
+    "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+    "port": 8488,
+    "state": "ready",
+    "in_flight": 0,
+    "instance_id": "88be2662edb149bc8c2b7ca20bad58d9",
+    "profile_id": "strata-qwen-flash-next"
+  },
+  "final_health": {
+    "status": "ok",
+    "max_context": 262144,
+    "model": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
+    "images": true,
+    "api_key": true,
+    "image_generation": false,
+    "loaded": true,
+    "service": "strata"
+  },
+  "native_pid": 19548,
+  "actual_native_arguments": [
+    "C:\\Strata-data\\components\\engine\\0.1.56-windows-x86_64-cuda-cuda13\\strata.exe",
+    "--serve",
+    "--pack",
+    "C:/Strata-data/packs/sc117_iq3_xxs",
+    "--native",
+    "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00001-of-00002.gguf",
+    "--ple-gguf",
+    "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-IQ3_XXS-00002-of-00002.gguf",
+    "--expert-profile",
+    "C:/Users/azzib/Desktop/workspace_local/llm-home-server/external_repo/Strata/data/expert-profile.bin",
+    "--expert-cache",
+    "auto",
+    "--prefill",
+    "auto",
+    "--spec",
+    "4",
+    "--spec-min-p",
+    "0.5",
+    "--mtp",
+    "C:/Strata-data/models/SC117/Qwen3.8-Flash-Next-GSQ-RCO-abliterated-GGUF/strata/rt",
+    "--max-context",
+    "262144",
+    "--kv",
+    "int8",
+    "--kv-resident",
+    "32768",
+    "--vram-reserve-mib",
+    "8192",
+    "--vision"
+  ],
+  "sampling_note": "Throughput and exact-answer comparisons use fixed greedy sampling; live shared settings are unchanged.",
+  "resource_note": "Two-second whole-system samples; no concurrent ComfyUI generation load; reserve is not a hard free-VRAM guarantee."
+}

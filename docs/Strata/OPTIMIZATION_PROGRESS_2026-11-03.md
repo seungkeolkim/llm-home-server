@@ -28,7 +28,9 @@
 5. 선택 설정으로 짧은·32K·128K·260K 입력, cache 복원, Tool·Vision·NaN 회귀 검사.
 6. 유효한 설정만 실제 profile에 반영하고 관리 경로로 기동한 뒤 문서·측정 요약을 commit.
 
-현재 단계: API screening 완료, 재기동 후보 screening 진행 중. 아직 최적화 설정을 채택하지 않았습니다.
+현재 단계: **완료**. MTP on + layer-major / host residual / 16K super-chunk를 채택하고 실제 운영 30건 검증까지 통과했습니다.
+최종 결과는 [실측 결과](OPTIMIZATION_RESULTS_2026-11-03.md)와 [최종 API JSON](benchmarks/2026-11-03-optimized-managed-api.json)을 기준으로 합니다.
+아래 checkpoint는 작업 중의 당시 상태를 시간순으로 보존한 기록입니다.
 
 ### 재기동 screening checkpoint (18:58 KST)
 
@@ -251,6 +253,37 @@ Context 262144 / reserve 8192 / KV resident 32768 / MTP on을 유지한 결과�
 8K·32K·128K·260K와 issue 검사를 별도 `managed-final` 폴더에서 실행합니다.
 마지막으로 doctor의 설정된 Vision 경로·Engine 로그·관리 상태·source clean 상태를 확인하고 결과 문서와 summary를 commit합니다.
 검증 실패 시 운영 설정을 `original-configuration/strata.local.json`으로 복원하며 원본 secret을 보존합니다.
+
+20:13 checkpoint: 3회 A/B/A 완료, PP 비율 2.2063 / 2.2040 / 2.2096,
+decode 비율 1.0021 / 0.9891 / 0.9874입니다. 개별 작업 비율 중앙값은 모두 0.98 이상입니다.
+MTP on + host 16K 후보를 실제 local 설정에 반영했습니다. `args`는 변경하지 않았습니다.
+첫 반영 도구의 stale 관리 snapshot/skip 문제는 실제 health 확인과 fresh revision 계산으로 수정했고,
+실패 시도와 원본 복원 기록도 보존했습니다. 두 번째 반영에서 실제 native 환경변수와 고정 인자를 확인했습니다.
+기동 직후 nonstream Hello·#3465는 HTTP 200 / cached tokens 0으로 통과했습니다.
+
+현재 실행: `managed-final`의 기존 전체 API suite입니다. 로그는 `managed-final.log`입니다.
+아직 최종 완료로 보지 않습니다. 다음은 결과 28건 확인, doctor·로그·관리 상태 확인,
+공개 summary·결과 문서·README 갱신과 commit입니다.
+반영 전 가장 최근 복원 파일은 `state.json`의 `rollback_configuration`입니다.
+임시 반영 도구 `apply_confirmed_configuration.py`는 로컬 runtime 폴더에만 두며 commit하지 않습니다.
+
+20:19 완료 checkpoint:
+
+- 실제 운영 전체 API 28/28와 별도 cold nonstream 2/2 통과.
+- doctor `ok=true / issues=[]`, CPU Vision `Red`, 현재 기동 critical 로그 일치 0.
+- 실제 Native Engine의 환경변수 3개, Context 262144 / reserve 8192 / KV 32768 / MTP on 확인.
+- 최종 관리 상태 `ready`, in-flight 0, profile `strata-qwen-flash-next`, port 8488.
+- upstream clone은 ignored 산출물까지 clean. LibreChat·MongoDB healthy.
+- 최종 운영 TTFT: 8K 3.792 / 32K 12.215 / 128K 50.793 / 260K 109.393초.
+- 최종 운영 결과와 원본 설정 backup·원본 baseline·runtime 상세 로그를 보존했습니다.
+- 후속 작업은 최종 결과 문서의 설정과 측정을 기준으로 시작합니다. 중간 후보나 최초 실패 summary를 최종 선택으로 해석하지 않습니다.
+
+21:36 재개 확인:
+
+- 사용량 제한 뒤 저장 상태와 결과를 확인했으며, 생성 테스트는 20:19에 완료되어 있었습니다.
+- 실제 `/health` 정상, 관리 상태 `ready`, in-flight 0이며 20:12 기동한 동일 instance를 유지했습니다.
+- 완료된 측정은 재실행하지 않고 최종 문서·설정 template·측정 summary·재현 script를 commit합니다.
+- 최적화 완료 기준 tag는 `baseline/2026-11-03-iq3-xxs-optimized-262k`입니다. 기존 복구 기준은 보존합니다.
 
 ## 중단 후 이어가기
 

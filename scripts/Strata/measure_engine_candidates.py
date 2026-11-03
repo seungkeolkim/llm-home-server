@@ -18,6 +18,7 @@ import requests
 SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 WORKSPACE_DIRECTORY = SCRIPT_DIRECTORY.parents[1]
 sys.path.insert(0, str(SCRIPT_DIRECTORY))
+sys.path.insert(0, str(WORKSPACE_DIRECTORY))
 sys.path.insert(0, str(WORKSPACE_DIRECTORY / "external_repo/Strata"))
 
 from measure_api_baseline import BaselineMeasurement
@@ -27,6 +28,8 @@ from strata_control.tune_session import WorkerSession
 from strata_control import draft_layer
 from summarize_optimization_results import summarize_trials
 from measure_optimization_quality import measure_quality, measure_style
+from management_server.configuration import load_configuration
+from management_server.llm_profiles import ProfileCatalog
 
 
 CANDIDATES = {
@@ -93,20 +96,32 @@ class ManagementClient:
         response.raise_for_status()
         return response.json()
 
+    def production_healthy(self) -> bool:
+        """관리 화면의 최근 snapshot과 별개로 운영 port의 실제 준비 상태를 확인합니다."""
+        configuration_path = WORKSPACE_DIRECTORY / "config/Strata/strata.local.json"
+        configuration = json.loads(configuration_path.read_text(encoding="utf-8-sig"))
+        try:
+            response = requests.get("http://127.0.0.1:" + str(configuration["port"]) + "/health",
+                                    headers={"Authorization": "Bearer " + configuration["api_key"]}, timeout=1)
+            return response.status_code == 200
+        except requests.RequestException:
+            return False
+
     def control(self, action: str) -> None:
         """실제 profile·revision을 고정해 한 번의 제어 작업을 완료합니다."""
         state = self.status()["llm"]
-        if action == "stop" and state["state"] == "stopped":
+        if action == "stop" and state["state"] == "stopped" and not self.production_healthy():
             return
-        if action == "start" and state["state"] == "ready":
+        if action == "start" and state["state"] == "ready" and self.production_healthy():
             return
         if state.get("in_flight", 0):
             raise RuntimeError("A user request is in flight; refusing to interrupt it")
         if action == "stop" and state.get("model") != "sc117-qwen3.8-flash-next-abliterated-iq3_xxs":
             raise RuntimeError("The active model is not the requested IQ3_XXS profile")
-        profile = next(profile for profile in state["profiles"] if profile["identifier"] == "strata-qwen-flash-next")
+        catalog = ProfileCatalog(load_configuration()["llm"])
+        profile = catalog.get("strata-qwen-flash-next")
         identifier = uuid.uuid4().hex
-        payload = {"identifier": identifier, "profile_id": profile["identifier"], "configuration_revision": profile["revision"]}
+        payload = {"identifier": identifier, "profile_id": profile["identifier"], "configuration_revision": catalog.revision(profile)}
         response = self.session.post(self.base_url + "/api/services/llm/" + action, json=payload, timeout=20)
         response.raise_for_status()
         record_progress(self.output_directory, "management_" + action + "_accepted", management_operation=identifier)
@@ -118,7 +133,12 @@ class ManagementClient:
                 record_progress(self.output_directory, "management_" + action + "_finished", management_result=operation)
                 if operation["status"] != "succeeded":
                     raise RuntimeError("Managed " + action + " failed: " + operation["message"])
-                return
+                for _ in range(30):
+                    healthy = self.production_healthy()
+                    if healthy == (action == "start"):
+                        return
+                    time.sleep(1)
+                raise RuntimeError("The actual production port did not reach the requested state")
             time.sleep(1)
         raise RuntimeError("Management operation timed out")
 

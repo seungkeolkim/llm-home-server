@@ -207,7 +207,9 @@ repo를 옮기면 절대경로가 포함된 `.venv/Strata`, 로컬 설정, saved
 Strata QFN의 현재 기본값은 최대 context 262144, GPU resident KV 32768, KV int8,
 VRAM reserve 8192 MiB (8 GiB), parallel 1, MTP spec 4입니다.
 초기 shared reasoning effort는 기존 파일의 `medium`을 보존했습니다. 별도 출력 token limit은 추가하지 않았습니다.
-버전 변경과 후속 최적화의 측정 기준은 [262K API baseline](docs/Strata/API_BASELINE_2026-11-03.md),
+현재 IQ3_XXS는 MTP를 켜고 layer-major prefill의 residual을 pinned RAM, super-chunk를 16384로 설정합니다.
+최적화 결과와 MTP on/off 비교는 [IQ3_XXS 최적화 실측](docs/Strata/OPTIMIZATION_RESULTS_2026-11-03.md),
+업데이트 직후 기준은 [262K API baseline](docs/Strata/API_BASELINE_2026-11-03.md),
 이전 환경 복원은 [업데이트 전 복구 기준](docs/Strata/ROLLBACK_BASELINE_2026-11-03.md)을 따릅니다.
 VRAM reserve는 다른 프로그램의 사용 가능 VRAM을 항상 보장하지 않습니다.
 PolyStrata Qwen3.6은 KV Q8_0 whole, CPU Vision과 같은 reserve를 사용합니다.

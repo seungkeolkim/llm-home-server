@@ -18,6 +18,11 @@
     "--vram-reserve-mib", "8192",
     "--vision"
   ],
+  "env": {
+    "STRATA_PREFILL_LAYER_MAJOR": "1",
+    "STRATA_PREFILL_LM_R": "host",
+    "STRATA_PREFILL_LM_TOKENS": "16384"
+  },
   "cwd": "${RUNNER_ROOT}/runtime/Strata/working",
   "tokenizer": "${DATA_ROOT}/packs/sc117_iq3_xxs/tokenizer",
   "model_name": "sc117-qwen3.8-flash-next-abliterated-iq3_xxs",
