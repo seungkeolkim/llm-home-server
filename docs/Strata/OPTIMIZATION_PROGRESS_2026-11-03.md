@@ -101,6 +101,20 @@ Round 앞·뒤 baseline 차이의 중앙값은 약 2.71%였습니다.
 .\.venv\Strata\Scripts\strata-runtime-python.exe -X utf8 -I -B scripts/Strata/measure_engine_candidates.py --round 2 --trials workers-6 host-core-last spec-3 kv-resident-48k kv-resident-64k adapt-async adapt-faster prefill-cpu-share-off adapt-overlap
 ```
 
+19:03 checkpoint: worker 6 = decode 83.31 / PP 1230.7, host last = 83.98 / 1235.8,
+spec 3 = 86.33 / 1240.5, KV 48K = 80.72 / 1229.5 tok/s입니다.
+32K 검색은 모두 3/3, medium 검산은 정답, greedy 검산은 기존 오답 390을 유지했습니다.
+아직 채택한 후보는 없습니다.
+
+다음 추가 screening 후보는 공식 tuner의 `adapt-decay 0.9`·`STRATA_PIN_BY_NEED=1`과,
+[DETAILS의 opt-in](https://github.com/Niko1221/Strata/blob/v0.2.10/docs/DETAILS.md)에 측정 사례가 있는
+`STRATA_PREFILL_ROUTED_STREAM=1`·`STRATA_PCIE_BALANCE=1`입니다.
+더 큰 prefill chunk는 현재 reserve에서 cache를 빌릴 공간이 부족하므로 우선하지 않습니다.
+
+최종 후보와 baseline의 정답 비교를 위해 [12문제 quality suite](../../scripts/Strata/measure_optimization_quality.py)를 추가했습니다.
+산술 4, 논리 3, JSON 3, 문자열 복사 1, 한국어 추출 1을 thinking medium / budget 512 / max 1024로 비교합니다.
+부분 문자열 일치 대신 전체 문자열 또는 JSON 값을 비교합니다. `--quality-suite`를 붙인 새 round에서 실행합니다.
+
 ## 중단 후 이어가기
 
 - 로컬 작업 폴더: `runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144/`.

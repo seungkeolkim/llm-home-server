@@ -23,10 +23,12 @@ from optimize_api_profile import (DEFAULT_OUTPUT_DIRECTORY, TASKS, atomic_json, 
                                   geometric_mean, record_progress, timestamp)
 from strata_control.tune_session import WorkerSession
 from summarize_optimization_results import summarize_trials
+from measure_optimization_quality import measure_quality
 
 
 CANDIDATES = {
     "baseline": {"args": {}, "env": {}},
+    "baseline-tail": {"args": {}, "env": {}},
     "prefill-4096": {"args": {"--prefill": "4096"}, "env": {}},
     "prefill-8192": {"args": {"--prefill": "8192"}, "env": {}},
     "prefill-16384": {"args": {"--prefill": "16384"}, "env": {}},
@@ -40,9 +42,16 @@ CANDIDATES = {
     "kv-resident-64k": {"args": {"--kv-resident": "65536"}, "env": {}},
     "adapt-async": {"args": {"--adapt-async": "1"}, "env": {}},
     "adapt-faster": {"args": {"--adapt-every": "1", "--adapt-swaps": "80", "--adapt-decay": "0.97"}, "env": {}},
+    "adapt-decay-09": {"args": {"--adapt-decay": "0.9"}, "env": {}},
     "prefill-cpu-share-off": {"args": {}, "env": {"STRATA_PREFILL_CPU_SHARE": "0"}},
     "adapt-overlap": {"args": {}, "env": {"STRATA_ADAPT_OVERLAP": "1"}},
+    "pin-by-need": {"args": {}, "env": {"STRATA_PIN_BY_NEED": "1"}},
+    "prefill-routed-stream": {"args": {}, "env": {"STRATA_PREFILL_ROUTED_STREAM": "1"}},
+    "pcie-balance": {"args": {}, "env": {"STRATA_PCIE_BALANCE": "1"}},
 }
+
+DEFAULT_CANDIDATES = ["baseline", "workers-6", "host-core-last", "spec-3", "kv-resident-48k", "kv-resident-64k",
+                      "adapt-async", "adapt-faster", "prefill-cpu-share-off", "adapt-overlap", "baseline-tail"]
 
 
 class ManagementClient:
@@ -120,14 +129,15 @@ def wait_for_memory() -> None:
         raise RuntimeError("ComfyUI has work queued; comparison is paused without changing that work")
 
 
-def trial_summary(trial_directory: Path, name: str, settings: dict, results: list[dict], facts: dict) -> dict:
+def trial_summary(trial_directory: Path, name: str, settings: dict, results: list[dict], facts: dict, quality_checks: list[dict]) -> dict:
     """후보의 API 속도·정답·메모리를 각각의 지표로 요약합니다."""
     decode_results = [result for result in results if result["case"].startswith("decode-")]
     retrieval = next(result for result in results if result["case"] == "retrieval-32768")
     valid = all(result["http_status"] == 200 and not result["error"] and result["done_received"] for result in results)
     valid = valid and all(result["usage"].get("completion_tokens", 0) >= 256 for result in decode_results)
     summary = {"trial": name, "finished_at": timestamp(), "status": "completed" if valid else "failed",
-               "quality_all_passed": all(result["passed"] for result in results),
+               "quality_all_passed": all(result["passed"] for result in results) and all(check["passed"] for check in quality_checks),
+               "quality_checks": quality_checks,
                "quality_failures": [{"case": result["case"], "content": result["content"],
                                      "expected_fragments": result["expected_fragments"]}
                                     for result in results if not result["passed"]],
@@ -143,7 +153,7 @@ def trial_summary(trial_directory: Path, name: str, settings: dict, results: lis
     return summary
 
 
-def measure_trial(output_directory: Path, identifier: str, settings: dict, request_settings: dict) -> dict:
+def measure_trial(output_directory: Path, identifier: str, settings: dict, request_settings: dict, quality_suite: bool = False) -> dict:
     """공식 WorkerSession으로 복사된 설정을 기동하고 실제 HTTP API를 측정합니다."""
     trial_directory = output_directory / "restart-screen" / identifier
     if (trial_directory / "summary.json").exists():
@@ -163,7 +173,8 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
     worker_session = WorkerSession(base_config=base, python=sys.executable, serve_dir=WORKSPACE_DIRECTORY / "external_repo/Strata",
                                    workdir=trial_directory / ("worker-" + attempt_name), extra_env=extra_environment,
                                    log=lambda message: print(message, flush=True))
-    record_progress(output_directory, "trial_started", stage="restart-screen", status="running", current_trial=identifier)
+    record_progress(output_directory, "trial_started", stage="restart-screen", status="running", current_trial=identifier,
+                    trial_status="running", current_request=None)
     with worker_session.engine(base["args"], settings["env"]) as engine:
         private_configuration = copy.deepcopy(base)
         private_configuration.update(port=engine.port, api_key=engine.key)
@@ -213,11 +224,12 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
         if request_settings:
             payload["strata_tune"] = request_settings
         measurement.measure("quality-arithmetic-medium", payload, ["410"])
+        quality_checks = measure_quality(measurement) if quality_suite else []
         measurement.finish()
         engine_log = next((trial_directory / ("worker-" + attempt_name)).glob("engine-*.log"))
         engine.facts["prompt_configuration_log"] = [line for line in engine_log.read_text(encoding="utf-8", errors="replace").splitlines()
                                                      if "prompt chunk" in line or "KV streaming:" in line or "short of GPU memory" in line]
-        summary = trial_summary(trial_directory, identifier, settings, measurement.results, engine.facts)
+        summary = trial_summary(trial_directory, identifier, settings, measurement.results, engine.facts, quality_checks)
     record_progress(output_directory, "trial_finished", current_trial=identifier, trial_status=summary["status"],
                     last_decode=summary["decode_geometric_mean"], last_prefill=summary["prefill_tokens_per_second"])
     summarize_trials(output_directory)
@@ -229,28 +241,33 @@ def main() -> None:
     """실험 전 서비스만 종료하고 성공·실패 모두 원래 운영 profile을 다시 켭니다."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-directory", type=Path, default=DEFAULT_OUTPUT_DIRECTORY)
-    parser.add_argument("--trials", nargs="+", choices=list(CANDIDATES), default=list(CANDIDATES))
+    parser.add_argument("--trials", nargs="+", choices=list(CANDIDATES), default=DEFAULT_CANDIDATES)
     parser.add_argument("--round", type=int, default=1)
     parser.add_argument("--request-settings", type=json.loads, default={})
+    parser.add_argument("--quality-suite", action="store_true")
     arguments = parser.parse_args()
     manager = ManagementClient(arguments.output_directory)
     manager.control("stop")
+    batch_completed = False
     try:
         for name in arguments.trials:
             identifier = f"r{arguments.round:02d}-" + name
             try:
-                summary = measure_trial(arguments.output_directory, identifier, CANDIDATES[name], arguments.request_settings)
+                summary = measure_trial(arguments.output_directory, identifier, CANDIDATES[name], arguments.request_settings, arguments.quality_suite)
             except Exception as error:
                 record_progress(arguments.output_directory, "trial_failed", current_trial=identifier,
                                 status="failed", error=str(error), next_action="Inspect worker logs before retrying; production profile is restored in finally.")
                 raise
             if summary["status"] != "completed":
-                raise RuntimeError("Candidate correctness check failed: " + identifier)
+                raise RuntimeError("Candidate API measurement is invalid: " + identifier)
+        batch_completed = True
     finally:
         record_progress(arguments.output_directory, "restoring_production", status="restoring")
         manager.control("start")
-    record_progress(arguments.output_directory, "restart_screen_completed", stage="restart-screen", status="completed",
-                    next_action="Review candidate summaries, then run paired confirmation and the full regression suite.")
+        record_progress(arguments.output_directory, "restart_screen_completed" if batch_completed else "restart_screen_failed_and_restored",
+                        stage="restart-screen", status="completed" if batch_completed else "failed",
+                        next_action="Review candidate summaries, then run paired confirmation and the full regression suite."
+                                    if batch_completed else "Inspect failed trial; the production profile has been restored.")
 
 
 if __name__ == "__main__":

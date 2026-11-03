@@ -23,7 +23,7 @@ def summarize_trials(output_directory: Path, summary_path: Path = DEFAULT_SUMMAR
             "trial", "finished_at", "status", "settings", "decode_geometric_mean",
             "prefill_tokens_per_second", "long_prompt_ttft_seconds", "gpu_peak_used_mib",
             "strata_peak_working_set_sum_gib", "ram_min_available_gib",
-            "quality_all_passed", "quality_failures", "retrieval_passed",
+            "quality_all_passed", "quality_failures", "quality_checks", "retrieval_passed",
         )}
         trial["cases"] = [{key: case.get(key) for key in (
             "case", "passed", "http_status", "elapsed_seconds", "first_token_seconds",
