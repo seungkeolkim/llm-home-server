@@ -7,6 +7,7 @@ from datetime import datetime
 import hashlib
 import json
 import math
+import shutil
 from pathlib import Path
 import statistics
 import sys
@@ -17,7 +18,7 @@ from measure_api_baseline import BaselineMeasurement
 
 
 WORKSPACE_DIRECTORY = Path(__file__).resolve().parents[2]
-DEFAULT_OUTPUT_DIRECTORY = WORKSPACE_DIRECTORY / "runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144"
+DEFAULT_OUTPUT_DIRECTORY = WORKSPACE_DIRECTORY / "runtime/Strata/tuning/iq3-xxs-reserve8192-context262144"
 CONFIGURATION_PATH = WORKSPACE_DIRECTORY / "config/Strata/strata.local.json"
 TASKS = {
     "korean": "한국어로 로컬 서버 운영 체크리스트 50개를 작성하세요. 각 항목은 구체적인 두 문장으로 쓰고 50번까지 계속하세요. 설명을 생략하거나 항목을 합치지 마세요.",
@@ -58,6 +59,29 @@ def record_progress(output_directory: Path, event: str, **details) -> None:
     atomic_json(state_path, state)
     with (output_directory / "events.jsonl").open("a", encoding="utf-8") as event_stream:
         event_stream.write(json.dumps({"at": state["updated_at"], "event": event, **details}, ensure_ascii=False) + "\n")
+
+
+def initialize_optimization_run(output_directory: Path) -> None:
+    """새 실험에만 원본 설정과 상태를 만들고 기존 진행 기록은 보존합니다."""
+    runtime_directory = (WORKSPACE_DIRECTORY / "runtime/Strata").resolve()
+    if not output_directory.resolve().is_relative_to(runtime_directory):
+        raise ValueError("Optimization output must stay under runtime/Strata because it includes private configuration")
+    state_path = output_directory / "state.json"
+    original_directory = output_directory / "original-configuration"
+    original_path = original_directory / "strata.local.json"
+    if state_path.exists():
+        if not original_path.exists():
+            raise ValueError("The existing run has no original configuration")
+        return
+    if output_directory.exists() and any(output_directory.iterdir()):
+        raise ValueError("Refusing to initialize a nonempty run without state.json")
+    configuration = json.loads(CONFIGURATION_PATH.read_text(encoding="utf-8-sig"))
+    check_fixed_configuration(configuration)
+    original_directory.mkdir(parents=True)
+    shutil.copy2(CONFIGURATION_PATH, original_path)
+    atomic_json(state_path, {"started_at": timestamp(), "stage": "prepared", "status": "prepared",
+                            "fixed": {"context_tokens": 262144, "reserve_mib": 8192,
+                                      "model": configuration["model_name"]}})
 
 
 def check_fixed_configuration(configuration: dict) -> None:
@@ -176,6 +200,9 @@ def main() -> None:
     parser.add_argument("--phase", choices=("api-screen",), default="api-screen")
     parser.add_argument("--rounds", type=int, default=3)
     arguments = parser.parse_args()
+    if arguments.rounds < 1:
+        parser.error("--rounds must be positive")
+    initialize_optimization_run(arguments.output_directory)
     screen_api(arguments.output_directory, arguments.rounds)
 
 

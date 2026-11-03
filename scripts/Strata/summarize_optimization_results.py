@@ -12,9 +12,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from optimize_api_profile import DEFAULT_OUTPUT_DIRECTORY, atomic_json, geometric_mean, timestamp
 
 
-DEFAULT_SUMMARY_PATH = Path(__file__).resolve().parents[2] / "docs/Strata/benchmarks/2026-11-03-optimization-engine-screen.json"
-
-
 def paired_comparisons(trials: list[dict]) -> list[dict]:
     """같은 round의 앞뒤 기준값으로 후보의 속도와 A/A 변동을 계산합니다."""
     groups = {}
@@ -55,7 +52,7 @@ def paired_comparisons(trials: list[dict]) -> list[dict]:
     return comparisons
 
 
-def summarize_trials(output_directory: Path, summary_path: Path = DEFAULT_SUMMARY_PATH) -> dict:
+def summarize_trials(output_directory: Path, summary_path: Path | None = None) -> dict:
     """API key·환경 원본·전체 응답을 제외하고 완료된 trial의 측정값을 보존합니다."""
     trials = []
     for result_path in sorted((output_directory / "restart-screen").glob("*/summary.json")):
@@ -91,6 +88,8 @@ def summarize_trials(output_directory: Path, summary_path: Path = DEFAULT_SUMMAR
         "interpretation": "completed means valid API measurement, not full semantic correctness; inspect quality fields. r01 predates separated quality fields.",
         "trials": trials, "paired_comparisons": paired_comparisons(trials),
     }
+    if summary_path is None:
+        summary_path = output_directory / "engine-screen-summary.json"
     atomic_json(summary_path, summary)
     return summary
 
@@ -99,10 +98,11 @@ def main() -> None:
     """저장 경로를 선택해 완료된 trial의 집계를 갱신합니다."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-directory", type=Path, default=DEFAULT_OUTPUT_DIRECTORY)
-    parser.add_argument("--summary-path", type=Path, default=DEFAULT_SUMMARY_PATH)
+    parser.add_argument("--summary-path", type=Path)
     arguments = parser.parse_args()
     summary = summarize_trials(arguments.output_directory, arguments.summary_path)
-    print(json.dumps({"trials": len(summary["trials"]), "summary_path": str(arguments.summary_path)}))
+    summary_path = arguments.summary_path or arguments.output_directory / "engine-screen-summary.json"
+    print(json.dumps({"trials": len(summary["trials"]), "summary_path": str(summary_path)}))
 
 
 if __name__ == "__main__":

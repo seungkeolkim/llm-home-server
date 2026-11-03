@@ -105,6 +105,10 @@ RAM·VRAM의 주요 수치는 `사용량 / 전체 용량 GiB`이며 사용률과
 
 이후 같은 날 사용자가 업데이트와 API 테스트를 요청하여 공식 release v0.2.10 / Engine 0.1.56으로 갱신하고 Strata QFN의 Context를 262,144로 확대했습니다. 기존 IQ3_XXS·MTP·KV INT8·resident 32K·reserve 8 GiB를 유지했으며 관리 경로 재기동과 LibreChat 설정 반영을 확인했습니다. 짧은 입력·약 8K/32K/128K/260K 검색·대화 복원 및 공개 이슈 재현 검사의 결과와 제한은 [262K API baseline](../Strata/API_BASELINE_2026-11-03.md)에 기록합니다. 이는 후속 최적화의 기준 측정이며 설정 조합 탐색이나 구버전 대비 향상률 측정은 아닙니다.
 
+후속 최적화는 MTP on과 고정 Context/reserve를 유지하고 layer-major prefill을 적용하여 완료했습니다.
+최종 측정·웹 재기동 후 재현·재사용 도구·원본 입력·private 복구 설정과 임시 산출물 정리 범위는
+[Strata 테스트 안내](../Strata/BENCHMARKS.md)에 모았습니다. 운영 서비스와 기존 구버전 복구 백업은 유지합니다.
+
 ### LibreChat의 고정 model 목록과 context
 
 - 지원할 model과 model별 context를 정적으로 등록합니다. 현재 Strata QFN은 262,144 tokens, PolyStrata Qwen3.6 두 profile은 153,600 tokens이며 LibreChat과 Engine 양쪽 설정에 반영합니다. 앞서 작성한 32K 검토 초안은 현재 실행 설정이 아닙니다.

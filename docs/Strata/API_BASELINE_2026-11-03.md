@@ -165,11 +165,10 @@ Strata의 독점 RAM 사용량이나 commit 사용량과 같지 않습니다. �
 
 - [측정 JSON](benchmarks/2026-11-03-engine-0.1.56-context-262144.json): 개별 결과, API usage/timing, 응답·정답, 리소스 요약, 버전과 검증 정보.
 - [API 측정 harness](../../scripts/Strata/measure_api_baseline.py): 기존 서비스를 대상으로 순차 측정하며 lifecycle은 변경하지 않음.
-- 로컬 원본: `runtime/Strata/benchmarks/2026-11-03-engine-0.1.56-context-262144/`.
-  Synthetic 요청·SSE chunks·2초 간격 resource samples·Engine/server log·공개 이슈 원문·update 기록을 포함합니다.
-  이 폴더의 `baseline-configuration/`에는 현재 Strata 설정 전체와 262K LibreChat YAML을 별도로 복사했고,
-  `baseline-config-manifest.json`의 SHA-256과 원본 일치를 확인했습니다. 현재 dependency는
-  `python-packages-after-update.txt`에 보존합니다. 비밀값이 있는 local 백업은 Git에서 제외합니다.
+- 당시 로컬 원본은 `runtime/Strata/benchmarks/2026-11-03-engine-0.1.56-context-262144/`였으며 완료 후 중복 산출물을 정리했습니다.
+  Synthetic 요청과 정답 fixture는 Git archive에 보존했고, 설정 백업은
+  `runtime/Strata/rollback/2026-11-03-test-configurations/after-upgrade/`로 옮겨 SHA-256 일치를 확인했습니다.
+  현재 재사용 도구·입력·복구 파일은 [테스트 안내](BENCHMARKS.md)를 따릅니다. 비밀값이 있는 백업은 Git에서 제외합니다.
 
 기본 suite 재실행 예시는 다음과 같습니다. 기존 출력 폴더에는 쓰지 않습니다.
 
@@ -178,7 +177,6 @@ Strata의 독점 RAM 사용량이나 commit 사용량과 같지 않습니다. �
   --suite all `
   --target-lengths 8192 32768 131072 260000 `
   --short-repeats 3 `
-  --public-reproduction-directory runtime/Strata/benchmarks/2026-11-03-engine-0.1.56-context-262144 `
   --output-directory runtime/Strata/benchmarks/next-measurement
 ```
 
@@ -192,5 +190,6 @@ API 요청 전체의 성공 여부는 JSON의 개별 `passed`와 `api_expectatio
 QFN의 `maxContextTokens: 262144`를 확인했습니다. PolyStrata 두 profile의 153,600은 유지했습니다.
 
 이전 환경 복구는 [복구 기준](ROLLBACK_BASELINE_2026-11-03.md)을 따릅니다.
-이번에 바꾼 LibreChat local YAML의 원본은 로컬 측정 폴더의
-`librechat-before-context-change.local.yaml`에 추가 보관했습니다. 이 파일은 Git에 넣지 않습니다.
+이번에 바꾼 LibreChat local YAML의 원본은
+`runtime/Strata/rollback/2026-11-03-test-configurations/librechat-before-context-change.local.yaml`에 보관합니다.
+이 파일은 Git에 넣지 않습니다.

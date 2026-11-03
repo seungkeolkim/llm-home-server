@@ -1,5 +1,9 @@
 # IQ3_XXS 최적화 진행 기록
 
+이 문서는 완료된 작업의 당시 이력입니다. 최종 판단은 [결과](OPTIMIZATION_RESULTS_2026-11-03.md),
+현재 재사용 절차와 입력·복구 파일 위치는 [테스트 안내](BENCHMARKS.md)를 따릅니다.
+아래 중간 runtime 경로는 작업 종료 후 정리했으며 입력 원본과 공개 측정 결과는 Git에 보존했습니다.
+
 ## 고정 조건과 복구 기준
 
 - 사용자 요청: reserve `8192 MiB`, Context `262144` 유지. 진행 상황과 측정값을 단계마다 보존합니다.
@@ -285,12 +289,8 @@ MTP on + host 16K 후보를 실제 local 설정에 반영했습니다. `args`는
 - 완료된 측정은 재실행하지 않고 최종 문서·설정 template·측정 summary·재현 script를 commit합니다.
 - 최적화 완료 기준 tag는 `baseline/2026-11-03-iq3-xxs-optimized-262k`입니다. 기존 복구 기준은 보존합니다.
 
-## 중단 후 이어가기
+## 완료 후 보관
 
-- 로컬 작업 폴더: `runtime/Strata/tuning/2026-11-03-iq3-xxs-reserve8192-context262144/`.
-- `state.json`: 현재 단계·마지막 작업·완료 여부. `events.jsonl`: 시간순 기록.
-- API 요청별 결과와 원본 응답은 단계별 하위 폴더에 보존합니다. 완료된 요청은 재실행 시 건너뜁니다.
-- local 설정·API key·로그·임시 candidate config는 Git에 넣지 않습니다.
-- 이어가기 전 이 문서, `state.json`, 가장 최근 summary, 실제 `/health`·관리 상태를 함께 확인합니다.
-- 결과가 없는 running 표시는 성공으로 해석하지 않습니다. 오류가 난 후보는 Engine 로그를 확인하고 기록합니다.
-- 기존 baseline과 source는 보존합니다. 다른 앱이나 ComfyUI의 작업·모델은 변경하지 않습니다.
+작업은 완료됐으므로 당시 state를 이어 쓰지 않습니다. 새로운 튜닝에는 [테스트 안내](BENCHMARKS.md)의
+새 run 경로와 보존한 입력을 사용합니다. 기존 baseline·source·복구 tag를 유지하며,
+private 설정 백업은 `runtime/Strata/rollback/2026-11-03-test-configurations/`로 모았습니다.

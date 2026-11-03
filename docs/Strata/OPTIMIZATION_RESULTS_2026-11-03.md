@@ -4,6 +4,7 @@
 진행 이력은 [checkpoint 문서](OPTIMIZATION_PROGRESS_2026-11-03.md), 전체 수치는
 [Engine 측정 JSON](benchmarks/2026-11-03-optimization-engine-screen.json)에 보존합니다.
 사용자가 웹 관리 화면으로 재기동한 뒤의 성능 재현은 [재기동 재검증](WEB_RESTART_REVALIDATION_2026-11-03.md)에 기록합니다.
+재사용 도구·보존 입력·정리 후 파일 위치는 [테스트 안내](BENCHMARKS.md)를 따릅니다.
 
 ## 유지한 조건과 변경 후보
 
@@ -139,13 +140,13 @@ Management Server와 upstream 코드는 변경하지 않았습니다.
 - 최종 운영 suite의 전체 GPU 관측 peak는 10437MiB, 최소 여유 RAM은 9.52GiB였습니다. ComfyUI 동시 생성 부하는 시험하지 않았습니다.
 
 공개 가능한 원본 요약은 [최종 운영 API JSON](benchmarks/2026-11-03-optimized-managed-api.json)에 보관합니다.
-자세한 요청·응답·sampling·Engine 로그·사용 script snapshot은 로컬 작업 폴더에 남겼으며 API key와 임시 파일은 commit하지 않습니다.
+요청 원본과 정답 fixture는 hash로 검증한 Git archive에 보존했습니다. 사용 script는 측정 당시 commit으로 확인할 수 있습니다.
+중복 runtime 상세 산출물은 테스트 정리 때 제거했으며 API key와 임시 파일은 commit하지 않습니다.
 
 최적화만 원복하려면 관리 화면에서 Strata를 OFF한 뒤 `config/Strata/strata.local.json`의 `env`에서
 위 세 키를 제거하고 다시 ON합니다. Engine과 모델, Context/reserve를 내릴 필요는 없습니다.
-운영 반영 전 설정은 로컬 작업 폴더의 `pre-application-snapshot/`에 보관합니다.
-반영 도구는 정답·긴 입력·반복 비교의 완료를 검사하고 관리 API로 종료·기동합니다.
-실패 시 백업한 local 설정으로 복원하며 API key와 모델 경로를 보존합니다.
+운영 반영 전 설정은 `runtime/Strata/rollback/2026-11-03-test-configurations/before-application/`에 보관합니다.
+당시 임시 반영 도구는 검증 후 설정을 반영하고 실패 시 복원했으며, 작업 완료 후 제거했습니다.
 
 기존 [업데이트 전 복구 기준](ROLLBACK_BASELINE_2026-11-03.md)과
 [최적화 전 262K API baseline](API_BASELINE_2026-11-03.md)은 그대로 유지합니다.

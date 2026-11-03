@@ -13,6 +13,7 @@ import random
 import re
 import statistics
 import subprocess
+import sys
 import threading
 import time
 
@@ -20,6 +21,8 @@ from PIL import Image
 import psutil
 import requests
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from benchmark_inputs import saved_retrieval_input, saved_url_reproduction
 
 WORKSPACE_DIRECTORY = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIGURATION = WORKSPACE_DIRECTORY / "config/Strata/strata.local.json"
@@ -257,7 +260,11 @@ class BaselineMeasurement:
         return result
 
     def long_prompt(self, target_tokens: int) -> tuple[str, list[str], dict]:
-        """위치가 다른 세 개의 비밀값을 가진 고유 record로 목표 길이의 입력을 만듭니다."""
+        """보존한 길이는 같은 원문을 사용하고 새로운 길이만 고유 record로 만듭니다."""
+        saved_input = saved_retrieval_input(target_tokens)
+        if saved_input is not None:
+            request, fixture = saved_input
+            return request["messages"][0]["content"], fixture["values"], fixture
         generator = random.Random(20261103 + target_tokens)
         records = []
         for record_index in range(max(100, target_tokens // 8)):
@@ -315,21 +322,23 @@ class BaselineMeasurement:
                          ["UNRELATED-52648"])
             self.measure("long-cache-restore", self.request_payload(followup_messages, 128), [expected_zone])
 
-    def issue_suite(self, public_reproduction_directory: Path) -> None:
+    def issue_suite(self, public_reproduction_directory: Path | None = None) -> None:
         """NaN 공개 재현 입력·대화 격리·Tool·Vision과 Context 초과 거부를 검사합니다."""
         hello = self.request_payload([{"role": "user", "content": "Hello local AI"}], 64)
         self.measure("issue-5055-hello", hello)
         minimal_hello = {"model": self.configuration["model_name"], "messages": hello["messages"],
                          "max_tokens": 64, "stream": False}
         self.measure("issue-5055-nonstream-defaults", minimal_hello)
-        reproduction_path = public_reproduction_directory / "issue-3465-request.json"
-        if reproduction_path.exists():
+        if public_reproduction_directory is None:
+            reproduction = saved_url_reproduction()
+        else:
+            reproduction_path = public_reproduction_directory / "issue-3465-request.json"
             reproduction = json.loads(reproduction_path.read_text(encoding="utf-8"))
-            payload = self.request_payload(reproduction["messages"], reproduction.get("max_tokens", 8))
-            self.measure("issue-3465-percent-urls", payload)
-            minimal_reproduction = {**reproduction, "model": self.configuration["model_name"],
-                                    "max_tokens": 8, "stream": False}
-            self.measure("issue-3465-nonstream-defaults", minimal_reproduction)
+        payload = self.request_payload(reproduction["messages"], reproduction.get("max_tokens", 8))
+        self.measure("issue-3465-percent-urls", payload)
+        minimal_reproduction = {**reproduction, "model": self.configuration["model_name"],
+                                "max_tokens": 8, "stream": False}
+        self.measure("issue-3465-nonstream-defaults", minimal_reproduction)
         for label, secret in (("a-first", "ORANGE-74519"), ("b", "VIOLET-28643"), ("a-return", "ORANGE-74519")):
             content = ("이 대화에 적힌 값만 확인하는 격리 검사입니다.\n" * 300) + f"\n현재 문서의 값만 출력하세요. 값={secret}"
             self.measure("cache-isolation-" + label, self.request_payload([{"role": "user", "content": content}], 64), [secret])
@@ -398,7 +407,7 @@ def main() -> None:
         if arguments.suite in ("core", "all"):
             measurement.core_suite(arguments.target_lengths, arguments.short_repeats)
         if arguments.suite in ("issues", "all"):
-            measurement.issue_suite(arguments.public_reproduction_directory or arguments.output_directory)
+            measurement.issue_suite(arguments.public_reproduction_directory)
     finally:
         measurement.finish()
     if any(not result["passed"] for result in measurement.results):

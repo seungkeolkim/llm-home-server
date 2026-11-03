@@ -23,7 +23,8 @@ sys.path.insert(0, str(WORKSPACE_DIRECTORY / "external_repo/Strata"))
 
 from measure_api_baseline import BaselineMeasurement
 from optimize_api_profile import (DEFAULT_OUTPUT_DIRECTORY, TASKS, atomic_json, check_fixed_configuration,
-                                  geometric_mean, record_progress, timestamp)
+                                  geometric_mean, initialize_optimization_run, record_progress, timestamp)
+from benchmark_inputs import saved_retrieval_input
 from strata_control.tune_session import WorkerSession
 from strata_control import draft_layer
 from summarize_optimization_results import summarize_trials
@@ -212,6 +213,15 @@ def measure_long_context(measurement: BaselineMeasurement, fixture_directory: Pa
     record_progress(output_directory, "long_request_finished", current_request="long-generation-260k", last_passed=result["passed"])
 
 
+def prepare_retrieval_fixtures(fixture_directory: Path) -> None:
+    """보존 archive의 동일 입력을 새 실험 폴더에 배치합니다."""
+    fixture_directory.mkdir(parents=True, exist_ok=True)
+    for target_tokens in (32768, 131072, 260000):
+        request, fixture = saved_retrieval_input(target_tokens)
+        atomic_json(fixture_directory / f"retrieval-{target_tokens}.request.json", request)
+        atomic_json(fixture_directory / f"retrieval-{target_tokens}.fixture.json", fixture)
+
+
 def measure_trial(output_directory: Path, identifier: str, settings: dict, request_settings: dict, quality_suite: bool = False,
                   long_suite: bool = False, style_suite: bool = False) -> dict:
     """공식 WorkerSession으로 복사된 설정을 기동하고 실제 HTTP API를 측정합니다."""
@@ -273,7 +283,7 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
             result = measurement.measure("decode-" + task_name, payload)
             if not result["passed"]:
                 raise RuntimeError("Decode probe failed")
-        fixture_directory = WORKSPACE_DIRECTORY / "runtime/Strata/benchmarks/2026-11-03-engine-0.1.56-context-262144/core"
+        fixture_directory = output_directory / "retrieval-fixtures"
         payload = json.loads((fixture_directory / "retrieval-32768.request.json").read_text(encoding="utf-8"))
         fixture = json.loads((fixture_directory / "retrieval-32768.fixture.json").read_text(encoding="utf-8"))
         payload["strata_checkpoint"] = False
@@ -320,6 +330,8 @@ def main() -> None:
     arguments = parser.parse_args()
     if arguments.repeat_rounds < 1:
         parser.error("--repeat-rounds must be positive")
+    initialize_optimization_run(arguments.output_directory)
+    prepare_retrieval_fixtures(arguments.output_directory / "retrieval-fixtures")
     snapshot_directory = arguments.output_directory / "protocol-snapshots" / uuid.uuid4().hex
     snapshot_directory.mkdir(parents=True)
     source_hashes = {}

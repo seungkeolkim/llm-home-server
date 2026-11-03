@@ -71,6 +71,7 @@ medium 정답 검사는 budget 512를 사용합니다. ComfyUI queue는 시작 �
 두 결과를 모두 보존했으며 운영 환경이나 파일을 수정하지 않았습니다.
 생성 직후 관리 snapshot의 `generating / in-flight 1`은 갱신 후 `ready / 0`임을 다시 확인했습니다.
 
-로컬 상세 산출물은 `runtime/Strata/revalidation/2026-11-03-web-restart/`에 있습니다.
-요청·응답·resource samples·harness snapshot과 SHA-256·현재 Engine 로그·실제 process 정보·진단 기록을 보존합니다.
-API key와 임시 실행 파일은 commit하지 않습니다. 기존 baseline 및 최적화 완료 tag는 그대로 유지합니다.
+당시 로컬 산출물 경로는 `runtime/Strata/revalidation/2026-11-03-web-restart/`였으며 작업 완료 후 중복 산출물을 정리했습니다.
+입력 원본은 Git archive, 측정·응답·process·진단 요약은 위 JSON, 재사용 도구는
+[테스트 안내](BENCHMARKS.md)에 보존합니다. API key와 임시 실행 파일은 commit하지 않습니다.
+기존 baseline 및 최적화 완료 tag는 그대로 유지합니다.
