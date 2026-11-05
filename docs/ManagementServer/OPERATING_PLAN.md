@@ -1,6 +1,6 @@
 # 운영 의도와 관리 서버 구성 계획
 
-작성 기준: 2026-10-21. 현재 구현 대조 갱신: 2026-10-22.
+작성 기준: 2026-10-21. 현재 구현 대조 갱신: 2026-11-05.
 
 이 문서는 사용자가 설명한 운영 의도와 현재 구조 검토에서 나온 제안을 정리합니다.
 새 대화나 후속 구현에서 운영 목적과 환경 분리 원칙을 이어가기 위한 기준 문서입니다.
@@ -52,7 +52,7 @@
 | ComfyUI | 8188에 직접 연결해 실행·대기 queue 조회, 모델·cache unload 요청. Queue 취소·삭제·interrupt는 제공하지 않음 |
 | Comfy Home Server | 8388은 바로가기만 제공하며 코드·설정·실행 상태를 변경하지 않음 |
 
-현재 LLM ON/OFF는 선택한 Strata 또는 PolyStrata profile의 전체 서비스 start/stop입니다. 별도 model·KV unload/offload와 영상·채팅 모드 전환은 후속 범위입니다.
+현재 LLM ON/OFF는 선택한 Strata·PolyStrata·Infernix profile의 전체 서비스 start/stop입니다. 별도 model·KV unload/offload와 영상·채팅 모드 전환은 후속 범위입니다.
 2026-10-22에 고정 catalog와 Engine·model 선택 UI, PolyStrata Qwen3.6 adapter를 구현했습니다.
 Engine·model 선택 기동의 확정 방향과 단계는 아래 「LLM Engine·model 선택 기동 설계」를 따릅니다.
 리소스 카드는 CPU → RAM → GPU → VRAM 순서의 동일한 크기로 표시합니다.
@@ -389,6 +389,24 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - ComfyUI 작업 중 Strata도 기동하지 말라는 사용자 지시에 따라 서비스 기동·모델 Load·생성 검증은 수행하지 않았습니다. 현재 Strata 설정과 관리 서버의 모델 연결도 유지했습니다.
 - 이 작업은 모델 선택이나 Load/Unload 연동의 구현 완료를 뜻하지 않습니다. 실제 모델·tokenizer 준비, runner 연동, 실행 허용 후 메모리 실측은 후속 범위입니다.
 - 계산과 성능 절충의 상세 내용은 [Qwen3.6 설정 초안](../Strata/QWEN36_CONFIGURATION.md)에 기록합니다.
+
+## 구현·준비 기록: Infernix Orcarouter NVFP4
+
+- 2026-11-05에 사용자가 Infernix와 Orcarouter Qwen3.8-Flash-Next Uncensored NVFP4를 선택했습니다. 작업 branch는 `feature/infernix-orcarouter-nvfp4`입니다.
+- 우선 다운로드만 백그라운드로 시작했습니다. Infernix용 모델 3개 Shard, 권장 FP8 PLE volume과 DFlash2 drafter 및 metadata·license를 `data/Infernix/` 아래 시스템별 경로에 저장합니다. 합계는 약 120.614 GiB입니다.
+- Pinned revision·크기·hash는 `config/Infernix/downloads/orcarouter-nvfp4.manifest.json`, worker는 `scripts/Infernix/download_orcarouter_nvfp4.py`, 상태·로그·PID는 `runtime/Infernix/downloads/orcarouter-nvfp4/`로 분리합니다. 상세 경로와 재개 방법은 [Infernix 다운로드 안내](../Infernix/README.md)를 따릅니다.
+- 이후 사용자 요청으로 공식 source를 `external_repo/Infernix`에 clean clone하고, 관리 서버 native adapter·고정 profile·실행 wrapper·설정 준비 helper를 추가했습니다. Source HEAD는 `0e1c221d5c6d2a87366e387c9e71b1cf7d24be43`입니다.
+- 실제 executable은 source HEAD를 Build한 것이 아니라 공식 `windows-2026.11.01` release입니다. Archive 크기·SHA-256을 대조해 `data/Infernix/components/engine/`에 설치하고 `--help`로 설정 옵션을 확인했습니다. 시스템 CUDA Toolkit·PATH·driver와 공식 source는 수정하지 않습니다.
+- Profile `infernix-orcarouter-nvfp4`는 Context 262144, concurrency 1, KV INT8, DFlash2, FP8 PLE의 volume residency, exclusive expert RAM layout, RAM 여유 8192 MiB, host context cache 2048 MiB, VRAM headroom 8192 MiB를 사용합니다. 리소스 사용량·속도는 아직 실측하지 않았습니다.
+- CPU Vision 추가 요청에 따라 `--vision --vision-offload on`으로 변경했습니다. Infernix가 제공하는 것은 Vision weights의 pinned system RAM 상주와 encoding 시 GPU 메모리 임시 사용입니다. CPU-only 연산 옵션은 없어 해당 차이를 실행·LibreChat 표시와 문서에 명시했습니다. Artifact에 Vision weights가 포함되어 별도 mmproj는 받지 않습니다. 실제 이미지 입력·메모리 검증은 모델 다운로드 후 수행합니다.
+- 다운로드·검증 중에는 기동을 차단하고, 완료 후 모든 Shard·PLE·drafter의 크기와 pinned hash 검증 기록, executable·template 준비를 확인합니다. Runtime은 단일 native 서버의 PID 생성 시각·command marker·소유 listener, Model ID·Context·Engine instance를 대조합니다. Launcher의 자동 모델 전환은 사용하지 않습니다.
+- LibreChat template과 기존 local YAML에 동일 Model ID·262144 Context를 등록했습니다. Local YAML은 `data/Infernix/backups/`에 백업하고 기존 모델과 공통 endpoint·key를 보존했습니다. Container는 재시작하지 않았습니다.
+- 최초 준비 단계에서는 관리 서버 테스트 52개, 설치 executable `--help`, CLI status의 다운로드 표시, LibreChat `-ValidateOnly`를 확인했습니다. 당시에는 다운로드 진행 중으로 모델 Load·실제 기동·생성·메모리 Plan을 수행하지 않았습니다. 준비와 active serving을 구분합니다.
+- 후속 확인: 2026-11-05 19:30 KST에 약 120.614 GiB, 16개 파일의 다운로드·검증이 완료됐습니다. 이후 사용자가 관리 화면에서 Infernix를 기동하고 ComfyUI 이미지 생성을 함께 수행했습니다. 이 동시 실행은 사용자 관측이며 별도의 부하 benchmark로 해석하지 않습니다.
+- 실행 중 Engine의 `/v1/models`·metrics·startup 로그에서 Context 262144, KV INT8, concurrency 1, Vision RAM offload를 확인했습니다. Startup의 KV 배분은 초기 0.16 GiB, 최대 3.28 GiB이며 VRAM expert cache는 초기 199 frames에서 다른 GPU 프로그램 사용 후 0 frames로 줄었습니다. 요청 Context 상한과 physical KV capacity 262208, 기본 출력 상한 8192를 구분합니다.
+- LibreChat local YAML의 bind mount hash는 일치했지만 실행된 앱의 모델 목록은 이전 것이었습니다. LibreChat 앱 Container만 재시작하여 Infernix modelSpec·ID·262144 Context를 적용하고 실제 대화의 `INFERNIX_LIBRECHAT_READY` 응답을 확인했습니다. MongoDB·ComfyUI와 Infernix PID·instance는 유지했습니다.
+- 공식 Launcher는 별도 모델 제어·전환·watchdog 구조이므로 현재 native 서버에 추가하지 않았습니다. 임시로 추가했던 자체 모니터링 화면·telemetry 확장은 후속 사용자 요청으로 제거하고 기존 엔진 화면 바로가기(API port 8488)를 복원했습니다. Native 서버의 `/`에 Web UI는 없습니다.
+- 후속 검증: 관리 서버 테스트 52개, 기존 JavaScript 테스트 6개, LibreChat 모델 목록·실제 텍스트 응답을 확인했습니다. Vision·최대 KV의 동시 부하 검증은 미수행입니다.
 
 ## 준비 기록: Qwen3.6 Q4_K_M 다운로드
 

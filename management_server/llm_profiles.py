@@ -19,7 +19,7 @@ class ProfileCatalog:
             identifier = profile["identifier"]
             if identifier in self.profiles:
                 raise ValueError("중복된 LLM profile입니다.")
-            if profile["engine"] not in {"strata", "polystrata"}:
+            if profile["engine"] not in {"strata", "polystrata", "infernix"}:
                 raise ValueError("지원하지 않는 Engine adapter입니다.")
             self.document["engines"][profile["engine"]]
             self.document["models"][profile["model"]]
@@ -50,13 +50,18 @@ class ProfileCatalog:
                   "quantization": profile.get("quantization", "미등록"),
                   "context_tokens": self.document["models"][profile["model"]]["context_tokens"],
                   "label": profile["label"], "state": "available", "problem": ""}
-        download_status_path = profile.get("download_status_path")
-        if download_status_path and resolve_workspace_path(download_status_path).is_file():
-            download_status = read_json(resolve_workspace_path(download_status_path))
-            if download_status.get("state") in {"downloading", "retrying", "verifying"}:
-                result.update(state="downloading", problem="Model 다운로드·검증 진행 중")
-                return result
         try:
+            download_status_path = profile.get("download_status_path")
+            if download_status_path and resolve_workspace_path(download_status_path).is_file():
+                download_status = read_json(resolve_workspace_path(download_status_path))
+                from .infernix import ACTIVE_DOWNLOAD_STATES
+                if download_status.get("state") in ACTIVE_DOWNLOAD_STATES:
+                    result.update(state="downloading", problem="Model 다운로드·검증 진행 중")
+                    if profile["engine"] == "infernix":
+                        result["model_name"] = profile["model_name"]
+                        percent = float(download_status.get("progress_percent", 0))
+                        result["problem"] = f"Model·PLE·DFlash2 다운로드·검증 중 ({percent:.1f}%)"
+                    return result
             configuration = self.native_configuration(profile)
             result["model_name"] = configuration["model_name"]
             result["revision"] = self.revision(profile)
@@ -68,7 +73,14 @@ class ProfileCatalog:
             required_context = result["context_tokens"]
             if int(arguments[arguments.index("--max-context") + 1]) != required_context:
                 raise ValueError("Engine과 catalog의 context가 다릅니다.")
-            if profile["engine"] == "polystrata":
+            if profile["engine"] == "infernix":
+                from .infernix import preparation_problem
+                if configuration["model_name"] != profile["model_name"]:
+                    raise ValueError("Infernix 고정 Model ID가 다릅니다.")
+                problem = preparation_problem(configuration, profile["download_status_path"])
+                if problem:
+                    result.update(state=problem[0], problem=problem[1])
+            elif profile["engine"] == "polystrata":
                 if not Path(configuration["exe"]).is_file():
                     result.update(state="engine_missing", problem="PolyStrata Engine 미설치")
                 else:

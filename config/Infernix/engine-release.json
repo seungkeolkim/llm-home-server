@@ -1,0 +1,8 @@
+{
+  "release": "windows-2026.11.01",
+  "url": "https://github.com/Wallawalla47/Infernix/releases/download/windows-2026.11.01/infernix-2026.11.01-windows-x64.zip",
+  "size": 560216863,
+  "sha256": "b1e1e3521c0782624b8f577b117f8cf071ebd85f19f247fbb2259ac8270d184e",
+  "archive_root": "infernix-2026.11.01-windows-x64",
+  "source_repository": "https://github.com/Wallawalla47/Infernix.git"
+}

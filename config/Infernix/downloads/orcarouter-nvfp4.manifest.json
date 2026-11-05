@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-05T07:20:10.1130441+00:00",
+  "model": "Infernix / Orcarouter Qwen3.8-Flash-Next Uncensored NVFP4",
+  "download_root": "data/Infernix",
+  "files": [
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-DFlash2-Infernix",
+      "revision": "9f450f303e07e087a8db1d56718e8f0e591701ba",
+      "filename": "LICENSE",
+      "destination": "components/dflash2/LICENSE",
+      "expected_bytes": 11357,
+      "sha256": null,
+      "git_blob_sha1": "261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-DFlash2-Infernix",
+      "revision": "9f450f303e07e087a8db1d56718e8f0e591701ba",
+      "filename": "NOTICE",
+      "destination": "components/dflash2/NOTICE",
+      "expected_bytes": 1592,
+      "sha256": null,
+      "git_blob_sha1": "149d1298cf85b07e5392eaf1fd7f642ef94442d1"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-DFlash2-Infernix",
+      "revision": "9f450f303e07e087a8db1d56718e8f0e591701ba",
+      "filename": "Qwen3.8-Flash-Next-DFlash2-Infernix.infernix.conversion.json",
+      "destination": "components/dflash2/Qwen3.8-Flash-Next-DFlash2-Infernix.infernix.conversion.json",
+      "expected_bytes": 32510,
+      "sha256": null,
+      "git_blob_sha1": "d49cf73b2272afd1383a9e0a82c5522148997cab"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-DFlash2-Infernix",
+      "revision": "9f450f303e07e087a8db1d56718e8f0e591701ba",
+      "filename": "README.md",
+      "destination": "components/dflash2/README.md",
+      "expected_bytes": 8831,
+      "sha256": null,
+      "git_blob_sha1": "628335f450247a0781a88759aac769cc608fbb9e"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-NVIDIA-NVFP4-Infernix",
+      "revision": "4d74565fdcf03d59314b55c17d400e0fde237678",
+      "filename": "LICENSE",
+      "destination": "components/ple-fp8/LICENSE",
+      "expected_bytes": 3235,
+      "sha256": null,
+      "git_blob_sha1": "9557a8961782792814714b7488346732c043793d"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-NVIDIA-NVFP4-Infernix",
+      "revision": "4d74565fdcf03d59314b55c17d400e0fde237678",
+      "filename": "NOTICE",
+      "destination": "components/ple-fp8/NOTICE",
+      "expected_bytes": 448,
+      "sha256": null,
+      "git_blob_sha1": "9691d126126e3462ae68d901dfa934153eaa4fce"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-NVIDIA-NVFP4-Infernix",
+      "revision": "4d74565fdcf03d59314b55c17d400e0fde237678",
+      "filename": "NVIDIA-Open-Model-License.txt",
+      "destination": "components/ple-fp8/NVIDIA-Open-Model-License.txt",
+      "expected_bytes": 10429,
+      "sha256": null,
+      "git_blob_sha1": "c81ebc7c8f534a87bfa164a7c008e0e75559abc4"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix",
+      "revision": "f6e600bcb2a3e21cc9e0b86f71cbe8cf41df7957",
+      "filename": "LICENSE",
+      "destination": "models/orcarouter-qwen3.8-flash-next-nvfp4/LICENSE",
+      "expected_bytes": 3235,
+      "sha256": null,
+      "git_blob_sha1": "9557a8961782792814714b7488346732c043793d"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix",
+      "revision": "f6e600bcb2a3e21cc9e0b86f71cbe8cf41df7957",
+      "filename": "NGRAM-VOLUME.md",
+      "destination": "models/orcarouter-qwen3.8-flash-next-nvfp4/NGRAM-VOLUME.md",
+      "expected_bytes": 2168,
+      "sha256": null,
+      "git_blob_sha1": "1f5d66ea6b309691cf9805727468416b3f52c798"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix",
+      "revision": "f6e600bcb2a3e21cc9e0b86f71cbe8cf41df7957",
+      "filename": "Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix.conversion.json",
+      "destination": "models/orcarouter-qwen3.8-flash-next-nvfp4/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix.conversion.json",
+      "expected_bytes": 967282,
+      "sha256": null,
+      "git_blob_sha1": "d78c077ec4628038981b307b6dcf1454a7065cb2"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix",
+      "revision": "f6e600bcb2a3e21cc9e0b86f71cbe8cf41df7957",
+      "filename": "README.md",
+      "destination": "models/orcarouter-qwen3.8-flash-next-nvfp4/README.md",
+      "expected_bytes": 16481,
+      "sha256": null,
+      "git_blob_sha1": "dd05bd25ed0107633f88cf2be96b998b67b73db6"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-DFlash2-Infernix",
+      "revision": "9f450f303e07e087a8db1d56718e8f0e591701ba",
+      "filename": "Qwen3.8-Flash-Next-DFlash2-Infernix.infernix",
+      "destination": "components/dflash2/Qwen3.8-Flash-Next-DFlash2-Infernix.infernix",
+      "expected_bytes": 776075776,
+      "sha256": "8325b68b3790811754bc6a5f803c2f27b5daa868eb295efaa04ba88cc923d704",
+      "git_blob_sha1": "adac500992f83c4d78de80aa4a6185765efabb68"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix",
+      "revision": "f6e600bcb2a3e21cc9e0b86f71cbe8cf41df7957",
+      "filename": "Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix-00001-of-00003.infernix",
+      "destination": "models/orcarouter-qwen3.8-flash-next-nvfp4/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix-00001-of-00003.infernix",
+      "expected_bytes": 32000000000,
+      "sha256": "ed86ef27d5d7ef009466f5bc328f6009f587bbe2d3f94e9a582eaf5e75e89604",
+      "git_blob_sha1": "9b7e2b3ca42eaf2e2e3aa27695f3da0e54dad602"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix",
+      "revision": "f6e600bcb2a3e21cc9e0b86f71cbe8cf41df7957",
+      "filename": "Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix-00002-of-00003.infernix",
+      "destination": "models/orcarouter-qwen3.8-flash-next-nvfp4/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix-00002-of-00003.infernix",
+      "expected_bytes": 32000000000,
+      "sha256": "07e1889f188649cbe03c5f45c9f6f00f0b91c0891ad498067dd33b7ac0c9119d",
+      "git_blob_sha1": "40d74d86138cfb27804bc7192918e1246e411290"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix",
+      "revision": "f6e600bcb2a3e21cc9e0b86f71cbe8cf41df7957",
+      "filename": "Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix-00003-of-00003.infernix",
+      "destination": "models/orcarouter-qwen3.8-flash-next-nvfp4/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix-00003-of-00003.infernix",
+      "expected_bytes": 12302074624,
+      "sha256": "99bcafd5a97f53f0e1cd9e24b9dd6152154722d048519534a0ed314a8339139f",
+      "git_blob_sha1": "3d083a98f8253b3650687e09d94936bf33829732"
+    },
+    {
+      "repository": "Wallawalla47/Qwen3.8-Flash-Next-NVIDIA-NVFP4-Infernix",
+      "revision": "4d74565fdcf03d59314b55c17d400e0fde237678",
+      "filename": "Qwen3.8-Flash-Next-NVIDIA-NVFP4-Infernix.ngram",
+      "destination": "components/ple-fp8/Qwen3.8-Flash-Next-NVIDIA-NVFP4-Infernix.ngram",
+      "expected_bytes": 52429058048,
+      "sha256": "2f185b4864e4644b187f4605227c82647dd2e3ae414b5d1dfe4b459477c3e481",
+      "git_blob_sha1": "7c5d3b5e5173dc869b2afe2de0c8151b7900c272"
+    }
+  ]
+}

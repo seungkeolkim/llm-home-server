@@ -132,14 +132,20 @@ class ProfileRuntime:
                       adapter=profile["engine"], model=configuration["model_name"], state="starting",
                       instance_id=instance["identifier"], profile_id=profile["identifier"])
         try:
-            response = await client.get("http://127.0.0.1:8488/v1/status", timeout=3,
-                                        headers={"Authorization": "Bearer " + configuration["api_key"]})
-            response.raise_for_status()
-            status = response.json()
+            if profile["engine"] == "infernix":
+                from .infernix import query_status
+                status = await query_status(client, configuration)
+                if status["engine_instance_id"] != instance.get("engine_instance_id"):
+                    raise ValueError("Infernix 실행 instance가 변경됐습니다.")
+            else:
+                response = await client.get("http://127.0.0.1:8488/v1/status", timeout=3,
+                                            headers={"Authorization": "Bearer " + configuration["api_key"]})
+                response.raise_for_status()
+                status = response.json()
             if status.get("loaded"):
                 result["in_flight"] = status.get("activity", {}).get("in_flight", 0)
                 result["state"] = "generating" if result["in_flight"] else "ready"
-        except (httpx.HTTPError, ValueError):
+        except (httpx.HTTPError, ValueError, KeyError, TypeError):
             pass
         return result
 
@@ -203,11 +209,19 @@ class ProfileRuntime:
             process = self.attach_strata_identity(instance)
             marker = "strata-managed"
         else:
-            command = [str(WORKSPACE_DIRECTORY / ".venv/PolyStrata/Scripts/python.exe"), "-B",
-                       str(WORKSPACE_DIRECTORY / "scripts/PolyStrata/serve_profile.py"),
-                       "--engine", "strata", "--port", "8488", "--host", "0.0.0.0",
-                       "--config", str(resolve_workspace_path(profile["configuration_path"]))]
-            marker = "scripts/polystrata/serve_profile.py"
+            if profile["engine"] == "infernix":
+                from .infernix import server_command
+                command = server_command(configuration)
+                marker = str(resolve_workspace_path(configuration["native_configuration_path"])).replace("\\", "/").lower()
+                working_directory = Path(configuration["cwd"])
+                working_directory.mkdir(parents=True, exist_ok=True)
+            else:
+                command = [str(WORKSPACE_DIRECTORY / ".venv/PolyStrata/Scripts/python.exe"), "-B",
+                           str(WORKSPACE_DIRECTORY / "scripts/PolyStrata/serve_profile.py"),
+                           "--engine", "strata", "--port", "8488", "--host", "0.0.0.0",
+                           "--config", str(resolve_workspace_path(profile["configuration_path"]))]
+                marker = "scripts/polystrata/serve_profile.py"
+                working_directory = WORKSPACE_DIRECTORY
             log_path = resolve_workspace_path(profile["log_path"])
             log_path.parent.mkdir(parents=True, exist_ok=True)
             environment = os.environ.copy()
@@ -215,7 +229,7 @@ class ProfileRuntime:
             environment.pop("PYTHONPATH", None)
             environment.pop("PYTHONHOME", None)
             with log_path.open("ab") as log_stream:
-                spawned = subprocess.Popen(command, cwd=WORKSPACE_DIRECTORY, env=environment,
+                spawned = subprocess.Popen(command, cwd=working_directory, env=environment,
                                            stdin=subprocess.DEVNULL, stdout=log_stream, stderr=subprocess.STDOUT,
                                            creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
             process = psutil.Process(spawned.pid)
@@ -227,6 +241,20 @@ class ProfileRuntime:
                 if not self.owned_process(instance):
                     raise RuntimeError("LLM process가 종료됐습니다. Engine 로그를 확인해 주세요.")
                 try:
+                    if profile["engine"] == "infernix":
+                        from .infernix import query_status_sync
+                        listener_owned = any(
+                            connection.status == psutil.CONN_LISTEN and connection.laddr.port == 8488
+                            for connection in process.net_connections(kind="tcp")
+                        )
+                        if listener_owned:
+                            status = query_status_sync(client, configuration)
+                            if status["loaded"]:
+                                instance["engine_instance_id"] = status["engine_instance_id"]
+                                self.write_instance(instance)
+                                return instance
+                        time.sleep(1)
+                        continue
                     response = client.get("http://127.0.0.1:8488/v1/status", timeout=3,
                                           headers={"Authorization": "Bearer " + configuration["api_key"]})
                     response.raise_for_status()
@@ -236,7 +264,7 @@ class ProfileRuntime:
                         model["id"] == configuration["model_name"] for model in models.get("data", [])
                     ):
                         return instance
-                except (httpx.HTTPError, ValueError):
+                except (httpx.HTTPError, ValueError, KeyError, TypeError):
                     pass
                 time.sleep(1)
         raise RuntimeError("LLM readiness 제한 시간을 초과했습니다. 자동 재시작하지 않습니다.")

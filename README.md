@@ -2,11 +2,11 @@
 
 LLM 채팅과 같은 PC의 ComfyUI 이미지·영상 생성을 함께 운영하기 위한 프로젝트입니다.
 모바일과 데스크톱의 관리 화면에서 서비스 ON/OFF, ComfyUI queue 조회와 모델·cache unload,
-RAM·VRAM과 서비스 상태 확인을 제공합니다. Strata와 PolyStrata를 profile별 adapter로 제어합니다.
+RAM·VRAM과 서비스 상태 확인을 제공합니다. Strata·PolyStrata·Infernix를 profile별 adapter로 제어합니다.
 작업에 따라 메모리를 확보하고, 각 시스템의 실행 환경·설정·데이터를 분리하여 관리하는 것을 목표로 합니다.
 
 관리 서버는 Windows host에서 현재 사용자 계정으로 수동 실행합니다. 자동 기동·자동 복구는 사용하지 않습니다.
-LibreChat + MongoDB는 Docker, Strata·PolyStrata는 Windows native로 실행합니다.
+LibreChat + MongoDB는 Docker, Strata·PolyStrata·Infernix는 Windows native로 실행합니다.
 상세한 운영 의도와 구조 개선 제안은 [운영 의도와 관리 서버 구성 계획](docs/ManagementServer/OPERATING_PLAN.md)에 정리합니다.
 
 공식 clone을 수정하지 않고 Windows / PowerShell에서 기동합니다.
@@ -17,15 +17,17 @@ LibreChat + MongoDB는 Docker, Strata·PolyStrata는 Windows native로 실행합
 | Strata | SC117 Qwen3.8-Flash-Next IQ3_XXS | `strata-qwen-flash-next` |
 | PolyStrata | Unsloth Qwen3.6 UD-Q4_K_M | `polystrata-qwen36-q4km` |
 | PolyStrata | HauhauCS Aggressive Qwen3.6 TTQ Q4_K_M + MTP | `polystrata-qwen36-hauhau-q4km` |
+| Infernix | Orcarouter Qwen3.8-Flash-Next Uncensored NVFP4 + DFlash2 | `infernix-orcarouter-nvfp4` |
 
 관리 화면에서 **LLM 켜기 → profile 선택 → 기동**하며, 다른 profile로 바꾸려면 현재 LLM을 먼저 끕니다.
-한 번에 하나만 실행하고 **0.0.0.0:8488**의 API와 Web UI를 공유합니다.
+한 번에 하나만 실행하고 **0.0.0.0:8488**의 API를 공유합니다. Strata·PolyStrata는 Web UI도 제공하며, Infernix는 native API와 LibreChat을 사용합니다.
 이 PC에서는 **http://127.0.0.1:8488**, 다른 기기에서는 **http://<서버의 LAN IP>:8488**로 접속합니다.
 
 LibreChat + MongoDB의 Docker 실행 환경은 [LibreChat 운영 안내](docs/LibreChat/README.md)에 있습니다.
 LibreChat 기본 host port는 **8588**이며, Keenable Web Search와 선택한 LLM 기반 자동 컨텍스트 압축을 지원합니다.
-Model 목록은 고정 설정입니다. LibreChat에서 이름만 바꾸어도 Engine이 전환되지는 않으며, 미실행 model ID는 HTTP 400으로 거부합니다.
+Model 목록은 고정 설정입니다. LibreChat에서 이름만 바꾸어도 Engine이 전환되지는 않으며, 미실행 model ID는 Strata·PolyStrata가 HTTP 400, Infernix가 HTTP 404로 거부합니다.
 PolyStrata 설치·Hauhau 준비·실측은 [PolyStrata 운영 안내](docs/PolyStrata/README.md)를 참고하세요. PolyStrata + QFN은 후속 범위입니다.
+Infernix는 context 262,144, 단일 요청, KV INT8, Vision RAM offload로 등록했습니다. Vision weights는 system RAM에 두고 이미지 encoding은 GPU로 수행합니다. 모델 다운로드·hash 검증과 실제 LibreChat 텍스트 응답을 확인했습니다. 현재 native 서버는 API·metrics를 제공하며 별도 Web UI는 Launcher에서 제공합니다. [Infernix 운영 안내](docs/Infernix/README.md)를 참고하세요.
 
 ## 최초 설정: template 복사와 필수 변경
 

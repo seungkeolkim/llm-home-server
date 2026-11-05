@@ -54,7 +54,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\ManagementServer\a
 |---|---|
 | Windows | 물리 RAM 사용·여유량과 CPU 사용률 조회 |
 | GPU | NVIDIA GPU VRAM 사용·여유량, 사용률·온도·전력 조회 |
-| LLM | 고정 profile 선택, Strata QFN·PolyStrata Qwen3.6의 상태·모델명 조회와 instance별 start/stop |
+| LLM | 고정 profile 선택, Strata·PolyStrata·Infernix의 상태·모델명 조회와 instance별 start/stop |
 | LibreChat | Docker Compose stack의 상태 조회, LibreChat·MongoDB 함께 start/stop |
 | ComfyUI 8188 | 실행·대기 queue 조회와 모델·execution cache unload 요청 |
 | Comfy Home Server 8388 | 바로가기만 제공. 이 서버의 코드·설정·프로세스는 관리하지 않음 |
@@ -68,11 +68,14 @@ HTTP 성공은 **요청 접수**입니다. 작업 중이면 처리 후 반영되
 LLM의 ON/OFF는 선택한 serving profile의 전체 서비스 기동·종료입니다.
 Model 설정의 자유 편집 대신 서버에서 준비한 고정 profile을 선택합니다.
 다른 engine은 `create_llm_adapter()` 경계에 adapter를 추가할 수 있으며 화면·일반 제어 API는 `llm`이라는 이름을 사용합니다.
-「켜기 → Engine·model 조합 선택 → 기동」을 구현했습니다. Strata + QFN, PolyStrata + Qwen3.6 Unsloth, PolyStrata + Qwen3.6 Hauhau의 세 profile이 같은 `8488` port를 공유합니다. 세 profile과 LibreChat의 context는 153,600 tokens입니다. PolyStrata + QFN은 후속입니다. [운영 계획](OPERATING_PLAN.md#llm-enginemodel-선택-기동-설계)과 [실행·실측 문서](../PolyStrata/README.md)를 참고하세요.
+「켜기 → Engine·model 조합 선택 → 기동」을 구현했습니다. Strata + QFN, PolyStrata + Qwen3.6 Unsloth·Hauhau, Infernix + Orcarouter NVFP4의 네 profile이 같은 `8488` port를 공유합니다. Strata·Infernix QFN은 context 262,144, PolyStrata Qwen3.6은 153,600 tokens이며 LibreChat도 같은 값입니다. 다운로드·검증 중인 Infernix는 기동할 수 없습니다. PolyStrata + QFN은 후속입니다. [운영 계획](OPERATING_PLAN.md#llm-enginemodel-선택-기동-설계), [PolyStrata 실측](../PolyStrata/README.md), [Infernix 준비·실행](../Infernix/README.md)을 참고하세요.
 LLM은 하나만 실행하며 다른 조합으로 바꾸려면 끈 뒤 다시 선택해 켭니다. LibreChat의 지원 model 목록과 model별 context는 고정 설정으로 관리합니다. Engine을 유지한 채 model·KV만 unload/offload하는 기능은 TODO이며 구현하지 않았습니다.
 「LLM 켜기」의 선택 카드에는 모델명, 배포 variant(SC117·Unsloth·HauhauCS 등), Quantization과 Engine을 구분해서 표시합니다. 선택한 모델의 정확한 Model ID와 실행 설정은 카드 목록 아래에서 확인합니다. `config/ManagementServer/llm-profiles.json`의 `variant_label`·`quantization`은 표시용 정보이며 실제 실행 옵션은 각 profile의 local 설정을 따릅니다.
 LibreChat에서도 기동한 model을 선택합니다. 미실행 model ID는 두 Engine 모두 HTTP 400으로 거부하며 자동 전환하지 않습니다.
-두 Engine의 thinking 반복 감지는 `stop`이며, 반복 중단은 `finish_reason: length`로 전달됩니다. 상세 동작은 [Strata 정책·검증 기록](../Strata/RESTORATION.md#후속-변경-model-id-검증과-thinking-loop-중단)에 있습니다.
+Strata·PolyStrata의 thinking 반복 감지는 `stop`이며, 반복 중단은 `finish_reason: length`로 전달됩니다. 상세 동작은 [Strata 정책·검증 기록](../Strata/RESTORATION.md#후속-변경-model-id-검증과-thinking-loop-중단)에 있습니다. Infernix는 native `--reasoning-loop conclude`를 사용합니다.
+
+Infernix는 launcher 대신 단일 `infernix-serve.exe`를 실행합니다. 상태는 `/health`, 인증된 `/v1/models`, `/metrics?format=json`으로 확인하며 Model ID·Context·실행 instance를 대조합니다. 종료 확인의 진행 중 요청 수는 running + waiting입니다. Start/stop은 다른 Engine과 동일한 공통 lock·설정 revision·PID 생성 시각·process identity를 따릅니다.
+사용자 요청으로 임시 Infernix 모니터링 화면·telemetry 확장을 제거하고 기존 엔진 화면 바로가기(API port 8488)를 복원했습니다. Infernix native 서버는 Web UI를 제공하지 않으며 공식 Launcher는 현재 실행 구조와 분리되어 있습니다.
 LLM 시작이 ComfyUI queue를 취소하거나 메모리를 자동 해제하지는 않습니다.
 
 ## 작업 이력과 reload

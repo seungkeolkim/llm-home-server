@@ -91,6 +91,13 @@ if (Test-Path -LiteralPath $polystrataConfigurationPath) {
         throw 'PolyStrata도 공통 port 8488과 동일한 API key를 사용해야 합니다.'
     }
 }
+$infernixConfigurationPath = Join-Path $workspaceRoot 'config\Infernix\orcarouter-nvfp4.local.json'
+if (Test-Path -LiteralPath $infernixConfigurationPath) {
+    $infernixConfiguration = Get-Content -LiteralPath $infernixConfigurationPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($infernixConfiguration.port -ne 8488 -or $infernixConfiguration.api_key -cne $environmentSettings['STRATA_API_KEY']) {
+        throw 'Infernix도 공통 port 8488과 동일한 API key를 사용해야 합니다.'
+    }
+}
 if ($environmentSettings['CREDS_KEY'] -notmatch '^[0-9a-fA-F]{64}$' -or $environmentSettings['CREDS_IV'] -notmatch '^[0-9a-fA-F]{32}$') {
     throw 'CREDS_KEY는 64자리 hex, CREDS_IV는 32자리 hex여야 합니다.'
 }

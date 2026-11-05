@@ -1,0 +1,24 @@
+{
+  "engine_release": "windows-2026.11.01",
+  "exe": "${WORKSPACE_ROOT}/data/Infernix/components/engine/windows-2026.11.01/infernix-serve.exe",
+  "model_path": "${WORKSPACE_ROOT}/data/Infernix/models/orcarouter-qwen3.8-flash-next-nvfp4/Qwen3.8-Flash-Next-Uncensored-NVFP4-Infernix-00001-of-00003.infernix",
+  "ngram_volume": "${WORKSPACE_ROOT}/data/Infernix/components/ple-fp8/Qwen3.8-Flash-Next-NVIDIA-NVFP4-Infernix.ngram",
+  "draft_model": "${WORKSPACE_ROOT}/data/Infernix/components/dflash2/Qwen3.8-Flash-Next-DFlash2-Infernix.infernix",
+  "chat_template": "${WORKSPACE_ROOT}/data/Infernix/components/engine/windows-2026.11.01/chat_templates/qwen3_8.jinja",
+  "model_name": "infernix-orcarouter-qwen3.8-flash-next-nvfp4",
+  "host": "0.0.0.0",
+  "port": 8488,
+  "api_key": "CHANGE_ME_이 부분을 바꾸세요_공통 LLM API key",
+  "args": [
+    "--max-context", "262144", "--max-concurrency", "1", "--kv-dtype", "int8",
+    "--spec", "dflash2", "--draft-tokens", "auto", "--lm-head-draft",
+    "--ngram-residency", "volume", "--expert-ram-layout", "exclusive",
+    "--ram-free-mib", "8192", "--host-context-mib", "2048",
+    "--vram-headroom-mib", "8192", "--reasoning-loop", "conclude",
+    "--vision", "--vision-offload", "on"
+  ],
+  "download_manifest_path": "config/Infernix/downloads/orcarouter-nvfp4.manifest.json",
+  "native_configuration_path": "runtime/Infernix/working/orcarouter.server.local.toml",
+  "cwd": "${WORKSPACE_ROOT}/runtime/Infernix/working",
+  "log": "${WORKSPACE_ROOT}/runtime/Infernix/logs/server.log"
+}

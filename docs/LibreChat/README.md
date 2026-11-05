@@ -1,13 +1,13 @@
 # LibreChat 실행 환경
 
-LibreChat과 MongoDB만 Docker로 실행합니다. 모델 추론과 컨텍스트 요약은 관리 화면에서 선택한 Windows Strata 또는 PolyStrata를 사용하며,
+LibreChat과 MongoDB만 Docker로 실행합니다. 모델 추론과 컨텍스트 요약은 관리 화면에서 선택한 Windows Strata·PolyStrata·Infernix를 사용하며,
 Web Search와 페이지 본문 추출은 API key 없이 Keenable을 호출합니다.
 Meilisearch, RAG API, PostgreSQL, Redis 및 별도 Admin Panel은 설치하지 않습니다.
 
 ## 준비 및 실행
 
 Docker Desktop의 Linux container engine과 `8488`에서 실행 중인 LLM profile이 필요합니다.
-관리 화면에서 실행한 model을 LibreChat에서도 선택합니다. Strata QFN, PolyStrata Qwen3.6 Unsloth·Hauhau의 목록은 정적으로 고정합니다. Context는 Strata QFN 262,144 tokens, PolyStrata Qwen3.6 두 profile 153,600 tokens입니다.
+관리 화면에서 실행한 model을 LibreChat에서도 선택합니다. Strata QFN, PolyStrata Qwen3.6 Unsloth·Hauhau, Infernix Orcarouter NVFP4의 목록은 정적으로 고정합니다. Context는 Strata·Infernix QFN 262,144 tokens, PolyStrata Qwen3.6 두 profile 153,600 tokens입니다.
 Title은 `current_model`, summarization은 현재 대화 model을 사용합니다. [PolyStrata 연결·실측 문서](../PolyStrata/README.md)를 참고하세요.
 명령은 이 repository root에서 실행합니다.
 먼저 아래 template을 파일명 끝의 `.template`만 제거한 이름으로 복사합니다.
@@ -93,31 +93,33 @@ Keenable 공개 endpoint는 공인 IP별 1,000 requests/hour, 최대 10 requests
 `summarization.enabled: true`이며 LibreChat이 계산한 context budget의 80%에서 오래된 메시지를 요약합니다.
 요약도 현재 대화에서 선택한 LLM을 사용하며 최대 4,096 output tokens, 최근 2 turns 및 4,000 tokens 보존을 설정했습니다.
 요약은 손실 압축이지만 원본 대화 기록은 MongoDB에 유지됩니다.
-현재 Engine context와 LibreChat `maxContextTokens`는 Strata QFN 262,144 tokens, PolyStrata Qwen3.6 두 profile 153,600 tokens입니다. Strata QFN의 153,600과 초기 구성의 163,840은 이전 값입니다.
+현재 Engine context와 LibreChat `maxContextTokens`는 Strata·Infernix QFN 262,144 tokens, PolyStrata Qwen3.6 두 profile 153,600 tokens입니다. Strata QFN의 153,600과 초기 구성의 163,840은 이전 값입니다.
 LibreChat은 여기에서 여유 공간을 빼므로 UI의 실제 context budget은 더 작습니다.
 
 ## 모델 선택과 실행 profile
 
-Endpoint 이름 `Strata`는 기존 대화와 연결을 보존하기 위한 공통 식별자입니다. PolyStrata도 같은 `STRATA_BASE_URL`과 API key를 사용합니다.
+Endpoint 이름 `Strata`는 기존 대화와 연결을 보존하기 위한 공통 식별자입니다. PolyStrata·Infernix도 같은 `STRATA_BASE_URL`과 API key를 사용합니다.
 
 | LibreChat 선택 | 관리 profile | 요청 model ID |
 |---|---|---|
 | Strata · Qwen Flash-Next | `strata-qwen-flash-next` | `sc117-qwen3.8-flash-next-abliterated-iq3_xxs` |
 | PolyStrata · Qwen3.6 MoE | `polystrata-qwen36-q4km` | `qwen3.6-35b-a3b-ud-q4_k_m` |
 | PolyStrata · Qwen3.6 Hauhau | `polystrata-qwen36-hauhau-q4km` | `qwen3.6-35b-a3b-hauhau-ttq-q4_k_m` |
+| Infernix · Orcarouter NVFP4 | `infernix-orcarouter-nvfp4` | `infernix-orcarouter-qwen3.8-flash-next-nvfp4` |
 
 관리 화면에서 기존 LLM을 끄고 새 profile을 켠 뒤 LibreChat의 model을 맞춥니다.
-LibreChat에서 선택만 바꾸면 LLM이 교체되는 것이 아닙니다. 두 Engine 모두 실행 model과 다른 ID의 요청을 생성 전에 HTTP 400으로 거부합니다.
+LibreChat에서 선택만 바꾸면 LLM이 교체되는 것이 아닙니다. 실행 model과 다른 ID의 요청은 Strata·PolyStrata가 HTTP 400, Infernix가 native HTTP 404로 거부합니다.
 LibreChat에는 provider 오류가 표시되며 현재 model의 대체 답변은 생성하지 않습니다.
 저장된 메시지의 model label은 요청 시 선택한 값이므로 실제 Engine 상태 확인은 관리 화면 또는 `GET /v1/models`로 합니다.
 
-세 실행 설정의 `reasoning_loop_recovery: "stop"`은 thinking 반복 감지 시 생성을 중단합니다.
+Strata·PolyStrata 세 실행 설정의 `reasoning_loop_recovery: "stop"`은 thinking 반복 감지 시 생성을 중단합니다.
 API 종료 사유는 `length`이며, LibreChat에는 Qwen Code와 같은 전용 loop 감지 알림이 없습니다.
 Thinking에도 output token 예산이 사용됩니다. Loop 검사는 모든 반복을 잡거나 답변 완성을 보장하지 않습니다.
 PolyStrata 두 profile은 공식 일반 thinking sampling을 설정하지만 LibreChat에서 직접 지정한 sampling 값이 우선합니다.
 
 고정 model을 추가하면 관리 catalog, Engine local 설정, LibreChat YAML의 model 목록·tokenConfig·modelSpecs를 함께 맞춥니다.
 Template을 바꾸어도 기존 local YAML에는 자동 반영되지 않습니다. YAML만 수정한 뒤에는 LibreChat container만 재시작합니다.
+Infernix는 [전용 등록 helper](../../scripts/Infernix/configure_librechat.py)로 template·기존 local YAML에 고정 Model ID·Context를 추가합니다. Local YAML은 먼저 백업하며 기존 모델·공통 endpoint·대화는 보존합니다. 2026-11-05에 LibreChat 앱 Container를 재시작하여 인증된 `/api/config`·`/api/models`에서 등록을 확인하고 실제 대화에서 `INFERNIX_LIBRECHAT_READY` 응답을 검증했습니다. 증거는 `runtime/LibreChat/diagnostics/verification-infernix-chat.json`에 있습니다. Infernix는 Vision RAM offload를 사용하며 weights는 system RAM, 이미지 encoding은 GPU에서 처리합니다. CPU-only Vision은 지원하지 않습니다. Thinking 반복 처리는 native `--reasoning-loop conclude`를 사용합니다.
 
 ```powershell
 docker compose --env-file config/LibreChat/.env.local -f config/LibreChat/compose.yaml restart librechat
