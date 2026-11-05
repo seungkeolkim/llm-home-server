@@ -407,6 +407,7 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - LibreChat local YAML의 bind mount hash는 일치했지만 실행된 앱의 모델 목록은 이전 것이었습니다. LibreChat 앱 Container만 재시작하여 Infernix modelSpec·ID·262144 Context를 적용하고 실제 대화의 `INFERNIX_LIBRECHAT_READY` 응답을 확인했습니다. MongoDB·ComfyUI와 Infernix PID·instance는 유지했습니다.
 - 공식 Launcher는 별도 모델 제어·전환·watchdog 구조이므로 현재 native 서버에 추가하지 않았습니다. 임시로 추가했던 자체 모니터링 화면·telemetry 확장은 후속 사용자 요청으로 제거하고 기존 엔진 화면 바로가기(API port 8488)를 복원했습니다. Native 서버의 `/`에 Web UI는 없습니다.
 - 후속 검증: 관리 서버 테스트 52개, 기존 JavaScript 테스트 6개, LibreChat 모델 목록·실제 텍스트 응답을 확인했습니다. Vision·최대 KV의 동시 부하 검증은 미수행입니다.
+- 긴 입력 후속 관측: 이전 Strata 128K·8K 원문을 그대로 보냈으나 각각 약 20 ms·2 ms에 KV 자원 부족의 HTTP 503으로 거부됐습니다. 처리된 Prefill tokens는 0이며 실행 중 요청은 남지 않았습니다. 현재 Context 상한·health ready와 실제 물리 KV admission 가능 여부를 구분합니다. Expert cache가 0 frames인 실행 조건을 유지했으며 실제 처리량·TTFT는 측정하지 못했습니다. 상세는 [Prefill 관측 기록](../Infernix/PREFILL_OBSERVATION_2026-11-05.md)을 따릅니다.
 
 ## 준비 기록: Qwen3.6 Q4_K_M 다운로드
 

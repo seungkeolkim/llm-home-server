@@ -154,3 +154,7 @@ redirect합니다. 큰 파일은 전송 중 SHA-256을 계산하고, 검증한 �
 테스트는 다운로드 차단·파일/receipt 불일치·고정 identity·API 상태 정규화·native process 실행 계약과
 기존 profile·이력 보존을 포함합니다. 실행 중 native API와 LibreChat 실제 텍스트 응답을 확인했습니다.
 긴 Context·최대 KV·Vision 입력·ComfyUI 동시 부하의 성능 검증은 별도 항목입니다.
+
+2026-11-05 후속: 이전 Strata의 보존 128K·8K 입력으로 제한 시간 120초의 Prefill 관측을
+시도했으나, 두 요청 모두 KV 자원 부족의 HTTP 503으로 즉시 거부됐습니다.
+상세 조건·응답·측정 한계는 [Prefill 진입 실패 관측](PREFILL_OBSERVATION_2026-11-05.md)을 따릅니다.
