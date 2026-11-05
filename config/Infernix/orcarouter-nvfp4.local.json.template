@@ -14,7 +14,7 @@
     "--spec", "dflash2", "--draft-tokens", "auto", "--lm-head-draft",
     "--ngram-residency", "volume", "--expert-ram-layout", "exclusive",
     "--ram-free-mib", "8192", "--host-context-mib", "2048",
-    "--vram-headroom-mib", "8192", "--reasoning-loop", "conclude",
+    "--vram-headroom-mib", "2048", "--reasoning-loop", "conclude",
     "--vision", "--vision-offload", "on"
   ],
   "download_manifest_path": "config/Infernix/downloads/orcarouter-nvfp4.manifest.json",

@@ -12,9 +12,9 @@
       "model_name": "infernix-orcarouter-qwen3.8-flash-next-nvfp4",
       "variant_label": "Orcarouter · Uncensored · Infernix conversion", "quantization": "NVFP4 experts / FP8 dense",
       "configuration_path": "config/Infernix/orcarouter-nvfp4.local.json",
-      "label": "NVFP4 · DFlash2 · KV INT8 · 262K · 단일 요청 · Vision RAM offload (GPU encode) · VRAM headroom 8 GiB",
+      "label": "NVFP4 · DFlash2 · KV INT8 · 262K · 단일 요청 · Vision RAM offload (GPU encode) · VRAM headroom 2 GiB",
       "minimum_ram_gib": 48, "minimum_free_vram_mib": 12288,
-      "resource_budget": {"reserve_mib": 8192, "ram_free_mib": 8192, "host_context_mib": 2048,
+      "resource_budget": {"reserve_mib": 2048, "ram_free_mib": 8192, "host_context_mib": 2048,
                           "ssd_expert_tier": true, "measured": false},
       "download_status_path": "runtime/Infernix/downloads/orcarouter-nvfp4/status.json",
       "log_path": "runtime/Infernix/logs/server.log"

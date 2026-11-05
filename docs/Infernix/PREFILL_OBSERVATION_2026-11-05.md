@@ -1,6 +1,7 @@
 # Infernix 긴 입력 Prefill 진입 실패 관측 — 2026-11-05
 
-현재 상태에서는 긴 입력이 Prefill을 느리게 진행하는 대신, **KV 자원 부족으로 HTTP 503을 즉시 반환**했습니다.
+당시 8 GiB headroom·Comfy 메모리 점유 상태에서는 긴 입력이 Prefill을 느리게 진행하는 대신,
+**KV 자원 부족으로 HTTP 503을 즉시 반환**했습니다.
 128K와 8K 모두 처리된 Prefill tokens가 0이어서 Prefill 처리량이나 TTFT의 비교 수치는 산출할 수 없습니다.
 이는 Infernix NVFP4 자체의 처리량 benchmark 결과가 아니라 현재 동시 실행·메모리 설정의 admission 실패입니다.
 
@@ -59,3 +60,6 @@ backend_kv=0 more than an idle Engine has
 
 원본 요청·sampling·stream 결과·전후 metrics·요약은 Git에서 제외한
 `runtime/Infernix/diagnostics/prefill-20261105/`에 보관합니다.
+
+이후 Comfy GPU 메모리를 반환하고 headroom을 2 GiB로 바꾼 실행에서는 동일 128K 입력이
+정상 처리됐습니다. [후속 실행의 조건·수치](PREFILL_HEADROOM_2G_2026-11-05.md)를 별도로 확인합니다.

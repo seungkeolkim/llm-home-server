@@ -397,7 +397,7 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - Pinned revision·크기·hash는 `config/Infernix/downloads/orcarouter-nvfp4.manifest.json`, worker는 `scripts/Infernix/download_orcarouter_nvfp4.py`, 상태·로그·PID는 `runtime/Infernix/downloads/orcarouter-nvfp4/`로 분리합니다. 상세 경로와 재개 방법은 [Infernix 다운로드 안내](../Infernix/README.md)를 따릅니다.
 - 이후 사용자 요청으로 공식 source를 `external_repo/Infernix`에 clean clone하고, 관리 서버 native adapter·고정 profile·실행 wrapper·설정 준비 helper를 추가했습니다. Source HEAD는 `0e1c221d5c6d2a87366e387c9e71b1cf7d24be43`입니다.
 - 실제 executable은 source HEAD를 Build한 것이 아니라 공식 `windows-2026.11.01` release입니다. Archive 크기·SHA-256을 대조해 `data/Infernix/components/engine/`에 설치하고 `--help`로 설정 옵션을 확인했습니다. 시스템 CUDA Toolkit·PATH·driver와 공식 source는 수정하지 않습니다.
-- Profile `infernix-orcarouter-nvfp4`는 Context 262144, concurrency 1, KV INT8, DFlash2, FP8 PLE의 volume residency, exclusive expert RAM layout, RAM 여유 8192 MiB, host context cache 2048 MiB, VRAM headroom 8192 MiB를 사용합니다. 리소스 사용량·속도는 아직 실측하지 않았습니다.
+- Profile `infernix-orcarouter-nvfp4`는 Context 262144, concurrency 1, KV INT8, DFlash2, FP8 PLE의 volume residency, exclusive expert RAM layout, RAM 여유 8192 MiB, host context cache 2048 MiB를 사용합니다. 최초 VRAM headroom은 8192 MiB였고 아래 후속 변경에서 2048 MiB로 조정했습니다.
 - CPU Vision 추가 요청에 따라 `--vision --vision-offload on`으로 변경했습니다. Infernix가 제공하는 것은 Vision weights의 pinned system RAM 상주와 encoding 시 GPU 메모리 임시 사용입니다. CPU-only 연산 옵션은 없어 해당 차이를 실행·LibreChat 표시와 문서에 명시했습니다. Artifact에 Vision weights가 포함되어 별도 mmproj는 받지 않습니다. 실제 이미지 입력·메모리 검증은 모델 다운로드 후 수행합니다.
 - 다운로드·검증 중에는 기동을 차단하고, 완료 후 모든 Shard·PLE·drafter의 크기와 pinned hash 검증 기록, executable·template 준비를 확인합니다. Runtime은 단일 native 서버의 PID 생성 시각·command marker·소유 listener, Model ID·Context·Engine instance를 대조합니다. Launcher의 자동 모델 전환은 사용하지 않습니다.
 - LibreChat template과 기존 local YAML에 동일 Model ID·262144 Context를 등록했습니다. Local YAML은 `data/Infernix/backups/`에 백업하고 기존 모델과 공통 endpoint·key를 보존했습니다. Container는 재시작하지 않았습니다.
@@ -408,6 +408,8 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - 공식 Launcher는 별도 모델 제어·전환·watchdog 구조이므로 현재 native 서버에 추가하지 않았습니다. 임시로 추가했던 자체 모니터링 화면·telemetry 확장은 후속 사용자 요청으로 제거하고 기존 엔진 화면 바로가기(API port 8488)를 복원했습니다. Native 서버의 `/`에 Web UI는 없습니다.
 - 후속 검증: 관리 서버 테스트 52개, 기존 JavaScript 테스트 6개, LibreChat 모델 목록·실제 텍스트 응답을 확인했습니다. Vision·최대 KV의 동시 부하 검증은 미수행입니다.
 - 긴 입력 후속 관측: 이전 Strata 128K·8K 원문을 그대로 보냈으나 각각 약 20 ms·2 ms에 KV 자원 부족의 HTTP 503으로 거부됐습니다. 처리된 Prefill tokens는 0이며 실행 중 요청은 남지 않았습니다. 현재 Context 상한·health ready와 실제 물리 KV admission 가능 여부를 구분합니다. Expert cache가 0 frames인 실행 조건을 유지했으며 실제 처리량·TTFT는 측정하지 못했습니다. 상세는 [Prefill 관측 기록](../Infernix/PREFILL_OBSERVATION_2026-11-05.md)을 따릅니다.
+- 이후 사용자가 Comfy 메모리를 수동 반환하고 GPU 여유분을 2 GiB로 요청했습니다. Infernix local 설정·template의 `--vram-headroom-mib`와 관리 catalog의 표시·resource budget을 2048 MiB로 바꾸고 기존 소유 instance만 종료·재기동했습니다. Context 262144·INT8 KV·동시 요청 1·Vision RAM offload·RAM 여유 8192 MiB는 유지했습니다. 재기동 로그에서 Expert cache 2530 frames (6.5 GiB), Prefill chunk 10624 (Context 증가 시 5248)를 확인했습니다. Warmup 후 실제 GPU 여유는 약 1354 MiB여서 headroom 설정값과 실제 여유를 구분합니다.
+- 2 GiB headroom 재기동 후 같은 128K 원문은 HTTP 200으로 admission됐습니다. 입력 131051 tokens, Prefill 46.860초·2796.63 tok/s, TTFT 47.119초였고 첫 생성 delta를 받은 47.12초에 stream을 닫았습니다. Native `cancelled`·출력 3 tokens와 48.15초의 running·waiting 0을 확인했습니다. 관측 최소 가용 RAM은 약 4.66 GiB였습니다. Comfy GPU 메모리 반환도 함께 반영되어 headroom 단독 A/B로 해석하지 않습니다. [실행·측정 기록](../Infernix/PREFILL_HEADROOM_2G_2026-11-05.md)을 참고하세요.
 
 ## 준비 기록: Qwen3.6 Q4_K_M 다운로드
 

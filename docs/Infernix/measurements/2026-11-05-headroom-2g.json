@@ -1,0 +1,73 @@
+{
+  "recorded_at": "2026-11-05T13:09:16.080849+00:00",
+  "engine_release": "windows-2026.11.01",
+  "model": "infernix-orcarouter-qwen3.8-flash-next-nvfp4",
+  "context_tokens": 262144,
+  "kv_dtype": "int8",
+  "vram_headroom_mib": 2048,
+  "host_context_mib": 2048,
+  "ram_free_mib": 8192,
+  "max_concurrency": 1,
+  "speculative_backend": "dflash2",
+  "vision_offload": "on",
+  "archive_entry": "sha256/db5c3d5b216db2884e2583911e7a1b5a01cf9870592a58591f1e7f1f450f40b6.json",
+  "messages_sha256": "7d160b81ad497f20e98e7f2da33409ab41991535f9eca8fc56f71f0206f81fea",
+  "http_status": 200,
+  "input_tokens": 131051,
+  "cached_tokens": 0,
+  "prefill_seconds": 46.8602677,
+  "prefill_tokens_per_second": 2796.6336180362878,
+  "first_generated_delta_seconds": 47.12269699998433,
+  "stream_closed_seconds": 47.12737109995214,
+  "idle_after_seconds": 48.147329599945806,
+  "output_tokens_before_cancellation": 3,
+  "finish": "cancelled",
+  "minimum_available_ram_gib": 4.6610107421875,
+  "progress": [
+    {
+      "elapsed_seconds": 5.013,
+      "processed_tokens": 7808
+    },
+    {
+      "elapsed_seconds": 10.019,
+      "processed_tokens": 23424
+    },
+    {
+      "elapsed_seconds": 15.038,
+      "processed_tokens": 39040
+    },
+    {
+      "elapsed_seconds": 20.044,
+      "processed_tokens": 54656
+    },
+    {
+      "elapsed_seconds": 25.063,
+      "processed_tokens": 70272
+    },
+    {
+      "elapsed_seconds": 30.084,
+      "processed_tokens": 78080
+    },
+    {
+      "elapsed_seconds": 35.09,
+      "processed_tokens": 93696
+    },
+    {
+      "elapsed_seconds": 40.096,
+      "processed_tokens": 109312
+    },
+    {
+      "elapsed_seconds": 45.114,
+      "processed_tokens": 124928
+    },
+    {
+      "elapsed_seconds": 47.127,
+      "processed_tokens": 131051
+    }
+  ],
+  "comparison_limitations": [
+    "ComfyUI GPU memory had been released before this run; not a headroom-only A/B.",
+    "No full answer quality or long decode benchmark.",
+    "No active KV streaming from RAM."
+  ]
+}

@@ -18,7 +18,7 @@ LibreChat을 통한 실제 응답까지 확인했습니다.
 | KV / speculative decode | INT8 / DFlash2, auto draft tokens, lm-head-draft |
 | PLE | FP8, `ngram-residency=volume`로 SSD에서 필요한 row 읽기 |
 | Expert RAM | `exclusive`, RAM 예산에 못 담는 expert는 SSD tier 사용 |
-| 여유 공간 | RAM 8192 MiB / VRAM headroom 8192 MiB |
+| 여유 공간 | RAM 8192 MiB / VRAM headroom 2048 MiB |
 | Host context cache | 2048 MiB |
 | Input / 반복 감지 | Text·이미지, Vision RAM offload (GPU encode) / native `reasoning-loop=conclude` |
 | 공통 API | `0.0.0.0:8488`, 기존 LLM API key 공유 |
@@ -26,12 +26,18 @@ LibreChat을 통한 실제 응답까지 확인했습니다.
 파일 크기의 합계는 RAM 사용량이 아닙니다. FP8 PLE 전체 약 48.83 GiB를 RAM에 올리지 않도록
 volume residency를 명시했고 expert RAM은 native 자동 예산을 사용합니다. 48 GiB 가용 RAM과
 12 GiB 가용 VRAM을 관리 서버의 최소 기동 조건으로 두지만, 이는 실측 사용량이나 기동 보장이 아닙니다.
-8 GiB VRAM headroom은 기존 운영 여유를 유지하는 초깃값이므로 최대 속도 설정도 아닙니다.
+VRAM headroom은 처음 8 GiB로 준비했으며, 사용자 요청에 따라 2026-11-05에 2 GiB로 변경하고
+재기동했습니다. 이는 native 예산 설정이며 warmup·driver 등의 할당 이후 실제 GPU 여유를
+항상 정확히 2 GiB로 보장하는 hard limit은 아닙니다.
 실행 로그에서 처음 관측한 배분은 expert RAM 51.6 GiB, RAM prefix cache 2.0 GiB,
 기타 RAM 3.7 GiB이며 expert 나머지는 SSD tier를 사용합니다. GPU KV는 초기 0.16 GiB에서
 긴 Context에 따라 최대 3.28 GiB로 커지는 설정입니다. 이 수치는 2026-11-05 startup 기준이며
 PC 전체 사용량과 구분합니다. 당시 VRAM expert cache는 199 frames였고 ComfyUI의 GPU 사용 이후
 0 frames로 축소된 기록이 있습니다. 여유 RAM·VRAM이 늘면 native 자동 예산의 결과도 달라질 수 있습니다.
+2 GiB headroom으로 재기동한 뒤에는 Expert cache 2530 frames (6.5 GiB), Prefill chunk 10624
+tokens, Context 증가 시 최소 chunk 5248로 배분됐습니다. 직후 GPU 여유는 약 1354 MiB였습니다.
+동일한 128K 입력 131051 tokens를 Prefill 약 46.86초, 2796.63 tok/s로 처리했고 첫 출력 수신 후
+바로 취소했습니다. [2 GiB headroom 관측 기록](PREFILL_HEADROOM_2G_2026-11-05.md)을 참고하세요.
 
 Vision은 `--vision --vision-offload on`으로 활성화했습니다. Orcarouter artifact에
 Vision weights가 포함되어 있으므로 별도 mmproj 다운로드는 필요하지 않습니다.
@@ -158,3 +164,5 @@ redirect합니다. 큰 파일은 전송 중 SHA-256을 계산하고, 검증한 �
 2026-11-05 후속: 이전 Strata의 보존 128K·8K 입력으로 제한 시간 120초의 Prefill 관측을
 시도했으나, 두 요청 모두 KV 자원 부족의 HTTP 503으로 즉시 거부됐습니다.
 상세 조건·응답·측정 한계는 [Prefill 진입 실패 관측](PREFILL_OBSERVATION_2026-11-05.md)을 따릅니다.
+이후 Comfy GPU 메모리 반환과 headroom 2 GiB 변경·재기동 후 128K 요청은 HTTP 200으로
+정상 처리됐습니다. 두 실행 조건을 구분합니다.
