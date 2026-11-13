@@ -9,11 +9,14 @@ import httpx
 from .configuration import WORKSPACE_DIRECTORY, load_configuration
 from .integrations import compose_arguments, create_llm_adapter
 from .operations import OperationStore
+from .pi_coding_agent import control_pi
 
 
 async def execute_operation(operation, configuration):
     """허용한 서비스 조작만 실행하고 Comfy unload의 접수와 완료를 구분합니다."""
     target, action = operation["target"], operation["action"]
+    if target == "pi":
+        return await control_pi(action)
     async with httpx.AsyncClient(trust_env=False) as client:
         if target == "comfy":
             response = await client.post(configuration["comfy_url"] + "/free", timeout=15,

@@ -15,6 +15,7 @@ from .configuration import WORKSPACE_DIRECTORY
 
 
 ALLOWED_OPERATIONS = {("llm", "start"), ("llm", "stop"),
+                      ("pi", "start"), ("pi", "stop"),
                       ("librechat", "start"), ("librechat", "stop"), ("comfy", "unload")}
 
 

@@ -9,6 +9,7 @@ import httpx
 import psutil
 
 from .integrations import comfy_queue, create_llm_adapter, librechat_status, run_command
+from .pi_coding_agent import pi_status
 
 
 async def collect_resources():
@@ -50,12 +51,12 @@ class SnapshotMonitor:
 
     async def refresh(self):
         """독립 조회를 병렬 수집하고 완성된 snapshot을 한 번에 교체합니다."""
-        resources, llm, librechat, comfy = await asyncio.gather(
-            collect_resources(), self.adapter.status(self.client), librechat_status(), self.read_comfy())
+        resources, llm, librechat, comfy, pi = await asyncio.gather(
+            collect_resources(), self.adapter.status(self.client), librechat_status(), self.read_comfy(), pi_status())
         await asyncio.to_thread(self.operations.recover_interrupted)
         operations = await asyncio.to_thread(self.operations.recent)
         self.snapshot = {"ready": True, "at": time.time(), "resources": resources,
-                         "llm": llm, "librechat": librechat, "comfy": comfy, "operations": operations}
+                         "llm": llm, "librechat": librechat, "comfy": comfy, "pi": pi, "operations": operations}
 
     async def run(self):
         """수동 제어와 독립적으로 3초 간격 수집을 계속합니다."""

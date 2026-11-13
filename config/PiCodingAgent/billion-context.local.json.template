@@ -1,0 +1,16 @@
+{
+  "host": "127.0.0.1",
+  "autoUpdate": false,
+  "advisoryCheck": false,
+  "autoRestartOnUpdate": false,
+  "cacheKeepalive": { "enabled": false },
+  "pi": { "subagents": false },
+  "compress": {
+    "modelContextLimit": 262144,
+    "preserveRecentTokens": 32768,
+    "requireNudge": true,
+    "requireRecommendation": true,
+    "maxContextLimit": "75%",
+    "emergencyThresholdPercent": "90%"
+  }
+}

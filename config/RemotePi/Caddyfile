@@ -1,0 +1,17 @@
+{
+	auto_https disable_redirects
+	servers {
+		protocols h1 h2
+	}
+}
+
+{$REMOTE_PI_DDNS_HOSTNAME} {
+	tls {
+		issuer acme {
+			dir {$REMOTE_PI_ACME_DIRECTORY}
+			disable_http_challenge
+		}
+	}
+
+	reverse_proxy relay:3000
+}

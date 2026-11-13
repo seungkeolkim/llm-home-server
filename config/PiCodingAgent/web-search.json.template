@@ -1,0 +1,17 @@
+{
+  "searchRouting": {
+    "providers": ["exa", "duckduckgo"],
+    "fallbackOn": ["quota", "network", "invalid-response", "empty", "unsupported"]
+  },
+  "workflow": "none",
+  "webSearch": { "enabled": true, "allowedProviders": ["exa", "duckduckgo"] },
+  "fetch": { "defaultMode": "readable", "allowedModes": ["readable", "raw"] },
+  "fetchRouting": { "allowRemoteHostedProviders": false },
+  "autoOpenBrowser": false,
+  "curatorRemote": false,
+  "allowBrowserCookies": false,
+  "commands": { "curator": { "enabled": false }, "google-account": { "enabled": false } },
+  "youtube": { "enabled": false },
+  "video": { "enabled": false },
+  "githubClone": { "enabled": false }
+}

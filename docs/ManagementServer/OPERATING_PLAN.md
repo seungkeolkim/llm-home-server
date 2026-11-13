@@ -1,6 +1,6 @@
 # 운영 의도와 관리 서버 구성 계획
 
-작성 기준: 2026-10-21. 현재 구현 대조 갱신: 2026-11-05.
+작성 기준: 2026-10-21. 현재 구현 대조 갱신: 2026-11-14.
 
 이 문서는 사용자가 설명한 운영 의도와 현재 구조 검토에서 나온 제안을 정리합니다.
 새 대화나 후속 구현에서 운영 목적과 환경 분리 원칙을 이어가기 위한 기준 문서입니다.
@@ -11,6 +11,7 @@
 - 최상위 main repo에 전체 채팅 시스템을 모니터링하고 관리하는 서버를 둡니다.
 - 관리 서버는 상시 실행하며, 집 밖에서도 상태 조회와 제어가 가능해야 합니다.
 - LibreChat과 Strata를 각각 ON/OFF하고, 두 서비스와 시스템 리소스 상태를 확인합니다.
+- Pi Coding Agent도 LibreChat 및 LLM과 별도로 ON/OFF합니다. 모델 선택·Load/Unload는 기존 LLM 제어에 남깁니다.
 - 같은 PC에서 ComfyUI 이미지·영상 생성과 Strata 채팅을 함께 운영합니다.
 - 영상 생성은 96 GB RAM 환경에서도 메모리가 부족할 수 있으므로, 작업에 따라 모델을 Load/Unload하여 RAM·VRAM을 확보합니다.
 - 각 시스템의 dependency, 설정, 데이터와 실행 산출물을 최대한 분리합니다.
@@ -44,8 +45,8 @@
 | 기능 | 현재 구현 |
 |---|---|
 | 접속 허용 | 접속 문자열 확인, 서명된 HttpOnly session cookie, 현재 브라우저 잠그기 |
-| 서비스 조회 | Strata, LibreChat, MongoDB의 실행·준비·생성 중·전환 중·오류 상태 구분 |
-| 서비스 제어 | 기존 runner를 통한 Strata ON/OFF, Compose를 통한 LibreChat·MongoDB stack ON/OFF |
+| 서비스 조회 | LLM, LibreChat, MongoDB의 실행·준비·생성 중·전환 중·오류 구분 및 Pi gateway/Desktop 상태 |
+| 서비스 제어 | 선택 LLM profile ON/OFF, LibreChat·MongoDB stack ON/OFF, 독립 Pi Desktop/CLI ON/OFF |
 | 리소스 조회 | Windows RAM 사용·여유량, GPU VRAM 사용·여유량, CPU·GPU 사용률과 GPU 온도 |
 | 제어 진행 상황 | 버튼 중복 실행 방지, 기동·종료 진행 표시, 진행 중 생성이 있을 때 종료 확인 |
 | 운영 정보 | 최근 제어 결과·오류, 제한된 로그 조회와 LibreChat·Strata 화면 바로가기 |
@@ -416,6 +417,28 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - 2026-10-22에 사용자가 Qwen3.6 `UD-Q4_K_M`을 선택하고 다운로드만 백그라운드로 진행하도록 요청했습니다. Model GGUF는 `C:/Strata-data/models/qwen36-UD-Q4_K_M/`에 저장합니다.
 - 공식 PolyStrata Setup의 pinned revision·파일 크기·SHA-256을 사용하며, helper는 `scripts/PolyStrata/download_qwen36_ud_q4_k_m.py`, 진행 상태와 로그는 `runtime/PolyStrata/downloads/qwen36-UD-Q4_K_M/`에 둡니다. 사용자가 물을 때 상태를 확인하며 정기 조회나 알림은 설정하지 않았습니다.
 - 다운로드만 요청받은 당시에는 Strata·PolyStrata 기동, 모델 Load, runtime 설치와 기존 서비스 설정 변경을 하지 않았습니다. 이후 실행 허용과 구현 요청으로 Unsloth·Hauhau profile 및 LibreChat 연결 검증까지 완료했습니다. PolyStrata + QFN은 후속 범위입니다.
+
+## 구현 기록: Pi Coding Agent 독립 제어
+
+- 2026-11-13 사용자 요청으로 `feature/pi-local-coding-agent` branch에서 Windows Native Pi 환경을 추가했습니다. 최신 공식 Pi는 이전한 `earendil-works/pi`의 `@earendil-works/pi-coding-agent@1.5.2`이며, `pi Desktop / Remote@0.7.7`, `pi-web-access@0.47.0`, `billion-context@0.1.213`, `agent-browser@0.43.0`을 검증했습니다.
+- 사용자가 Infernix의 메모리 사용 때문에 기존 관리 경로에서 Strata IQ3_XXS로 전환했습니다. Pi의 기본 Provider와 실제 추론 검증은 이 Strata 모델을 사용합니다. Infernix Provider도 선택 가능하게 등록했지만 이번 작업에서 기존 Infernix/Strata/LibreChat 설정은 변경하지 않았습니다.
+- 관리 화면에 Pi 상태와 별도 켜기/끄기를 추가했습니다. Pi 제어는 소유 Desktop/CLI/gateway 프로세스만 대상으로 하고, 기존 LLM과 LibreChat을 기동·종료하지 않습니다. 실제 관리 API의 Pi OFF/ON 전후 LLM listener PID와 LibreChat 상태 유지 및 Desktop 재기동을 확인했습니다.
+- Pi gateway는 `127.0.0.1:8490`에만 bind하고 기존 LLM API로 한 번에 한 요청만 전달합니다. Desktop worker 1, 공통 Agent turn lock, 내장 delegation OFF를 적용했습니다. Pi 자체 기능은 Agent 실행 권한을 가진 현재 Windows 계정에서 동작하며 OS sandbox를 추가한 것은 아닙니다.
+- npm dependency·다운로드는 `data/PiCodingAgent/`, 실행 설정·Session·Context state·Desktop profile·Browser는 `config/PiCodingAgent/`와 `runtime/PiCodingAgent/`로 분리했습니다. 공식 source clone, 전역 PATH, CUDA, 방화벽과 외부 포트포워딩은 변경하지 않습니다.
+- 실제 Strata Streaming, 승인 UI가 포함된 Coding Loop, Keyless Exa 검색, 본문 fetch, 로컬 Browser 조작, 압축 후 Session 재개를 검증했습니다. 운영 Context 262144·최근 32768 보존과 압축 테스트의 작은 보존량을 구분하며 262K 장기 부하는 이번 검증에 포함하지 않습니다.
+- Android APK의 공식 Release hash와 v2/RSA 서명을 검증해 준비했습니다. 실제 Android pairing, background 복구, 원격 승인·Diff·첨부는 기기에서 후속 확인이 필요합니다. Mobile은 OFF이며 새로운 외부 listener를 열지 않았습니다.
+- 자세한 설치 명령·사용법·검증과 Rollback은 [Pi Coding Agent 운영 안내](../PiCodingAgent/README.md)를 따릅니다. 관리 서버 참조 유지 여부의 기존 검토 항목은 유지합니다.
+
+## 구현 기록: Android Remote Pi Self-hosted Relay
+
+- 2026-11-13 사용자 요청으로 `jacobaraujo7/remote_pi`의 Self-hosted Relay와 Caddy를 독립 Compose project `llm-home-server-remote-pi`로 준비했습니다. Relay에는 host port를 publish하지 않고 private internal network만 연결했습니다. Caddy의 host TCP 443·8789는 container 443으로 연결하며 Android 외부 port는 38789입니다.
+- 기존 Windows Native Pi의 Home Server ON/OFF와 LLM·LibreChat 제어를 유지합니다. 두 container의 `restart: unless-stopped`는 Pi lifecycle과 독립적입니다. 개발 디렉터리를 container에 mount하지 않습니다.
+- 관리자 실행으로 TCP 443·8789 inbound Allow rule을 추가했습니다. 최초 ipTIME hostname은 CAA의 지정 계정·DNS-01 제한으로 발급이 거부됐습니다. 이후 사용자가 `azzi-home.duckdns.org`의 A record를 현재 공인 IPv4로 등록하여 Staging·Production TLS-ALPN-01 발급이 성공했습니다. HTTPS/WSS 인증서 검증·Relay 인증·재접속을 확인했습니다.
+- Relay와 Caddy는 healthy 상태로 실행 중입니다. Pi만 종료해도 두 container의 ID·시작 시각과 HTTPS health가 유지됐고 Pi는 다시 시작했습니다. Caddy 재시작 후 인증서 유지, 자동 인증서 관리와 갱신 정보 수신을 확인했습니다. 실제 미래 갱신 시점은 아직 도래하지 않았습니다.
+- 사용자는 DDNS 자동 갱신을 이번에 적용하지 않고, 나중에 Home Server에서 수동 trigger 버튼을 만들기로 했습니다. 후속 버튼은 ipTIME DDNS와 DuckDNS의 A record 차이를 확인하고 명시적 클릭으로 DuckDNS의 숫자 IP만 갱신합니다. 이번에는 UI·관리 API·Task를 추가하지 않았으며 Token도 미설정입니다. 준비한 helper도 수동 실행 전용으로 정리했습니다.
+- 공식 Remote Pi Extension 0.7.0을 별도 dependency 경로에 설치하고 기존 Pi 1.5.2와 Extension 공존을 검증했습니다. 기존 Pi 설정을 바꾸지 않고 자동 discovery 경로에 additive loader를 설치했습니다. Agent mesh 도구를 제외하는 wrapper로 기존 Single Agent 정책을 보존합니다. Infernix·Strata·Pi 보호 설정 8개 SHA256이 일치합니다.
+- 11-14 KST에 기존 Desktop 세션의 Native Pi 연결 및 Pi 재시작 후 같은 identity·room의 재연결을 확인했습니다. 현재 Desktop이 QR custom message를 표시하지 않아 공식 pairing URI를 로컬 PNG로도 저장하는 wrapper 호환 처리를 추가했습니다. PNG·수동 입력 code는 Git·Docker·Caddy에 공개하지 않으며 만료 cleanup을 검증했습니다. Android는 공식 pairing 코드를 수동 입력한 뒤 사용자가 정상 작동을 확인했습니다. 원격 세션 제어·승인 및 모바일 재접속의 개별 시나리오는 별도 검증 항목입니다.
+- 자세한 구성, TLS 차단 근거와 Android 후속 절차는 [Remote Pi 운영 안내](../RemotePi/README.md), 실제 검증 범위는 [검증 기록](../RemotePi/VERIFICATION.md)을 따릅니다.
 
 ## 관련 문서
 

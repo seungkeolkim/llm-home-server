@@ -1,0 +1,6 @@
+{
+  "enabled": true,
+  "relay_url": "https://your-hostname.iptime.org:38789",
+  "agent_name": "Windows-Native-Pi",
+  "auto_start_relay": true
+}

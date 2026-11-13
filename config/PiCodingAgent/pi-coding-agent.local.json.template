@@ -1,0 +1,22 @@
+{
+  "gateway_host": "127.0.0.1",
+  "gateway_port": 8490,
+  "default_provider": "strata-local",
+  "desktop_executable": "data/PiCodingAgent/downloads/pi.Desktop-Portable-0.7.7-x64.exe",
+  "providers": {
+    "infernix-local": {
+      "configuration_path": "config/Infernix/orcarouter-nvfp4.local.json",
+      "gateway_route": "infernix",
+      "environment_key": "PI_INFERNIX_API_KEY",
+      "label": "QFN NVFP4 · Infernix",
+      "context_tokens": 262144
+    },
+    "strata-local": {
+      "configuration_path": "config/Strata/strata.local.json",
+      "gateway_route": "strata",
+      "environment_key": "PI_STRATA_API_KEY",
+      "label": "QFN IQ3_XXS · Strata",
+      "context_tokens": 262144
+    }
+  }
+}

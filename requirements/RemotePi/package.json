@@ -1,0 +1,11 @@
+{
+  "name": "llm-home-server-remote-pi-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Isolated official Remote Pi extension dependencies for Windows Native Pi",
+  "dependencies": {
+    "qrcode": "1.5.4",
+    "remote-pi": "0.7.0"
+  }
+}

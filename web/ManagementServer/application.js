@@ -251,6 +251,7 @@ function renderOperations(operations) {
     const target = {
       llm: "LLM 서버",
       librechat: "LibreChat stack",
+      pi: "Pi Coding Agent",
       comfy: "ComfyUI",
     }[operation.target];
     const action = { start: "기동", stop: "종료", unload: "모델·cache unload" }[
@@ -349,6 +350,12 @@ function renderButtons(snapshot) {
             ["stopped", "exited"].includes(service.state),
           );
     }
+    if (button.dataset.target === "pi") {
+      const piStatus = snapshot.pi || { state: "unavailable", prepared: false };
+      disabled ||= !piStatus.prepared;
+      if (button.dataset.action === "start") disabled ||= piStatus.state !== "stopped" && piStatus.desktop_running;
+      if (button.dataset.action === "stop") disabled ||= piStatus.state === "stopped";
+    }
     button.disabled = disabled;
   }
 }
@@ -408,6 +415,11 @@ function renderSnapshot(snapshot) {
     !snapshot.librechat.engine_available ? "Docker 연결 안 됨" : undefined,
   );
   renderQueue(snapshot.comfy);
+  const piStatus = snapshot.pi || { state: "unavailable", prepared: false };
+  updateBadge("pi-state", piStatus.state);
+  setText("pi-details", !piStatus.prepared ? "설치 준비가 필요합니다."
+    : piStatus.state === "stopped" ? "준비 완료 · 꺼짐 · 저장된 세션 유지"
+    : `Gateway 실행 중 · Desktop ${piStatus.desktop_running ? "실행 중" : "연결 대기"} · LLM 요청 ${piStatus.in_flight || 0}/1`);
   renderOperations(snapshot.operations);
   renderLinks(snapshot.links, snapshot.external_links);
   renderButtons(snapshot);
