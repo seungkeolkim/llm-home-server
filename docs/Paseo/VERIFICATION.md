@@ -1,5 +1,7 @@
 # Paseo 구축 검증
 
+아래는 도입 시 검증 이력입니다. 이후 사용자 요청으로 Remote Pi 전용 구성을 정리했으며 기존 Remote Pi `/health`는 현재 404입니다. Paseo 보존·현재 검증은 [원격 지원 정리 기록](REMOTE_SUPPORT_CLEANUP.md)을 따릅니다.
+
 2026-11-14 KST, Windows 11 Native, Paseo 0.15.4 + Pi 1.5.2 + Strata QFN IQ3_XXS에서 수행했습니다.
 
 | 검증 | 결과·증거 |

@@ -1,5 +1,7 @@
 # Remote Pi 검증 기록
 
+이 문서는 제거 전 검증 이력입니다. 2026-11-14 사용자 요청으로 Remote Pi 전용 구성을 정리했으며 현재 상태는 [Paseo 정리 기록](../Paseo/REMOTE_SUPPORT_CLEANUP.md)을 따릅니다.
+
 검증일: 2026-11-13~14 KST. DuckDNS로 변경하여 Production HTTPS/WSS Relay와 Native Pi 연결이 정상입니다. Android 수동 코드 pairing 성공은 사용자 확인이며, 세부 원격 동작 검증과 구분합니다.
 
 | 검증 | 결과 |

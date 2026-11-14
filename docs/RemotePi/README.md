@@ -1,10 +1,12 @@
 # Android Remote Pi 운영 안내
 
+**현재 상태: 2026-11-14 사용자 요청으로 Remote Pi 전용 Relay·Extension·Pairing 정보를 정리했습니다. 원격 연결은 [Paseo](../Paseo/README.md)를 사용합니다.** 전용 설치 파일은 휴지통으로 옮겼고 Caddy·production 인증서·network만 Paseo용으로 보존했습니다. 상세 범위는 [정리 기록](../Paseo/REMOTE_SUPPORT_CLEANUP.md)을 따릅니다. 아래 내용은 제거 전 구축 이력이며 현재 실행 명령이 아닙니다.
+
 2026-11-14에 별도 Paseo Relay를 추가하여 Caddy `/ws`·`/paseo-health` 경로를 공유합니다. 기존 Remote Pi `/`·`/health` 경로와 container는 유지합니다. Paseo의 별도 Compose·Native daemon·Android 연결은 [Paseo 운영 안내](../Paseo/README.md)를 따릅니다.
 
 확인일: 2026-11-14 KST (구축 시작 11-13). Branch: `feature/pi-local-coding-agent`. **Self-hosted HTTPS/WSS Relay와 Windows Native Pi 연결은 정상이며 Android 수동 코드 pairing 성공을 사용자가 확인했습니다.**
 
-## 현재 상태
+## 제거 전 상태 (이력)
 
 - 공식 Self-hosted Relay는 Docker에서 실행 중이며 `/health`는 `OK`입니다. Relay의 host port는 publish하지 않았습니다.
 - Caddy는 별도 container로 실행하며 `azzi-home.duckdns.org`의 Staging 및 Production TLS-ALPN-01 발급이 모두 성공했습니다. 외부 443에서 CA의 검증 요청이 Caddy에 도달했습니다.

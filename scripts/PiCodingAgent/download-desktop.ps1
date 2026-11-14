@@ -1,6 +1,6 @@
-<#
+﻿<#
 .SYNOPSIS
-검증한 공식 Release에서 Windows Portable EXE와 Android APK를 내려받고 hash를 대조합니다.
+검증한 공식 Release에서 Windows Portable EXE를 내려받고 hash를 대조합니다.
 #>
 [CmdletBinding()]
 param()

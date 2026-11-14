@@ -1,5 +1,7 @@
 # Remote Pi 설치 계획
 
+이 문서는 과거 구축 이력입니다. 2026-11-14에 Remote Pi 전용 구성을 정리했으며 현재 원격 연결은 [Paseo](../Paseo/README.md)를 사용합니다. [정리 범위](../Paseo/REMOTE_SUPPORT_CLEANUP.md)를 우선합니다.
+
 확인일: 2026-11-13. 기존 branch: `feature/pi-local-coding-agent`.
 
 ## 공식 배포 확인

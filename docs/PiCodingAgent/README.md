@@ -4,7 +4,7 @@ Windows Native의 독립 Pi Desktop/CLI 환경입니다. 작업 branch는 `featu
 
 최신 버전·OS·출처·설치 범위는 [설치 계획과 패키지 검증](INSTALLATION_PLAN.md), 실제 결과와 제약은 [검증 보고서](VERIFICATION.md)를 확인하세요.
 
-Android 원격 연결은 별도로 구축한 [Remote Pi Self-hosted Relay](../RemotePi/README.md)를 사용합니다. 아래 Desktop 배포의 Mobile 기능과 다른 앱이며, Remote Pi의 Custom Relay 및 수동 코드 pairing은 사용자 기기에서 정상 작동을 확인했습니다.
+현재 Android 원격 연결은 [Paseo](../Paseo/README.md)를 사용합니다. Remote Pi 전용 Extension·Relay와 이전 pi Remote Android APK는 사용자 요청으로 정리했습니다. Pi CLI·gateway·billion-context 등 Paseo가 사용하는 기반 구성은 유지합니다.
 
 ## 시작·종료
 
@@ -38,7 +38,7 @@ Pi가 사용하는 주소는 `http://127.0.0.1:8490/strata/v1` 및 `/infernix/v1
 ## 승인과 단일 Agent
 
 - 기본 도구는 read/bash/edit/write이며 변경·Shell 실행은 로컬 approval Extension의 확인창을 거칩니다. powershell 도구를 별도로 활성화해도 확인 대상입니다.
-- Desktop/Android는 Pi의 Extension UI를 표시하고 CLI는 interactive TUI로 승인합니다. `--print`에서 변경 작업은 승인 UI가 없어 거절됩니다.
+- 기존 Desktop은 Extension UI, CLI는 interactive TUI로 승인합니다. Paseo는 별도의 자동승인 설정을 사용합니다. `--print`에서 변경 작업은 승인 UI가 없어 거절됩니다.
 - Desktop worker 상한은 1입니다. Desktop/CLI의 입력은 공통 turn lock으로 직렬화하고, gateway는 동시 두 번째 LLM HTTP 요청을 upstream에 보내기 전에 429로 거절합니다.
 - `billion-context`의 내장 delegation은 `pi.subagents: false`로 껐습니다. 별도 Subagent, Hermes, Browser Extension이나 추가 MCP 서버를 설치하지 않았습니다.
 - 이 구성은 OS sandbox가 아닙니다. 승인한 Shell 명령은 현재 Windows 계정 권한으로 실행됩니다.
@@ -77,15 +77,7 @@ node scripts/PiCodingAgent/browser_cli.mjs --session llm-home-pi close
 
 ## Android 연결
 
-준비한 파일은 `data/PiCodingAgent/downloads/pi-remote-0.7.7-android-arm64.apk`입니다. Android **9 이상, arm64**가 필요합니다. Desktop과 APK는 같은 0.7.7 버전입니다. APK의 공식 Release hash, v2 content digest, RSA 서명을 검증했습니다. Windows EXE는 Authenticode 서명이 없으며 공식 Release hash로 검증한 Portable 배포입니다.
-
-1. 휴대폰에서 공식 Release APK를 설치합니다.
-2. Desktop Settings → Mobile에서 원격 연결을 켜고 허용할 프로젝트를 선택합니다. 초기 설치 상태는 Mobile OFF입니다.
-3. Android pi Remote에서 Desktop의 QR code를 스캔합니다. E2EE pairing에 쓰는 QR 및 키는 Git이나 문서로 공유하지 않습니다.
-4. 외부 접속은 두 기기를 같은 Tailscale/ZeroTier/WireGuard 네트워크에 연결한 뒤 진행합니다. 이 작업에서 VPN 설치, 방화벽 변경과 외부 포트 공개는 하지 않았습니다. 기본 Mobile port는 47900이며 현재 listener는 열지 않았습니다.
-5. 작은 작업 → 앱 background → 재접속 → 같은 Session 이어받기를 확인합니다. 실행 승인, Diff Review, 이미지 1개, 일반 문서 1개도 각각 시험합니다.
-
-Source와 공식 안내에서 Android의 Tool Call/Extension UI, Diff Review, 이미지와 일반 파일 업로드 경로를 확인했습니다. **실제 휴대폰 pairing·재접속·첨부는 미검증**입니다. 일반 파일을 업로드하는 기능과 PDF/DOCX 등을 모델이 자동 해석하는 기능은 별개이며, 문서 형식별 로컬 parser가 필요할 수 있습니다. 현재 구성에 모든 문서 parser를 설치한 것은 아닙니다.
+Paseo 앱의 Pairing Link와 자체 Relay를 사용합니다. [연결 절차](../Paseo/README.md#android-연결)를 따릅니다. 이전 pi Remote APK는 휴지통으로 옮겼으며 기본 다운로드 manifest와 설치 검증에서도 제외했습니다. Desktop Mobile port를 새로 열지 않습니다. 예전 APK 검증은 당시 [검증 보고서](VERIFICATION.md)의 이력입니다.
 
 ## 파일과 재설치
 

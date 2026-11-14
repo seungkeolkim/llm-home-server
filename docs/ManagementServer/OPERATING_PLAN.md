@@ -429,7 +429,9 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - Android APK의 공식 Release hash와 v2/RSA 서명을 검증해 준비했습니다. 실제 Android pairing, background 복구, 원격 승인·Diff·첨부는 기기에서 후속 확인이 필요합니다. Mobile은 OFF이며 새로운 외부 listener를 열지 않았습니다.
 - 자세한 설치 명령·사용법·검증과 Rollback은 [Pi Coding Agent 운영 안내](../PiCodingAgent/README.md)를 따릅니다. 관리 서버 참조 유지 여부의 기존 검토 항목은 유지합니다.
 
-## 구현 기록: Android Remote Pi Self-hosted Relay
+## 과거 구현 기록: Android Remote Pi Self-hosted Relay
+
+아래는 구축 이력입니다. 이후 Paseo 외 원격 지원 정리 요청으로 Remote Pi 전용 Relay·Extension·Credential을 제거하고 설치 파일을 휴지통으로 옮겼습니다. 공유 Caddy·production 인증서·network는 Paseo가 사용하여 보존합니다. 현재 원격 연결은 [Paseo](../Paseo/README.md)를 따릅니다.
 
 - 2026-11-13 사용자 요청으로 `jacobaraujo7/remote_pi`의 Self-hosted Relay와 Caddy를 독립 Compose project `llm-home-server-remote-pi`로 준비했습니다. Relay에는 host port를 publish하지 않고 private internal network만 연결했습니다. Caddy의 host TCP 443·8789는 container 443으로 연결하며 Android 외부 port는 38789입니다.
 - 기존 Windows Native Pi의 Home Server ON/OFF와 LLM·LibreChat 제어를 유지합니다. 두 container의 `restart: unless-stopped`는 Pi lifecycle과 독립적입니다. 개발 디렉터리를 container에 mount하지 않습니다.
@@ -448,6 +450,13 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - Strata QFN IQ3_XXS·Context 262144·Parallel 1의 실제 응답·Thinking·승인·거절·생성 중 취소·E2EE 재접속을 확인했습니다. Paseo 종료 후 Relay 유지와 보호 설정 8개 Hash 불변을 확인했습니다. 사용자가 설치한 Android 실기기 Pairing·AdGuard 병행·재접속은 후속 확인입니다.
 - [Paseo 운영 안내](../Paseo/README.md)와 [검증 기록](../Paseo/VERIFICATION.md)을 따릅니다. 기존 Pi Desktop의 실행 중 프로세스에 attach하는 구성은 아닙니다.
 - 이후 사용자가 Android 연결 성공을 확인하고 Paseo 자동승인을 요청했습니다. Paseo 전용 `approval_mode: auto`로 write·edit·bash·powershell 확인을 생략하며 기존 Pi·Remote Pi 수동 승인·공통 turn lock·Subagent 차단은 유지합니다. 실제 Relay에서 승인 응답 없이 write·edit·bash 완료를 확인하고 idle Paseo 세션 3개에 reload를 적용했습니다. daemon·Relay·LLM 재기동과 Session 파일 삭제는 없습니다.
+
+## 운영 정리: Paseo 외 원격 지원 제거
+
+- 2026-11-14 사용자 요청으로 Remote Pi Relay container·image·전용 DB volume과 미사용 staging volume·Windows Credential을 제거했습니다. 전용 loader·npm·조사 source·APK·Pairing 등 파일·폴더 10개는 영구 삭제 대신 사용자가 허용한 휴지통으로 옮겼고 실제 Recycle Bin 경로를 대조했습니다.
+- 기존 Pi Desktop만 종료하고 Paseo가 사용하는 gateway·Pi CLI·billion-context·Browser·Session을 유지했습니다. Paseo daemon·Desktop·Relay와 Caddy를 재시작하지 않았으며 production 인증서·공유 network·외부 포트·보호 파일 16개가 동일함을 확인했습니다.
+- `config/RemotePi/compose.yaml`은 기존 이름의 Caddy만 관리하고 Remote Pi service·depends_on·DB volume은 제거합니다. 공유 helper는 `scripts/Paseo/`로 이동했습니다. 모델 설정과 LLM·LibreChat 제어는 변경하지 않았습니다.
+- 현재 HTTPS health와 protected E2EE Relay 재접속을 검증했습니다. 상세 전후 근거는 [원격 지원 정리 기록](../Paseo/REMOTE_SUPPORT_CLEANUP.md)을 따릅니다.
 
 ## 관련 문서
 

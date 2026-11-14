@@ -21,6 +21,6 @@
 		reverse_proxy paseo-relay:4000
 	}
 	handle {
-		reverse_proxy relay:3000
+		respond "Not Found" 404
 	}
 }

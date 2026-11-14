@@ -43,16 +43,17 @@ Pairing Link·daemon key·credential은 공개하거나 Git에 넣지 않습니�
 | 외부 TCP 443 → Windows TCP 443 → Caddy 443 | 기존 TLS-ALPN-01 발급·갱신 규칙 |
 | `wss://azzi-home.duckdns.org:38789/ws` | Caddy → Paseo Relay WebSocket |
 | `https://azzi-home.duckdns.org:38789/paseo-health` | Paseo health: `{"status":"ok"}` |
-| `/`, `/health` 등 기존 경로 | 기존 Remote Pi Relay 유지 |
+| `/`, `/health` 등 이전 Remote Pi 경로 | Remote Pi 정리 후 404 |
 | Paseo Relay TCP 4000 | Docker internal network만, host publish 없음 |
 | `127.0.0.1:6767` | Native Paseo daemon, loopback만 |
 | `127.0.0.1:8490` | 기존 Pi gateway 유지 |
 
 기존 billion-context 보조 listener도 loopback에서만 동작하며 외부 공개하지 않습니다.
 
-Compose는 `config/Paseo/compose.yaml`, 공유 Caddy 설정은 `config/RemotePi/Caddyfile`입니다. Project `llm-home-server-paseo`는 기존 internal network `llm-home-server-remote-pi_relay-internal`을 재사용하므로 최초 배치에 Remote Pi Compose의 network가 먼저 있어야 합니다.
+Relay Compose는 `config/Paseo/compose.yaml`, Caddy 설정과 Compose는 `config/RemotePi/Caddyfile`·`config/RemotePi/compose.yaml`입니다. Remote Pi 전용 Relay는 제거했고, 기존 이름의 Caddy·network·production 인증서 volume은 Paseo가 사용하므로 그대로 유지합니다. `llm-home-server-paseo`는 internal network `llm-home-server-remote-pi_relay-internal`을 사용합니다. 최초 배치는 Caddy를 먼저 시작해 network를 준비한 뒤 Paseo Relay를 시작합니다.
 
 ```powershell
+.\scripts\Paseo\manage-proxy.ps1 start
 docker compose -f "C:\Users\azzib\Desktop\workspace_local\llm-home-server\config\Paseo\compose.yaml" up -d
 docker compose -f "C:\Users\azzib\Desktop\workspace_local\llm-home-server\config\Paseo\compose.yaml" ps
 ```
@@ -60,6 +61,8 @@ docker compose -f "C:\Users\azzib\Desktop\workspace_local\llm-home-server\config
 Relay image는 `ghcr.io/getpaseo/paseo-relay@sha256:9d5c65d4bd2c42a85a5c8ab329f801a7db41dc4c153ca7bfba6c0857b3cdad0d`로 고정했습니다. `restart: unless-stopped`, 로그 회전·HTTP healthcheck를 적용하며 개발 디렉터리를 mount하지 않습니다. Relay와 Caddy는 Paseo 실행 여부와 독립적입니다.
 
 TLS 인증서·자동 갱신은 기존 Caddy 정책을 유지합니다. 새 인증서 발급이나 갱신 정책 변경은 없습니다. DuckDNS 공인 IPv4 변경은 기존 수동 갱신 절차를 따릅니다. DDNS 자동 Task·버튼은 추가하지 않았습니다.
+
+Caddy 상태·검증·설정 reload는 `scripts/Paseo/manage-proxy.ps1 status|validate|reload`로 수행합니다. Firewall 준비 helper는 `scripts/Paseo/enable-https-firewall.ps1`, 수동 DDNS helper는 `scripts/Paseo/update-duckdns.ps1`로 옮겼습니다. 기존 Firewall rule 이름 `LlmHomeServerRemotePiHttpsInbound`는 공유 포트 규칙의 중복 생성을 피하도록 유지합니다. Token은 여전히 미설정이며 자동 갱신 Task를 추가하지 않았습니다.
 
 ## 위치와 재준비
 
@@ -86,7 +89,7 @@ TLS 인증서·자동 갱신은 기존 Caddy 정책을 유지합니다. 새 인�
 - 기존 Infernix·Strata·Pi 설정과 npm dependency는 수정하지 않았으며 보호 파일 8개 Hash가 일치합니다.
 - 기존 Provider 환경·Extension을 읽어 사용하고 Session·BILI state를 분리합니다. Remote Pi 자동 loader는 복사하지 않아 기존 room·identity를 중복 사용하지 않습니다.
 - 사용자 요청으로 **Paseo는 자동승인**을 사용합니다. `config/Paseo/paseo.local.json`의 `"approval_mode": "auto"`가 `bash`·`powershell`·`write`·`edit`의 확인을 생략합니다. `"manual"`로 바꾸면 Yes/No 질문이 다시 표시됩니다. 설정은 도구 호출 때마다 읽으므로 모드 변경에 daemon 재기동은 필요하지 않습니다. 누락·오류·알 수 없는 값은 manual로 처리합니다.
-- Paseo의 승인 로직은 `scripts/Paseo/pi-policy-extension.ts`에 있으며 기존 Pi 승인 Extension은 Paseo 설정에서만 제외했습니다. 기존 Pi·Remote Pi의 원래 승인 파일·설정은 그대로입니다. Subagent 차단과 공통 turn lock도 유지합니다.
+- Paseo의 승인 로직은 `scripts/Paseo/pi-policy-extension.ts`에 있으며 기존 Pi 승인 Extension은 Paseo 설정에서만 제외했습니다. 기존 Pi의 원래 승인 파일·설정은 그대로입니다. Subagent 차단과 공통 turn lock도 유지합니다. Remote Pi 전용 loader는 정리했습니다.
 - 기존 `runtime/PiCodingAgent/agent-turn.lock`을 공유하여 Pi·Paseo Agent turn을 직렬화하며 gateway single-request guard도 유지합니다.
 - MCP Agent orchestration 주입과 Voice·Dictation·Web UI는 끕니다. `pluginsEnabled: false`여도 공식 built-in usage/provider plugin 프로세스는 로드됩니다. 이를 모든 plugin 프로세스 차단으로 해석하지 않습니다. 실제 available Provider는 Pi만 반환됐습니다.
 - 자동 제목·branch·commit·PR Metadata용 `--no-session` Pi 입력은 LLM 전에 차단합니다. 필요한 이름은 수동 지정합니다. 실제 RPC probe의 LLM 요청은 0회였습니다.
@@ -97,6 +100,8 @@ TLS 인증서·자동 갱신은 기존 Caddy 정책을 유지합니다. 새 인�
 
 실제 결과는 [검증 기록](VERIFICATION.md), 도입 전 근거는 [기능 검토](ASSESSMENT.md)를 따릅니다.
 
-문제 시 `run-paseo.ps1 stop`으로 Native Paseo만 종료합니다. Relay까지 중지하려면 Paseo Compose의 `stop`을 사용합니다. 기존 Remote Pi는 계속 쓸 수 있습니다. Caddy 원복 시 `data/Paseo/backups/initial/Caddyfile`과 비교하여 Paseo `/ws`·`/paseo-health` handle만 제거하고 validate/reload합니다. 기존 인증서 volume·network·container는 삭제하지 않습니다.
+문제 시 `run-paseo.ps1 stop`으로 Native Paseo만 종료합니다. Relay까지 중지하려면 Paseo Compose의 `stop`을 사용합니다. Caddy 설정 복구는 현재 Paseo 경로를 기준으로 수행하며, 초기 백업 `data/Paseo/backups/initial/Caddyfile`은 제거된 Remote Pi Relay를 참조하므로 그대로 적용하지 않습니다. Production 인증서 volume·network·Caddy는 보존합니다.
+
+Remote Pi 제거 범위와 공유 구성 보존 검증은 [원격 지원 정리 기록](REMOTE_SUPPORT_CLEANUP.md)에 정리합니다.
 
 공식 근거: [v0.15.4 Release](https://github.com/getpaseo/paseo/releases/tag/v0.15.4), [Self-hosted Relay](https://github.com/getpaseo/paseo-relay), [Custom providers](https://paseo.sh/docs/custom-providers).

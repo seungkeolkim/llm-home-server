@@ -6,9 +6,9 @@ Configure는 Token을 이 PC의 현재 사용자에게 귀속된 DPAPI로 암호
 수동 실행만 지원하며 Task를 등록하지 않습니다. Token은 출력하지 않습니다.
 Update는 HTTPS 요청의 접속 IPv4를 DuckDNS가 감지하게 합니다.
 .EXAMPLE
-.\scripts\RemotePi\update-duckdns.ps1 Configure
+.\scripts\Paseo\update-duckdns.ps1 Configure
 .EXAMPLE
-.\scripts\RemotePi\update-duckdns.ps1 Status
+.\scripts\Paseo\update-duckdns.ps1 Status
 #>
 [CmdletBinding()]
 param(
@@ -20,8 +20,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $workspaceDirectory = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$configurationPath = Join-Path $workspaceDirectory 'config/RemotePi/duckdns.local.json'
-$statusPath = Join-Path $workspaceDirectory 'runtime/RemotePi/duckdns-status.json'
+$configurationPath = Join-Path $workspaceDirectory 'config/Paseo/duckdns.local.json'
+$statusPath = Join-Path $workspaceDirectory 'runtime/Paseo/duckdns-status.json'
 
 function Read-DuckDnsConfiguration {
     <# .SYNOPSIS 현재 사용자에게 귀속된 암호화 Token 설정을 읽습니다. #>

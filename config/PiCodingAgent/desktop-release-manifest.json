@@ -9,11 +9,6 @@
       "sha256": "fd975f15fa2ea167410b40f5519a01b5cd31338981b3193b6275bfe3fc92724d"
     },
     {
-      "name": "pi-remote-0.7.7-android-arm64.apk",
-      "url": "https://github.com/justhil/pi-app/releases/download/v0.7.7/pi-remote-0.7.7-android-arm64.apk",
-      "sha256": "65d02aecb8c61bc5eca4432aa23770309abc0045bfc74ed96b24ce08b9267cf4"
-    },
-    {
       "name": "SHA256SUMS.txt",
       "url": "https://github.com/justhil/pi-app/releases/download/v0.7.7/SHA256SUMS.txt",
       "sha256": "2aa27d2571695201a05310b59902e68475806c4d82be61c4fabd1941986a0cf2"

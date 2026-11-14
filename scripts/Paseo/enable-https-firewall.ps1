@@ -1,14 +1,14 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 [CmdletBinding()]
 param()
 
 $ErrorActionPreference = 'Stop'
 $firewallRuleName = 'LlmHomeServerRemotePiHttpsInbound'
 
-function Enable-RemotePiHttpsFirewall {
+function Enable-PaseoHttpsFirewall {
     <#
     .SYNOPSIS
-    Remote Pi Caddy에 필요한 TCP 443 및 8789의 inbound만 허용합니다.
+    Paseo Caddy에 필요한 TCP 443 및 8789의 inbound만 허용합니다.
     .DESCRIPTION
     관리자 PowerShell에서 실행합니다. 기존 다른 firewall rule은 변경하지 않습니다.
     같은 이름의 rule이 있으면 설정을 검증하고, 예상과 다르면 중단합니다.
@@ -27,8 +27,8 @@ function Enable-RemotePiHttpsFirewall {
     }
     else {
         New-NetFirewallRule -Name $firewallRuleName `
-            -DisplayName 'LLM Home Server Remote Pi HTTPS' `
-            -Description 'Remote Pi Caddy: TLS-ALPN-01 TCP 443 and Android relay TCP 8789.' `
+            -DisplayName 'LLM Home Server Paseo HTTPS' `
+            -Description 'Paseo Caddy: TLS-ALPN-01 TCP 443 and Android relay TCP 8789.' `
             -Direction Inbound -Action Allow -Protocol TCP -LocalPort 443, 8789 `
             -Profile Any | Out-Null
     }
@@ -40,9 +40,9 @@ function Enable-RemotePiHttpsFirewall {
         Select-Object Protocol, LocalPort
 }
 
-$resultPath = Join-Path $PSScriptRoot '../../runtime/RemotePi/firewall-result.json'
+$resultPath = Join-Path $PSScriptRoot '../../runtime/Paseo/firewall-result.json'
 try {
-    $ruleDetails = @(Enable-RemotePiHttpsFirewall)
+    $ruleDetails = @(Enable-PaseoHttpsFirewall)
     $resultRecord = @{ success = $true; rule = $firewallRuleName; details = $ruleDetails }
 }
 catch {
