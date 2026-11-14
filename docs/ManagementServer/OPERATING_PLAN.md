@@ -458,6 +458,11 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - `config/RemotePi/compose.yaml`은 기존 이름의 Caddy만 관리하고 Remote Pi service·depends_on·DB volume은 제거합니다. 공유 helper는 `scripts/Paseo/`로 이동했습니다. 모델 설정과 LLM·LibreChat 제어는 변경하지 않았습니다.
 - 현재 HTTPS health와 protected E2EE Relay 재접속을 검증했습니다. 상세 전후 근거는 [원격 지원 정리 기록](../Paseo/REMOTE_SUPPORT_CLEANUP.md)을 따릅니다.
 
+## Paseo 압축 실패 보호 구현 기록
+
+- 2026-11-14 긴 작업의 압축 재시도 loop를 확인하여 `fix/paseo-compression-loop`에서 Paseo 전용 policy를 보완했습니다. 성공한 압축 없이 3회 실패하면 현재 Pi run만 중단하고, 실패 후 최신 acp_status와 추천 범위를 확인합니다. schema 검증 실패도 집계하며 기존 nudge·최근 대화 보호는 유지합니다.
+- 공식 source·package·원래 Pi·Infernix·Strata·LibreChat 설정과 모델 제어는 변경하지 않습니다. 일반 Thinking loop 감지는 후속 범위이며 실제 재현 검사·운영 적용 근거는 [Paseo 압축 실패 보호](../Paseo/COMPRESSION_GUARD.md)를 따릅니다.
+
 ## 관련 문서
 
 - [PolyStrata 추가 지원 handoff](POLYSTRATA_HANDOFF.md): context 압축 후 현재 profile·운영 경계·주요 commit·검증과 후속 작업을 이어가는 메모입니다.

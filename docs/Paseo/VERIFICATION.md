@@ -45,7 +45,15 @@
 
 - Android 서버 연결은 사용자가 성공을 확인했습니다. Thinking·작업·취소·백그라운드 복귀·모바일 재접속·AdGuard 병행의 개별 검증은 남아 있습니다. 서버의 공인 DDNS·외부 port 검사와 실기기 검사를 구분합니다.
 - billion-context 압축·복구, Browser, 첨부, Git worktree·PR·commit, 장시간·262K 부하는 Paseo 조합에서 새로 검증하지 않았습니다.
-- 기존 Pi Desktop 실행 중 프로세스에 attach하지 않으며 동일 JSONL 동시 사용을 피해야 합니다. 자동 Reasoning Loop 감지는 없습니다.
+- 기존 Pi Desktop 실행 중 프로세스에 attach하지 않으며 동일 JSONL 동시 사용을 피해야 합니다. 일반 Reasoning Loop 감지는 없으며, 아래 압축 실패 보호는 별도입니다.
 - Desktop 첫 Host 연결과 표시 설정은 UI로 확인했습니다. 재기동 후 추가 UI 관측은 Windows automation helper의 `foreground window did not report a process id` 오류로 중단했습니다. 이후 process·health·모델·Relay streaming은 API로 확인했습니다.
 - daemon process tree Working Set 합은 약 0.5–0.6 GiB였습니다. Desktop 제외이며 공유 page 중복 합산 가능성이 있어 실제 추가 physical RAM으로 단정하지 않습니다.
 - TLS 갱신은 기존 Caddy 정책을 유지하며 미래 실제 갱신 시점의 결과는 아닙니다.
+
+## 압축 실패 보호 보완
+
+2026-11-14 `fix/paseo-compression-loop`에서 반복 실패를 재현하고 보호 로직을 추가했습니다.
+실제 Pi RPC + 로컬 SSE fixture의 nudge 거절·범위 이탈·malformed JSON에서 모두 3회 실패 후 추가 모델 요청 중단과 다음 사용자 요청 복귀를 확인했습니다.
+기존 승인·Metadata·공통 lock 검사도 통과했습니다. 상세 동작·재현 명령·검증 한계는 [압축 실패 보호](COMPRESSION_GUARD.md)를 따릅니다.
+운영 idle Pi session 2개를 reload한 뒤 별도 테스트 Agent의 실제 Strata `GUARD_READY` 응답과 idle 복귀를 확인했습니다.
+기존 session JSONL을 포함한 보호 파일 12개 SHA256이 동일하며 gateway 동시 요청 상한은 1입니다.

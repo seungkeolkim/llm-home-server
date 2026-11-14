@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { registerCompressionGuard } from "./compression-guard.js";
 
 /** 잘못된 값이나 읽기 오류에서는 수동 승인을 유지합니다. */
 export function readApprovalMode(configurationPath: string): "manual" | "auto" {
@@ -47,7 +48,7 @@ export function createApprovalHandler(configurationPath: string) {
     };
 }
 
-/** Metadata 차단·공통 turn 잠금·Paseo 전용 도구 승인을 등록합니다. */
+/** Metadata 차단·공통 turn 잠금·도구 승인·압축 실패 보호를 등록합니다. */
 export default function registerPaseoPolicy(extensionApi: ExtensionAPI): void {
     const workspaceDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
     const sharedLockPath = path.join(workspaceDirectory, "runtime/PiCodingAgent/agent-turn.lock");
@@ -55,6 +56,7 @@ export default function registerPaseoPolicy(extensionApi: ExtensionAPI): void {
     const isInternalSession = process.argv.includes("--no-session");
     const configurationPath = path.join(workspaceDirectory, "config/Paseo/paseo.local.json");
     extensionApi.on("tool_call", createApprovalHandler(configurationPath));
+    registerCompressionGuard(extensionApi);
 
     /** 현재 프로세스의 policy가 만든 공통 잠금만 해제합니다. */
     function releaseSharedTurnLock(): void {

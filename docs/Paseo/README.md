@@ -31,7 +31,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\azzib\Desktop\
 5. Android **설정 → 채팅 → 추론 항상 펼치기 ON / 채팅 표시: 전체**를 선택합니다. 기기별 설정이며 Windows Desktop에는 적용했습니다.
 6. 모바일 네트워크에서 Thinking·승인·중단·재접속과 AdGuard 병행을 확인합니다. VPN은 필요하지 않습니다.
 
-Pairing Link·daemon key·credential은 공개하거나 Git에 넣지 않습니다. TLS 검증을 끄지 않습니다. 자동 Reasoning Loop 감지·중단은 없으며 사용자가 Thinking을 보고 중단합니다.
+Pairing Link·daemon key·credential은 공개하거나 Git에 넣지 않습니다. TLS 검증을 끄지 않습니다. 압축 도구 실패는 3회 누적 시 자동 중단합니다. 일반 Reasoning Loop는 사용자가 Thinking을 보고 중단합니다.
 
 ## 포트와 Docker
 
@@ -99,6 +99,10 @@ Caddy 상태·검증·설정 reload는 `scripts/Paseo/manage-proxy.ps1 status|va
 ## 검증과 복구
 
 실제 결과는 [검증 기록](VERIFICATION.md), 도입 전 근거는 [기능 검토](ASSESSMENT.md)를 따릅니다.
+
+긴 작업에서 `compress` 실패가 반복될 때의 보호 동작과 재현 검사는 [압축 실패 보호](COMPRESSION_GUARD.md)를 따릅니다.
+실패 후 최신 `acp_status` 범위를 확인하도록 하며, 성공한 압축 없이 3회 실패하면 현재 작업만 중단합니다.
+기존 nudge 제한과 최근 대화 보호는 유지합니다. 새 사용자 메시지로 다시 요청할 수 있습니다.
 
 문제 시 `run-paseo.ps1 stop`으로 Native Paseo만 종료합니다. Relay까지 중지하려면 Paseo Compose의 `stop`을 사용합니다. Caddy 설정 복구는 현재 Paseo 경로를 기준으로 수행하며, 초기 백업 `data/Paseo/backups/initial/Caddyfile`은 제거된 Remote Pi Relay를 참조하므로 그대로 적용하지 않습니다. Production 인증서 volume·network·Caddy는 보존합니다.
 
