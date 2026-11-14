@@ -13,5 +13,14 @@
 		}
 	}
 
-	reverse_proxy relay:3000
+	handle /ws {
+		reverse_proxy paseo-relay:4000
+	}
+	handle /paseo-health {
+		rewrite * /health
+		reverse_proxy paseo-relay:4000
+	}
+	handle {
+		reverse_proxy relay:3000
+	}
 }

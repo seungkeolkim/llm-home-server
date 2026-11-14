@@ -1,0 +1,7 @@
+{
+  "listen_host": "127.0.0.1",
+  "listen_port": 6767,
+  "approval_mode": "manual",
+  "relay_endpoint": "azzi-home.duckdns.org:38789",
+  "desktop_executable": "data/Paseo/desktop/0.15.4/Paseo.exe"
+}

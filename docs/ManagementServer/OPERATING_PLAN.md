@@ -440,6 +440,15 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - 11-14 KST에 기존 Desktop 세션의 Native Pi 연결 및 Pi 재시작 후 같은 identity·room의 재연결을 확인했습니다. 현재 Desktop이 QR custom message를 표시하지 않아 공식 pairing URI를 로컬 PNG로도 저장하는 wrapper 호환 처리를 추가했습니다. PNG·수동 입력 code는 Git·Docker·Caddy에 공개하지 않으며 만료 cleanup을 검증했습니다. Android는 공식 pairing 코드를 수동 입력한 뒤 사용자가 정상 작동을 확인했습니다. 원격 세션 제어·승인 및 모바일 재접속의 개별 시나리오는 별도 검증 항목입니다.
 - 자세한 구성, TLS 차단 근거와 Android 후속 절차는 [Remote Pi 운영 안내](../RemotePi/README.md), 실제 검증 범위는 [검증 기록](../RemotePi/VERIFICATION.md)을 따릅니다.
 
+## 구현 기록: Windows Native Paseo와 자체 Relay
+
+- 2026-11-14 사용자 요청으로 Paseo CLI·Windows Desktop 0.15.4를 `data/Paseo/`에 격리 설치하고 loopback 6767에 Native daemon을 준비했습니다. 바탕화면 Paseo 켜기·끄기와 `run-paseo.ps1`로 제어합니다. 기존 Home Server Pi 버튼·LLM·LibreChat 제어는 유지하며 Paseo 카드는 추가하지 않았습니다.
+- 공식 Paseo Relay를 별도 Compose로 기존 internal network에 배치했습니다. Host publish 없이 Caddy `/ws`로 전달하고 기존 외부 38789·인증서용 443과 TLS-ALPN-01 정책을 공유합니다. 추가 공유기·Firewall port는 없습니다. 기존 Remote Pi 경로·container·identity를 유지합니다.
+- 기존 Pi resource를 읽어 별도 설정·Session·BILI state로 분리했습니다. 공통 turn lock·기존 승인 Extension·gateway single-request guard를 유지하고 Metadata 입력을 LLM 전에 차단합니다. Pi 1.5 handled 응답은 별도 launcher에서 Paseo 호환 필드로 보완하며 공식 source는 수정하지 않습니다.
+- Strata QFN IQ3_XXS·Context 262144·Parallel 1의 실제 응답·Thinking·승인·거절·생성 중 취소·E2EE 재접속을 확인했습니다. Paseo 종료 후 Relay 유지와 보호 설정 8개 Hash 불변을 확인했습니다. 사용자가 설치한 Android 실기기 Pairing·AdGuard 병행·재접속은 후속 확인입니다.
+- [Paseo 운영 안내](../Paseo/README.md)와 [검증 기록](../Paseo/VERIFICATION.md)을 따릅니다. 기존 Pi Desktop의 실행 중 프로세스에 attach하는 구성은 아닙니다.
+- 이후 사용자가 Android 연결 성공을 확인하고 Paseo 자동승인을 요청했습니다. Paseo 전용 `approval_mode: auto`로 write·edit·bash·powershell 확인을 생략하며 기존 Pi·Remote Pi 수동 승인·공통 turn lock·Subagent 차단은 유지합니다. 실제 Relay에서 승인 응답 없이 write·edit·bash 완료를 확인하고 idle Paseo 세션 3개에 reload를 적용했습니다. daemon·Relay·LLM 재기동과 Session 파일 삭제는 없습니다.
+
 ## 관련 문서
 
 - [PolyStrata 추가 지원 handoff](POLYSTRATA_HANDOFF.md): context 압축 후 현재 profile·운영 경계·주요 commit·검증과 후속 작업을 이어가는 메모입니다.

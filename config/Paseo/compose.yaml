@@ -1,0 +1,26 @@
+name: llm-home-server-paseo
+
+services:
+  paseo-relay:
+    image: ghcr.io/getpaseo/paseo-relay@sha256:9d5c65d4bd2c42a85a5c8ab329f801a7db41dc4c153ca7bfba6c0857b3cdad0d
+    restart: unless-stopped
+    expose:
+      - "4000"
+    networks:
+      - relay-internal
+    healthcheck:
+      test: [CMD, /app/bin/paseo_relay, rpc, "{:ok, socket} = :gen_tcp.connect({127,0,0,1}, 4000, [:binary, active: false], 2000); :ok = :gen_tcp.send(socket, \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\"); {:ok, response} = :gen_tcp.recv(socket, 0, 2000); :gen_tcp.close(socket); true = String.starts_with?(response, \"HTTP/1.1 200\")"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  relay-internal:
+    external: true
+    name: llm-home-server-remote-pi_relay-internal

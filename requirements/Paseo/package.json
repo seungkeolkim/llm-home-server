@@ -1,0 +1,9 @@
+{
+  "name": "llm-home-server-paseo-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Isolated Windows Native Paseo runtime",
+  "dependencies": {
+    "@getpaseo/cli": "0.15.4"
+  }
+}

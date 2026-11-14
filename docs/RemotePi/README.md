@@ -1,5 +1,7 @@
 # Android Remote Pi 운영 안내
 
+2026-11-14에 별도 Paseo Relay를 추가하여 Caddy `/ws`·`/paseo-health` 경로를 공유합니다. 기존 Remote Pi `/`·`/health` 경로와 container는 유지합니다. Paseo의 별도 Compose·Native daemon·Android 연결은 [Paseo 운영 안내](../Paseo/README.md)를 따릅니다.
+
 확인일: 2026-11-14 KST (구축 시작 11-13). Branch: `feature/pi-local-coding-agent`. **Self-hosted HTTPS/WSS Relay와 Windows Native Pi 연결은 정상이며 Android 수동 코드 pairing 성공을 사용자가 확인했습니다.**
 
 ## 현재 상태
