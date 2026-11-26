@@ -89,6 +89,18 @@ class ProfileRuntime:
             connection.settimeout(0.3)
             return connection.connect_ex(("127.0.0.1", 8488)) == 0
 
+    def process_tree_owns_listener(self, process):
+        """Windows venv launcher의 자식도 포함해 소유한 API listener인지 확인합니다."""
+        try:
+            candidates = [process, *process.children(recursive=True)]
+            for candidate in candidates:
+                for connection in candidate.net_connections(kind="tcp"):
+                    if connection.status == psutil.CONN_LISTEN and connection.laddr.port == 8488:
+                        return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            return False
+        return False
+
     def pin_operation(self, action, profile_identifier=None, revision=None):
         """접수 시 대상 profile·revision 또는 실제 종료 instance를 고정합니다."""
         instance = self.read_instance()
@@ -137,6 +149,14 @@ class ProfileRuntime:
                 status = await query_status(client, configuration)
                 if status["engine_instance_id"] != instance.get("engine_instance_id"):
                     raise ValueError("Infernix 실행 instance가 변경됐습니다.")
+            elif profile["engine"] == "basalt":
+                from .basalt import query_status
+                process = self.owned_process(instance)
+                if not process or not self.process_tree_owns_listener(process):
+                    raise ValueError("Basalt listener가 소유 process tree에 없습니다.")
+                status = await query_status(client, configuration)
+                if status["engine_instance_id"] != instance.get("engine_instance_id"):
+                    raise ValueError("Basalt 실행 instance가 변경됐습니다.")
             else:
                 response = await client.get("http://127.0.0.1:8488/v1/status", timeout=3,
                                             headers={"Authorization": "Bearer " + configuration["api_key"]})
@@ -215,6 +235,12 @@ class ProfileRuntime:
                 marker = str(resolve_workspace_path(configuration["native_configuration_path"])).replace("\\", "/").lower()
                 working_directory = Path(configuration["cwd"])
                 working_directory.mkdir(parents=True, exist_ok=True)
+            elif profile["engine"] == "basalt":
+                from .basalt import server_command
+                command = server_command(configuration)
+                marker = "scripts/basalt/serve_profile.py"
+                working_directory = Path(configuration["cwd"])
+                working_directory.mkdir(parents=True, exist_ok=True)
             else:
                 command = [str(WORKSPACE_DIRECTORY / ".venv/PolyStrata/Scripts/python.exe"), "-B",
                            str(WORKSPACE_DIRECTORY / "scripts/PolyStrata/serve_profile.py"),
@@ -228,6 +254,9 @@ class ProfileRuntime:
             environment.update(PYTHONDONTWRITEBYTECODE="1", PYTHONNOUSERSITE="1", PYTHONUTF8="1")
             environment.pop("PYTHONPATH", None)
             environment.pop("PYTHONHOME", None)
+            if profile["engine"] == "basalt":
+                from .basalt import runtime_environment
+                environment = runtime_environment(configuration)
             with log_path.open("ab") as log_stream:
                 spawned = subprocess.Popen(command, cwd=working_directory, env=environment,
                                            stdin=subprocess.DEVNULL, stdout=log_stream, stderr=subprocess.STDOUT,
@@ -241,6 +270,16 @@ class ProfileRuntime:
                 if not self.owned_process(instance):
                     raise RuntimeError("LLM process가 종료됐습니다. Engine 로그를 확인해 주세요.")
                 try:
+                    if profile["engine"] == "basalt":
+                        from .basalt import query_status_sync
+                        if self.process_tree_owns_listener(process):
+                            status = query_status_sync(client, configuration)
+                            if status["loaded"]:
+                                instance["engine_instance_id"] = status["engine_instance_id"]
+                                self.write_instance(instance)
+                                return instance
+                        time.sleep(1)
+                        continue
                     if profile["engine"] == "infernix":
                         from .infernix import query_status_sync
                         listener_owned = any(

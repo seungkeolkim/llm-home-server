@@ -19,7 +19,7 @@ class ProfileCatalog:
             identifier = profile["identifier"]
             if identifier in self.profiles:
                 raise ValueError("중복된 LLM profile입니다.")
-            if profile["engine"] not in {"strata", "polystrata", "infernix"}:
+            if profile["engine"] not in {"strata", "polystrata", "infernix", "basalt"}:
                 raise ValueError("지원하지 않는 Engine adapter입니다.")
             self.document["engines"][profile["engine"]]
             self.document["models"][profile["model"]]
@@ -61,6 +61,10 @@ class ProfileCatalog:
                         result["model_name"] = profile["model_name"]
                         percent = float(download_status.get("progress_percent", 0))
                         result["problem"] = f"Model·PLE·DFlash2 다운로드·검증 중 ({percent:.1f}%)"
+                    elif profile["engine"] == "basalt":
+                        result["model_name"] = profile["model_name"]
+                        percent = float(download_status.get("progress_percent", 0))
+                        result["problem"] = f"Basalt 모델 다운로드·검증 중 ({percent:.1f}%)"
                     return result
             configuration = self.native_configuration(profile)
             result["model_name"] = configuration["model_name"]
@@ -77,6 +81,13 @@ class ProfileCatalog:
                 from .infernix import preparation_problem
                 if configuration["model_name"] != profile["model_name"]:
                     raise ValueError("Infernix 고정 Model ID가 다릅니다.")
+                problem = preparation_problem(configuration, profile["download_status_path"])
+                if problem:
+                    result.update(state=problem[0], problem=problem[1])
+            elif profile["engine"] == "basalt":
+                from .basalt import preparation_problem
+                if configuration["model_name"] != profile["model_name"]:
+                    raise ValueError("Basalt 고정 Model ID가 다릅니다.")
                 problem = preparation_problem(configuration, profile["download_status_path"])
                 if problem:
                     result.update(state=problem[0], problem=problem[1])

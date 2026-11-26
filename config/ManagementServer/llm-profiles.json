@@ -1,5 +1,5 @@
 {
-  "engines": {"strata": "Strata", "polystrata": "PolyStrata", "infernix": "Infernix"},
+  "engines": {"strata": "Strata", "polystrata": "PolyStrata", "infernix": "Infernix", "basalt": "Basalt"},
   "models": {
     "qwen-flash-next": {"label": "Qwen3.8 Flash-Next", "context_tokens": 262144},
     "qwen36-moe": {"label": "Qwen3.6 35B A3B MoE", "context_tokens": 153600},

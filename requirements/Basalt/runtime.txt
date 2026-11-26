@@ -1,0 +1,12 @@
+# Basalt v0.5.7 공식 requirements와 Windows 전용 CUDA 13 runtime입니다.
+numpy==2.5.3
+jinja2==3.1.6
+markupsafe==3.0.3
+regex==2026.9.10
+pyyaml==6.0.3
+tqdm==4.70.1
+pillow==12.3.0
+pypdf==7.0.1
+psutil==7.2.2
+nvidia-cublas==13.0.2.14
+nvidia-cuda-runtime==13.0.96

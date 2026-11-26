@@ -1,6 +1,6 @@
 # 운영 의도와 관리 서버 구성 계획
 
-작성 기준: 2026-10-21. 현재 구현 대조 갱신: 2026-11-14.
+작성 기준: 2026-10-21. 현재 구현 대조 갱신: 2026-11-26.
 
 이 문서는 사용자가 설명한 운영 의도와 현재 구조 검토에서 나온 제안을 정리합니다.
 새 대화나 후속 구현에서 운영 목적과 환경 분리 원칙을 이어가기 위한 기준 문서입니다.
@@ -53,7 +53,7 @@
 | ComfyUI | 8188에 직접 연결해 실행·대기 queue 조회, 모델·cache unload 요청. Queue 취소·삭제·interrupt는 제공하지 않음 |
 | Comfy Home Server | 8388은 바로가기만 제공하며 코드·설정·실행 상태를 변경하지 않음 |
 
-현재 LLM ON/OFF는 선택한 Strata·PolyStrata·Infernix profile의 전체 서비스 start/stop입니다. 별도 model·KV unload/offload와 영상·채팅 모드 전환은 후속 범위입니다.
+현재 LLM ON/OFF는 선택한 Strata·PolyStrata·Infernix·Basalt profile의 전체 서비스 start/stop입니다. 별도 model·KV unload/offload와 영상·채팅 모드 전환은 후속 범위입니다.
 2026-10-22에 고정 catalog와 Engine·model 선택 UI, PolyStrata Qwen3.6 adapter를 구현했습니다.
 Engine·model 선택 기동의 확정 방향과 단계는 아래 「LLM Engine·model 선택 기동 설계」를 따릅니다.
 리소스 카드는 CPU → RAM → GPU → VRAM 순서의 동일한 크기로 표시합니다.
@@ -411,6 +411,15 @@ MongoDB named volume과 기존 `C:\Strata-data`는 이 tree 밖에서 별도로 
 - 긴 입력 후속 관측: 이전 Strata 128K·8K 원문을 그대로 보냈으나 각각 약 20 ms·2 ms에 KV 자원 부족의 HTTP 503으로 거부됐습니다. 처리된 Prefill tokens는 0이며 실행 중 요청은 남지 않았습니다. 현재 Context 상한·health ready와 실제 물리 KV admission 가능 여부를 구분합니다. Expert cache가 0 frames인 실행 조건을 유지했으며 실제 처리량·TTFT는 측정하지 못했습니다. 상세는 [Prefill 관측 기록](../Infernix/PREFILL_OBSERVATION_2026-11-05.md)을 따릅니다.
 - 이후 사용자가 Comfy 메모리를 수동 반환하고 GPU 여유분을 2 GiB로 요청했습니다. Infernix local 설정·template의 `--vram-headroom-mib`와 관리 catalog의 표시·resource budget을 2048 MiB로 바꾸고 기존 소유 instance만 종료·재기동했습니다. Context 262144·INT8 KV·동시 요청 1·Vision RAM offload·RAM 여유 8192 MiB는 유지했습니다. 재기동 로그에서 Expert cache 2530 frames (6.5 GiB), Prefill chunk 10624 (Context 증가 시 5248)를 확인했습니다. Warmup 후 실제 GPU 여유는 약 1354 MiB여서 headroom 설정값과 실제 여유를 구분합니다.
 - 2 GiB headroom 재기동 후 같은 128K 원문은 HTTP 200으로 admission됐습니다. 입력 131051 tokens, Prefill 46.860초·2796.63 tok/s, TTFT 47.119초였고 첫 생성 delta를 받은 47.12초에 stream을 닫았습니다. Native `cancelled`·출력 3 tokens와 48.15초의 running·waiting 0을 확인했습니다. 관측 최소 가용 RAM은 약 4.66 GiB였습니다. Comfy GPU 메모리 반환도 함께 반영되어 headroom 단독 A/B로 해석하지 않습니다. [실행·측정 기록](../Infernix/PREFILL_HEADROOM_2G_2026-11-05.md)을 참고하세요.
+
+## Basalt Engine 보존 상태
+
+- 공식 Windows `v0.5.7` Engine, `.venv/Basalt/`의 Python·CUDA dependency와 공통 profile adapter를 보존합니다.
+- 현재 Basalt에 등록된 model profile과 LibreChat model 항목은 없습니다. Engine은 종료 상태입니다.
+- 향후 모델을 테스트할 때 model 파일·검증 receipt·local 설정·catalog와 LibreChat 등록을 새로 준비합니다.
+- Engine 준비 도구는 기본적으로 특정 모델을 다운로드하거나 설정하지 않습니다. 서비스 기동도 별도 명령입니다.
+- 공통 API는 기존 `0.0.0.0:8488`과 공통 API key를 사용합니다. 시스템 CUDA·driver·전역 PATH는 변경하지 않습니다.
+- 설치 경계와 명령은 [Basalt 운영 안내](../Basalt/README.md)를 따릅니다.
 
 ## 준비 기록: Qwen3.6 Q4_K_M 다운로드
 

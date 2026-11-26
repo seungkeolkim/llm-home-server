@@ -118,6 +118,8 @@ Thinking에도 output token 예산이 사용됩니다. Loop 검사는 모든 반
 PolyStrata 두 profile은 공식 일반 thinking sampling을 설정하지만 LibreChat에서 직접 지정한 sampling 값이 우선합니다.
 
 고정 model을 추가하면 관리 catalog, Engine local 설정, LibreChat YAML의 model 목록·tokenConfig·modelSpecs를 함께 맞춥니다.
+
+Basalt는 Engine 설치만 보존하며 현재 LibreChat model 목록·tokenConfig·modelSpecs에는 등록하지 않습니다.
 Template을 바꾸어도 기존 local YAML에는 자동 반영되지 않습니다. YAML만 수정한 뒤에는 LibreChat container만 재시작합니다.
 Infernix는 [전용 등록 helper](../../scripts/Infernix/configure_librechat.py)로 template·기존 local YAML에 고정 Model ID·Context를 추가합니다. Local YAML은 먼저 백업하며 기존 모델·공통 endpoint·대화는 보존합니다. 2026-11-05에 LibreChat 앱 Container를 재시작하여 인증된 `/api/config`·`/api/models`에서 등록을 확인하고 실제 대화에서 `INFERNIX_LIBRECHAT_READY` 응답을 검증했습니다. 증거는 `runtime/LibreChat/diagnostics/verification-infernix-chat.json`에 있습니다. Infernix는 Vision RAM offload를 사용하며 weights는 system RAM, 이미지 encoding은 GPU에서 처리합니다. CPU-only Vision은 지원하지 않습니다. Thinking 반복 처리는 native `--reasoning-loop conclude`를 사용합니다.
 
