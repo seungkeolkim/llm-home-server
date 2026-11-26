@@ -14,7 +14,10 @@ import time
 
 
 RUNNER_ROOT = Path(__file__).resolve().parents[2]
-SOURCE_ROOT = RUNNER_ROOT / "external_repo" / "Strata"
+SOURCE_REPOSITORY_ROOT = RUNNER_ROOT / "external_repo" / "Strata"
+SOURCE_ROOT = SOURCE_REPOSITORY_ROOT / "terminal"
+if not SOURCE_ROOT.is_dir():
+    SOURCE_ROOT = SOURCE_REPOSITORY_ROOT
 CONFIGURATION_ROOT = RUNNER_ROOT / "config" / "Strata"
 RUNTIME_ROOT = RUNNER_ROOT / "runtime" / "Strata"
 LOCAL_CONFIGURATION = CONFIGURATION_ROOT / "strata.local.json"

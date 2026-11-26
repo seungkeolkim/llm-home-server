@@ -2,6 +2,11 @@
 
 2026-10-22 `migration/polystrata`에서 기존 Strata + Qwen Flash-Next를 유지하고 PolyStrata + Qwen3.6을 추가했습니다.
 공식 source는 `external_repo/PolyStrata`의 clean clone이며 실행·설치 산출물을 넣지 않습니다.
+2026-11-26에 source를 `v0.2.20-poly.5`, Windows CUDA 13 Engine을 해당 release의 prebuilt로 갱신했습니다.
+Python source는 이제 `external_repo/PolyStrata/terminal/`에 있으며 외부 wrapper가 이전 구조도 지원합니다.
+Model·Context·KV·MTP·reserve·tail skip·Sampling 설정을 유지했습니다.
+과거 속도 기록과 공통 8K·32K·128K 입력·decode 비교 결과는
+[2026-11-26 Engine 비교](../ManagementServer/ENGINE_COMPARISON_2026-11-26.md)에 기록합니다.
 
 ## Unsloth 실행 설정
 
@@ -10,7 +15,7 @@
 | Model | Unsloth Qwen3.6-35B-A3B-MTP-GGUF `UD-Q4_K_M` |
 | API model ID | `qwen3.6-35b-a3b-ud-q4_k_m` |
 | Profile | `polystrata-qwen36-q4km` |
-| Engine | 공식 `v0.1.45-poly.2` Windows CUDA 13 prebuilt `strata-poly.exe` |
+| Engine | 공식 `v0.2.20-poly.5` Windows CUDA 13 prebuilt `strata-poly.exe` (`BUILD.json` 0.1.66) |
 | API | `0.0.0.0:8488`, 기존 Strata·LibreChat과 같은 API key |
 | Context | 153,600 tokens (150 Ki tokens) |
 | KV | `q8_0`, `--kv-whole`로 최대 context를 Load 시 미리 할당 |
@@ -65,7 +70,7 @@ Thinking 예산과 output 상한은 이번 변경에서 추가하지 않았습�
 ```
 
 - Dependency: `.venv/PolyStrata`, 고정 목록 `requirements/PolyStrata/requirements.lock.txt`.
-- Engine: `C:/Strata-data/components/PolyStrata/v0.1.45-poly.2`.
+- Engine: `C:/Strata-data/components/PolyStrata/v0.2.20-poly.5`.
 - Weights·projector: `C:/Strata-data/models/qwen36-UD-Q4_K_M`.
 - Tokenizer: `C:/Strata-data/packs/qwen36-ud-q4_k_m/tokenizer`.
 - 실제 설정: `config/PolyStrata/qwen36.local.json` (Git 제외). Template의 API key는 준비 단계에서 기존 Strata key로 대체합니다. 기존 local 파일을 덮어쓰지 않습니다.
@@ -88,7 +93,7 @@ Strata는 보호된 process의 command line을 읽는 대신 native ownership RP
 ## LibreChat 연결
 
 LibreChat의 기존 endpoint 식별자 `Strata`를 유지해 저장된 대화를 보존합니다.
-UI에는 `Strata · Qwen Flash-Next`, `PolyStrata · Qwen3.6 MoE`, `PolyStrata · Qwen3.6 Hauhau` 고정 항목이 표시되며 context는 모두 153,600입니다.
+UI에는 `Strata · Qwen Flash-Next`, `PolyStrata · Qwen3.6 MoE`, `PolyStrata · Qwen3.6 Hauhau` 고정 항목이 표시됩니다. Strata context는 262,144, PolyStrata 두 profile은 153,600입니다.
 Model 목록은 Engine 실행 여부에 따라 자동 변경하지 않습니다. 관리 화면에서 실제 실행한 model을 LibreChat에서도 선택합니다.
 Title은 `current_model`, summarization은 model override를 생략해 현재 대화의 model을 사용합니다.
 

@@ -12,8 +12,9 @@ import requests
 
 
 WORKSPACE_DIRECTORY = Path(__file__).resolve().parents[2]
-ENGINE_URL = "https://github.com/VecSzn/PolyStrata/releases/download/v0.1.45-poly.2/strata-poly-windows-x64-4fa9bedab2538cec.zip"
-ENGINE_SHA256 = "839a2c3f72e2aaa48ba650666639b17afe630cc8c18ab30392b90a7b974d8c5a"
+ENGINE_RELEASE = "v0.2.20-poly.5"
+ENGINE_URL = "https://github.com/simplexai-labs/PolyStrata/releases/download/v0.2.20-poly.5/strata-poly-windows-x64-adf95bbb55348db7.zip"
+ENGINE_SHA256 = "e019563d6945737b75228b6e04d5cde5a33730c7ebfbd791a0d8f368688f5724"
 PROJECTOR_URL = "https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/resolve/5bc3e238d916f48a861bac2f8a1990a0e9b7e98d/mmproj-F16.gguf"
 PROJECTOR_SHA256 = "71f3cbc1f7cc0f30d09d41cfa924c0060827ebc33bf15ace7e86661e856f0160"
 
@@ -45,9 +46,9 @@ def main():
     data_directory = Path(environment["data_directory"])
     downloads = WORKSPACE_DIRECTORY / "runtime/PolyStrata/downloads"
     downloads.mkdir(parents=True, exist_ok=True)
-    engine_archive = downloads / "engine.zip"
+    engine_archive = downloads / f"engine-{ENGINE_RELEASE}.zip"
     verify_download(engine_archive, ENGINE_URL, ENGINE_SHA256)
-    engine_directory = data_directory / "components/PolyStrata/v0.1.45-poly.2"
+    engine_directory = data_directory / "components/PolyStrata" / ENGINE_RELEASE
     engine_directory.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(engine_archive) as archive:
         for member in archive.infolist():
@@ -65,7 +66,7 @@ def main():
     model_path = model_directory / "Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"
     if model_path.stat().st_size != 22663387424:
         raise ValueError("완료된 UD-Q4_K_M weights가 필요합니다.")
-    tokenizer_command = [sys.executable, "-B", str(WORKSPACE_DIRECTORY / "external_repo/PolyStrata/tools/strata_tokenizer.py"),
+    tokenizer_command = [sys.executable, "-B", str(WORKSPACE_DIRECTORY / "external_repo/PolyStrata/terminal/tools/strata_tokenizer.py"),
                          "--gguf", str(model_path), "--out", str(data_directory / "packs/qwen36-ud-q4_k_m"), "--check"]
     subprocess.run(tokenizer_command, check=True)
     for directory in ("runtime/PolyStrata/working", "runtime/PolyStrata/logs"):

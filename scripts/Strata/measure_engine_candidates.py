@@ -19,7 +19,10 @@ SCRIPT_DIRECTORY = Path(__file__).resolve().parent
 WORKSPACE_DIRECTORY = SCRIPT_DIRECTORY.parents[1]
 sys.path.insert(0, str(SCRIPT_DIRECTORY))
 sys.path.insert(0, str(WORKSPACE_DIRECTORY))
-sys.path.insert(0, str(WORKSPACE_DIRECTORY / "external_repo/Strata"))
+SOURCE_DIRECTORY = WORKSPACE_DIRECTORY / "external_repo/Strata/terminal"
+if not SOURCE_DIRECTORY.is_dir():
+    SOURCE_DIRECTORY = WORKSPACE_DIRECTORY / "external_repo/Strata"
+sys.path.insert(0, str(SOURCE_DIRECTORY))
 
 from measure_api_baseline import BaselineMeasurement
 from optimize_api_profile import (DEFAULT_OUTPUT_DIRECTORY, TASKS, atomic_json, check_fixed_configuration,
@@ -243,7 +246,7 @@ def measure_trial(output_directory: Path, identifier: str, settings: dict, reque
                          "STRATA_NO_ACQUIRE": "1", "STRATA_REQUIRE_SIGNED_COMPONENTS": "1",
                          "STRATA_COMPONENTS_DIR": "C:/Strata-data/components",
                          "STRATA_PROFILE_DIR": str(WORKSPACE_DIRECTORY / "config/Strata/profiles")}
-    worker_session = WorkerSession(base_config=base, python=sys.executable, serve_dir=WORKSPACE_DIRECTORY / "external_repo/Strata",
+    worker_session = WorkerSession(base_config=base, python=sys.executable, serve_dir=SOURCE_DIRECTORY,
                                    workdir=trial_directory / ("worker-" + attempt_name), extra_env=extra_environment,
                                    log=lambda message: print(message, flush=True))
     record_progress(output_directory, "trial_started", stage="restart-screen", status="running", current_trial=identifier,

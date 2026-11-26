@@ -12,7 +12,9 @@ import urllib.request
 
 
 WORKSPACE_DIRECTORY = Path(__file__).resolve().parents[2]
-SOURCE_DIRECTORY = WORKSPACE_DIRECTORY / "external_repo/Strata"
+SOURCE_DIRECTORY = WORKSPACE_DIRECTORY / "external_repo/Strata/terminal"
+if not SOURCE_DIRECTORY.is_dir():
+    SOURCE_DIRECTORY = WORKSPACE_DIRECTORY / "external_repo/Strata"
 sys.path.insert(0, str(SOURCE_DIRECTORY))
 entrypoint_specification = importlib.util.spec_from_file_location(
     "strata_profile_entrypoint", WORKSPACE_DIRECTORY / "scripts/Strata/strata_entrypoint.py")

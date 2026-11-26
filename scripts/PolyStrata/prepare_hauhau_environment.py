@@ -34,7 +34,7 @@ def main():
     require_verified_download(downloads_directory / "hauhau-ttq-q4km-mtp/mtp/status.json")
     require_verified_download(downloads_directory / "hauhau-projector/status.json")
     tokenizer_command = [
-        sys.executable, "-B", str(WORKSPACE_DIRECTORY / "external_repo/PolyStrata/tools/strata_tokenizer.py"),
+        sys.executable, "-B", str(WORKSPACE_DIRECTORY / "external_repo/PolyStrata/terminal/tools/strata_tokenizer.py"),
         "--gguf", str(model_path), "--out", str(data_directory / "packs/qwen36-hauhau-ttq-q4_k_m"), "--check",
     ]
     subprocess.run(tokenizer_command, check=True)

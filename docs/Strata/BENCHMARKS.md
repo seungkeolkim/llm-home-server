@@ -1,6 +1,12 @@
 # Strata 성능 기록과 테스트 재사용
 
-## 현재 결론과 기록
+2026-11-26에 Strata `v0.2.22` / Engine `0.1.69`, PolyStrata `v0.2.20-poly.5`로 갱신하고
+기존 설정·원본 입력을 유지해 비교했습니다. Infernix도 현재 설정으로 같은 입력을 측정했습니다.
+Strata의 prefill은 약 3~9% 빨라졌지만 decode 중앙값은 87.3 → 65.5 tok/s로 낮아졌습니다.
+구버전 재측정·Engine tuning은 하지 않았습니다. 전체 수치와 cache·RAM 조건의 제한은
+[2026-11-26 Engine 비교](../ManagementServer/ENGINE_COMPARISON_2026-11-26.md)를 따릅니다.
+
+## 2026-11-03 최적화 기준과 기록
 
 IQ3_XXS는 Context 262144 / reserve 8192MiB / MTP on을 유지하며,
 layer-major prefill의 residual을 pinned RAM, super-chunk를 16384로 설정합니다.

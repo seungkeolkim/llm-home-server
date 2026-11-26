@@ -6,7 +6,10 @@ from types import SimpleNamespace
 
 
 WORKSPACE_DIRECTORY = Path(__file__).resolve().parents[2]
-SOURCE_DIRECTORY = WORKSPACE_DIRECTORY / "external_repo/Strata"
+SOURCE_REPOSITORY_DIRECTORY = WORKSPACE_DIRECTORY / "external_repo/Strata"
+SOURCE_DIRECTORY = SOURCE_REPOSITORY_DIRECTORY / "terminal"
+if not SOURCE_DIRECTORY.is_dir():
+    SOURCE_DIRECTORY = SOURCE_REPOSITORY_DIRECTORY
 ENTRYPOINT_PATH = Path(__file__).resolve()
 
 
@@ -22,6 +25,15 @@ def install_request_policy(server_module):
     if getattr(server_module, "_llm_home_policy_installed", False):
         return
     original_handler_factory = server_module.make_handler
+    original_model_check = getattr(server_module.Service, "check_model", None)
+
+    if original_model_check is not None:
+        def check_profile_model(service, request):
+            """최신 upstream의 사전 model 검사에서도 기존 HTTP 400 정책을 보존합니다."""
+            validate_requested_model(service, request)
+            return original_model_check(service, request)
+
+        server_module.Service.check_model = check_profile_model
 
     def make_profile_handler(service):
         """Upstream의 인증·오류 응답·lifecycle을 보존한 handler를 만듭니다."""

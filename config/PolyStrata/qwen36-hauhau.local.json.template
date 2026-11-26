@@ -1,5 +1,5 @@
 {
-  "exe": "__DATA__/components/PolyStrata/v0.1.45-poly.2/strata-poly.exe",
+  "exe": "__DATA__/components/PolyStrata/v0.2.20-poly.5/strata-poly.exe",
   "args": [
     "--model", "__DATA__/models/qwen36-HauhauCS-TTQ-Q4_K_M/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-TTQ-4.90bpw-Q4_K_M.gguf",
     "--draft-model", "__DATA__/models/qwen36-HauhauCS-TTQ-Q4_K_M/Qwen3.6-35B-A3B-MTP-ONLY-Q4_K_M-shared.gguf",
@@ -22,7 +22,7 @@
   "reasoning_loop_recovery": "stop",
   "switch_on_request": false, "idle_unload_s": 0,
   "vision": {
-    "exe": "__DATA__/components/PolyStrata/v0.1.45-poly.2/strata-vision.exe",
+    "exe": "__DATA__/components/PolyStrata/v0.2.20-poly.5/strata-vision.exe",
     "mmproj": "__DATA__/models/qwen36-HauhauCS-TTQ-Q4_K_M/mmproj-Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-f16.gguf",
     "model": "__DATA__/models/qwen36-HauhauCS-TTQ-Q4_K_M/Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-TTQ-4.90bpw-Q4_K_M.gguf",
     "gpu": false, "threads": 8, "max_tokens": 300

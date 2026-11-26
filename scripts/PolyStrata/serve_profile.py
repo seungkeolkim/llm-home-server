@@ -6,7 +6,10 @@ import sys
 
 def main():
     """다른 model 요청과 model 전환 제어를 거부하고 공식 serving을 실행합니다."""
-    source_directory = Path(__file__).resolve().parents[2] / "external_repo/PolyStrata"
+    repository_directory = Path(__file__).resolve().parents[2] / "external_repo/PolyStrata"
+    source_directory = repository_directory / "terminal"
+    if not source_directory.is_dir():
+        source_directory = repository_directory
     sys.path.insert(0, str(source_directory))
     from serve import server
 
@@ -38,8 +41,15 @@ def main():
             raise ValueError("요청한 model이 실행 중이 아닙니다. LLM Home Server에서 선택해 주세요.")
         return None
 
+    def check_profile_model(service, request):
+        """최신 upstream의 사전 검사에서도 미실행 model의 HTTP 400 정책을 유지합니다."""
+        requested_model(service, request.get("model"))
+        return None
+
     server.make_handler = make_profile_handler
     server.Service.requested_model = requested_model
+    if hasattr(server.Service, "check_model"):
+        server.Service.check_model = check_profile_model
     return server.main()
 
 

@@ -110,6 +110,14 @@ RAM·VRAM의 주요 수치는 `사용량 / 전체 용량 GiB`이며 사용률과
 최종 측정·웹 재기동 후 재현·재사용 도구·원본 입력·private 복구 설정과 임시 산출물 정리 범위는
 [Strata 테스트 안내](../Strata/BENCHMARKS.md)에 모았습니다. 운영 서비스와 기존 구버전 복구 백업은 유지합니다.
 
+2026-11-26 사용자 요청으로 Strata `v0.2.22` / Engine `0.1.69`, PolyStrata `v0.2.20-poly.5` / Engine `0.1.66`으로
+갱신했습니다. 원래 실행 설정·모델·원본 프롬프트를 유지했고 구버전 재측정·Engine tuning은 하지 않았습니다.
+Source의 `terminal/` 이동에 외부 wrapper·requirements·tokenizer 경로와 설치 executable 경로만 맞췄습니다.
+Infernix는 기존 release·설정으로 공통 입력을 추가 측정했습니다. Strata의 prefill 개선과 decode 감소,
+260K cache 복원 시 재처리, PolyStrata 두 모델·Infernix의 속도와 RAM 조건은
+[동일 입력 Engine 비교](ENGINE_COMPARISON_2026-11-26.md)에 기록합니다.
+측정 후 LLM은 작업 전의 OFF 상태로 복원했으며 관리 서버·LibreChat·MongoDB와 다른 시스템 설정은 유지합니다.
+
 ### LibreChat의 고정 model 목록과 context
 
 - 지원할 model과 model별 context를 정적으로 등록합니다. 현재 Strata QFN은 262,144 tokens, PolyStrata Qwen3.6 두 profile은 153,600 tokens이며 LibreChat과 Engine 양쪽 설정에 반영합니다. 앞서 작성한 32K 검토 초안은 현재 실행 설정이 아닙니다.
